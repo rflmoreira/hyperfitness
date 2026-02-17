@@ -1,0 +1,410 @@
+<!-- Mini Player Bar - acima do footer, visível durante reprodução -->
+<div id="mini-player-bar" class="player-bar">
+  <div class="controls-inner">
+    <div class="controls-group">
+      <button id="mini-shuffle" aria-label="Aleatório"><i class="ph-bold ph-shuffle"></i></button>
+      <button id="mini-prev" class="prev-btn" aria-label="Anterior"><i class="ph-bold ph-skip-back"></i></button>
+      <button id="mini-play" class="play-btn" aria-label="Play/Pause"><i class="ph-bold ph-pause"></i></button>
+      <button id="mini-next" class="next-btn" aria-label="Próxima"><i class="ph-bold ph-skip-forward"></i></button>
+      <button id="mini-repeat" aria-label="Repetir"><i class="ph-bold ph-repeat"></i></button>
+    </div>
+    <div class="controls-center">
+      <div id="mini-cover" class="cover-container">
+        <img src="src/imagens/genericCover.png" alt="Capa">
+        <div class="ctrl-wave-overlay">
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+        </div>
+      </div>
+      <div class="info-container">
+        <p id="mini-title" class="track-title">Nenhuma música</p>
+        <p id="mini-artist" class="track-artist">—</p>
+      </div>
+    </div>
+    <div class="controls-group volume-control">
+      <div class="volume-slider-container" id="mini-volume-slider-container">
+        <input type="range" id="mini-volume" class="volume-slider" min="0" max="100" value="100" aria-label="Volume">
+        <button id="mini-volume-btn" aria-label="Volume"><i class="ph-bold ph-speaker-high"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Input de arquivo CSV -->
+<input id="csv-file-input" type="file" accept=".csv" class="hidden" aria-label="Selecionar arquivo CSV">
+
+<!-- Player Modal -->
+<div id="player-modal" class="fixed inset-0 z-50 flex flex-col opacity-0 invisible transition-opacity duration-300"
+  style="background: rgba(25, 25, 25, 0.55); backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); pointer-events: none;"
+  role="dialog" aria-label="Player de música" tabindex="-1" inert>
+
+  <!-- Header com logo -->
+  <header class="flex-shrink-0 flex items-center justify-center px-4 sm:px-6 mt-8 md:mt-6 mb-0 opacity-90">
+    <img src="src/imagens/HyperMusic.png" alt="HyperMusic" class="h-[96px] md:h-[108px] w-auto object-contain ml-3" style="filter: drop-shadow(0 4px 8px rgba(180, 180, 180, 0.4));">
+  </header>
+
+  <!-- TELA 0: Descobrir -->
+  <div id="player-screen-discover" class="player-screen flex-1 flex flex-col overflow-hidden relative">
+    <div id="discover-container" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-24 scrollbar-hide" style="margin-top: -60px; padding-top: 60px; -webkit-mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 60px, rgba(0,0,0,0.5) 110px, rgba(0,0,0,0.85) 160px, black 210px); mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 60px, rgba(0,0,0,0.5) 110px, rgba(0,0,0,0.85) 160px, black 210px);">
+      
+      <!-- Playlists em Destaque -->
+      <div class="py-4 pt-8">
+        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <i class="ph-bold ph-lightning text-orange-500/80"></i>
+          Playlists em Destaque
+        </h3>
+        <div id="special-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <!-- Playlists em destaque serão renderizadas aqui -->
+        </div>
+      </div>
+
+      <!-- Playlists -->
+      <div class="py-4">
+        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <i class="ph-bold ph-music-notes text-orange-500/80"></i>
+          Playlists
+        </h3>
+        <div id="featured-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <!-- Playlists serão renderizadas aqui -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 1: Playlist (Biblioteca) -->
+  <div id="player-screen-playlist" class="player-screen flex-1 flex flex-col hidden relative" style="overflow: visible !important; touch-action: pan-y;">
+    <!-- Playlists (scroll horizontal) -->
+    <div id="playlists-container" class="absolute top-0 left-0 right-0 flex gap-4 px-4 sm:px-6 pt-14 md:pt-28 pb-20 scrollbar-hide h-[300px] md:h-[380px]" style="opacity: 0.85; overflow-x: auto !important; overflow-y: visible !important; touch-action: pan-x pan-y pinch-zoom; z-index: 20;">
+    </div>
+    <!-- Tracks (scroll vertical) -->
+    <div id="tracks-container" class="absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[60px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 10;">
+      <!-- Empty state com passo a passo de importação -->
+      <div id="playlist-empty-state"
+        class="absolute inset-0 flex flex-col items-center justify-center text-center px-3" style="padding-bottom: 180px;">
+        <i class="ph-bold ph-music-notes-plus text-3xl sm:text-4xl text-white/20 mb-2 sm:mb-3"></i>
+        <p class="text-white/60 text-xs sm:text-sm font-medium mb-3 sm:mb-4">Importe sua biblioteca de músicas</p>
+
+        <div class="w-full max-w-xs space-y-2 text-left mb-3 sm:mb-4">
+          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">1</div>
+            <div class="text-[11px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0.5">Selecionar a fonte</p>
+              <p>Abra o <a class="underline text-orange-400 hover:text-orange-300" href="https://www.tunemymusic.com/pt/transfer" target="_blank" rel="noopener noreferrer">TuneMyMusic</a>, escolha o serviço de origem e faça login</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">2</div>
+            <div class="text-[11px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0.5">Exportar CSV</p>
+              <p>Escolha "Exportar para ARQUIVO" e selecione o formato CSV</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">3</div>
+            <div class="text-[11px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0.5">Importar no HyperFitness</p>
+              <p>Clique no botão abaixo e selecione o arquivo .csv</p>
+            </div>
+          </div>
+        </div>
+
+        <button id="empty-state-import-btn"
+          class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full text-xs sm:text-sm shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5">
+          <i class="ph-bold ph-file-csv text-base"></i>
+          Importar CSV
+        </button>
+        <p class="text-white/40 text-[9px] sm:text-[10px] mt-2">Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 2: YouTube Search -->
+  <div id="player-screen-youtube" class="player-screen flex-1 flex flex-col min-h-0 hidden relative" style="overflow: visible !important;">
+    <!-- Resultados da busca -->
+    <div id="youtube-search-content" class="absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[60px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
+      <div id="youtube-empty-state" class="flex flex-col items-center justify-center min-h-full text-center px-4 sm:px-6" style="padding-bottom: 100px; padding-top: 40px;">
+        <i class="ph-bold ph-youtube-logo text-5xl text-white/20 mb-4"></i>
+        <p class="text-white/50 text-sm">Busque músicas e playlists diretamente no YouTube</p>
+        <p class="text-white/30 text-xs mt-1">Os resultados aparecerão aqui</p>
+      </div>
+      <div id="manual-search-results" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Botões do Player (fora do modal para blur funcionar) -->
+<div id="player-header-buttons" class="fixed top-0 left-0 right-0 z-[52] flex items-center justify-between px-4 sm:px-6 pt-4 opacity-0 invisible transition-opacity duration-300" style="pointer-events: none;">
+  <div class="flex items-center gap-2">
+    <button id="reimport-btn"
+      class="h-10 px-4 rounded-full flex items-center justify-center gap-2 text-white/70 hover:text-white transition-all duration-300"
+      style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
+      aria-label="Importar CSV">
+      <i class="ph-bold ph-file-csv text-base" aria-hidden="true"></i>
+      <span class="text-[11px] font-medium whitespace-nowrap">Importar CSV</span>
+    </button>
+    <button id="import-info-btn"
+      class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300"
+      style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
+      aria-label="Informações sobre importação">
+      <i class="ph-bold ph-info text-base" aria-hidden="true"></i>
+    </button>
+  </div>
+  <button id="close-player-btn"
+    class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:rotate-90"
+    style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
+    aria-label="Fechar player">
+    <i class="ph-bold ph-x text-base" aria-hidden="true"></i>
+  </button>
+</div>
+
+<!-- Player Feedback -->
+<div id="player-feedback" class="player-bar fixed opacity-0 invisible pointer-events-none transition-all duration-300" style="pointer-events: none;">
+  <div class="flex items-center gap-3">
+    <div id="player-feedback-icon" class="w-11 h-11 rounded-xl flex items-center justify-center hidden">
+      <i class="text-xl"></i>
+    </div>
+    <img id="player-feedback-cover" src="" alt="" class="object-cover hidden" />
+    <div class="flex-1 min-w-0">
+      <div id="player-feedback-title" class="truncate hidden"></div>
+      <span id="player-feedback-text"></span>
+    </div>
+    <button id="player-feedback-close" class="w-7 h-7 rounded-full flex items-center justify-center text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition-all shrink-0">
+      <i class="ph-bold ph-x text-sm"></i>
+    </button>
+  </div>
+</div>
+
+
+<!-- Modal de Informações sobre Importação -->
+<div id="import-info-modal"
+  class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[60] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
+  role="dialog" aria-labelledby="import-info-title" style="pointer-events: none;">
+  <div class="relative w-full max-w-md rounded-2xl overflow-hidden transform scale-95 transition-all duration-300"
+    style="background: linear-gradient(135deg, rgba(30, 28, 40, 0.98) 0%, rgba(20, 18, 28, 0.99) 100%);">
+    
+    <!-- Header -->
+    <div class="p-6 pb-4 border-b border-white/10">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+            <i class="ph-bold ph-info text-purple-400 text-xl"></i>
+          </div>
+          <h2 id="import-info-title" class="text-xl font-bold text-white">Como Importar</h2>
+        </div>
+        <button id="close-import-info-modal" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all">
+          <i class="ph-bold ph-x text-base"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-hide">
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span class="text-purple-400 text-xs font-bold">1</span>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-sm mb-1">Exportar sua Playlist</h3>
+            <p class="text-white/70 text-sm leading-relaxed">Acesse <a href="https://www.tunemymusic.com" target="_blank" class="text-purple-400 hover:text-purple-300 underline">TuneMyMusic</a> e exporte sua playlist para CSV.</p>
+            <p class="text-white/50 text-xs mt-1">Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span class="text-purple-400 text-xs font-bold">2</span>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-sm mb-1">Importar no HyperMusic</h3>
+            <p class="text-white/70 text-sm leading-relaxed">Clique no botão "Importar CSV" e selecione o arquivo CSV baixado.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span class="text-purple-400 text-xs font-bold">3</span>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-sm mb-1">Aproveite!</h3>
+            <p class="text-white/70 text-sm leading-relaxed">Suas músicas serão importadas e você poderá ouvi-las diretamente no player.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+        <div class="flex items-start gap-2">
+          <i class="ph-bold ph-lightbulb text-purple-400 text-lg flex-shrink-0 mt-0.5"></i>
+          <div>
+            <h4 class="text-purple-300 font-semibold text-sm mb-1">Dica</h4>
+            <p class="text-white/70 text-xs leading-relaxed">Você também pode importar playlists do YouTube pela aba "YouTube" no player!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Player Tabs (fora do modal para blur funcionar) -->
+<div id="player-tabs-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
+  <div class="tabs-container">
+    <button id="tab-discover" class="player-tab active">
+      <i class="ph-bold ph-compass"></i>
+      <span>Descobrir</span>
+    </button>
+    <button id="tab-playlist" class="player-tab">
+      <i class="ph-bold ph-playlist"></i>
+      <span>Biblioteca</span>
+    </button>
+    <button id="tab-youtube" class="player-tab">
+      <i class="ph-bold ph-youtube-logo"></i>
+      <span>YouTube</span>
+    </button>
+  </div>
+</div>
+
+<!-- YouTube Search Button (botão compacto) -->
+<div id="youtube-search-btn-container" class="fixed opacity-0 invisible" style="bottom: 112px; left: 50%; transform: translateX(-50%); z-index: 51; pointer-events: none;">
+  <button id="youtube-search-trigger" style="
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    background: rgba(25, 25, 25, 0.55);
+    backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+    -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 400;
+    font-family: inherit;
+    transition: background 0.2s ease, transform 0.15s ease;
+  ">
+    <i class="ph ph-magnifying-glass" style="font-size: 13px;"></i>
+    <span>Buscar</span>
+  </button>
+</div>
+
+<!-- YouTube Search Modal (overlay + barra centralizada) -->
+<div id="youtube-search-overlay" class="fixed inset-0 z-[60]" style="opacity: 0; visibility: hidden; pointer-events: none; background: rgba(0,0,0,0.5); backdrop-filter: none; -webkit-backdrop-filter: none; transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+
+<div id="youtube-search-bar-wrapper" class="fixed z-[61]" style="opacity: 0; visibility: hidden; pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: row; align-items: center; gap: 10px; width: calc(100% - 24px); max-width: 900px; transition: opacity 0.25s ease, visibility 0.25s ease;">
+  <button id="youtube-search-cancel" style="width: 46px; height: 46px; flex-shrink: 0; background: rgba(25, 25, 25, 0.55); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;">
+    <i class="ph-bold ph-x" style="color: rgba(255,255,255,0.7); font-size: 16px;"></i>
+  </button>
+  <div id="youtube-search-bar" style="flex: 1; height: 46px; padding: 0 18px; border-radius: 9999px; background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center;">
+    <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
+      <div class="relative flex-1" style="background: transparent;">
+        <input type="text" id="manual-search-input" placeholder="O que quer ouvir?" autocomplete="off"
+          class="w-full h-[26px] bg-transparent border-none py-0 pl-2 pr-4 text-sm text-white placeholder-white/35 focus:outline-none" style="background: transparent;" />
+      </div>
+      <div id="youtube-search-type-toggle" style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 3px; background: rgba(255,255,255,0.05); border-radius: 16px; flex-shrink: 0;">
+        <button id="search-type-tracks" class="search-type-btn active" style="padding: 5px 8px; border: none; border-radius: 12px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; background: rgba(255,122,31,0.8); color: white;">
+          <i class="ph-bold ph-music-notes"></i>
+        </button>
+        <button id="search-type-playlists" class="search-type-btn" style="padding: 5px 8px; border: none; border-radius: 12px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; background: transparent; color: rgba(255,255,255,0.5);">
+          <i class="ph-bold ph-playlist"></i>
+        </button>
+      </div>
+      <button id="manual-search-btn" style="width: 26px; height: 26px; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled>
+        <i class="ph-bold ph-magnifying-glass" style="color: rgba(255,255,255,0.5); font-size: 14px;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Player Controls Bar (fora do modal para blur funcionar) -->
+<div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
+  <div class="controls-inner">
+    <div class="controls-group">
+      <button id="ctrl-shuffle" aria-label="Aleatório"><i class="ph-bold ph-shuffle"></i></button>
+      <button id="ctrl-prev" class="prev-btn" aria-label="Anterior"><i class="ph-bold ph-skip-back"></i></button>
+      <button id="ctrl-play" class="play-btn" aria-label="Play/Pause"><i class="ph-bold ph-pause"></i></button>
+      <button id="ctrl-next" class="next-btn" aria-label="Próxima"><i class="ph-bold ph-skip-forward"></i></button>
+      <button id="ctrl-repeat" aria-label="Repetir"><i class="ph-bold ph-repeat"></i></button>
+    </div>
+    <div class="controls-center">
+      <div id="ctrl-cover" class="cover-container">
+        <img src="src/imagens/genericCover.png" alt="Capa">
+        <div class="ctrl-wave-overlay">
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+          <div class="ctrl-wave-bar"></div>
+        </div>
+      </div>
+      <div class="info-container">
+        <p id="ctrl-title" class="track-title">Nenhuma música</p>
+        <p id="ctrl-artist" class="track-artist">—</p>
+      </div>
+    </div>
+    <div class="controls-group volume-control">
+      <div class="volume-slider-container" id="volume-slider-container">
+        <input type="range" id="ctrl-volume" class="volume-slider" min="0" max="100" value="100" aria-label="Volume">
+        <button id="ctrl-volume-btn" aria-label="Volume"><i class="ph-bold ph-speaker-high"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de seleção de playlist para músicas do YouTube -->
+<div id="playlist-picker-modal"
+  class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[60] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
+  role="dialog" aria-labelledby="playlist-picker-title" inert style="pointer-events: none;">
+  <div id="playlist-picker-card"
+    class="relative w-full max-w-sm rounded-2xl overflow-hidden transform scale-95 transition-all duration-300"
+    style="background: linear-gradient(135deg, rgba(30, 28, 40, 0.98) 0%, rgba(20, 18, 28, 0.99) 100%);"
+    tabindex="-1">
+
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-white/10">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 id="playlist-picker-title" class="text-base font-bold text-white">Adicionar à playlist</h3>
+          <p id="playlist-picker-track" class="text-xs text-white/50 truncate mt-0.5 max-w-[250px]"></p>
+        </div>
+        <button id="close-playlist-picker-btn"
+          class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+          aria-label="Fechar">
+          <i class="ph-bold ph-x text-white/70 text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista de playlists -->
+    <div id="playlist-picker-list" class="max-h-64 overflow-y-auto p-2"></div>
+
+    <!-- Criar nova playlist -->
+    <div class="px-4 py-3 border-t border-white/10">
+      <div id="new-playlist-form" class="hidden">
+        <div class="flex items-center gap-2">
+          <input type="text" id="new-playlist-name" placeholder="Nome da nova playlist..."
+            class="flex-1 bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder-white/40 focus:outline-none focus:border-orange-500/50" />
+          <button id="confirm-new-playlist-btn"
+            class="px-3 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-sm font-medium text-white transition-colors">
+            Criar
+          </button>
+          <button id="cancel-new-playlist-btn"
+            class="px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white/70 transition-colors">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+      </div>
+      <button id="show-new-playlist-btn"
+        class="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-orange-400 hover:text-orange-300 transition-colors">
+        <i class="ph-bold ph-plus-circle"></i>
+        <span>Criar nova playlist</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio Player Element -->
+<audio id="audio-player" preload="none" aria-label="Player de áudio para música"></audio>

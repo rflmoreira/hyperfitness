@@ -1,0 +1,18 @@
+# IDE e editores
+.vscode/
+.idea/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local Netlify folder
+.netlify
