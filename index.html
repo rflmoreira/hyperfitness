@@ -108,10 +108,6 @@
       position: relative;
     }
 
-    body::before,
-    body::after {
-      content: none
-    }
 
     ::-webkit-scrollbar {
       width: 8px;
@@ -417,9 +413,6 @@
       pointer-events: auto
     }
 
-    .btn-theme-principal::before {
-      content: none;
-    }
 
     .btn-theme-principal:hover:not(:disabled) {
       transform: translateY(-2px) scale(1.04);
@@ -476,27 +469,6 @@
       transform: rotate(45deg)
     }
 
-    .quick-actions-toggle:focus-visible {
-      outline: 2px solid rgba(249, 226, 175, 0.85);
-      outline-offset: 4px
-    }
-
-    #quick-actions-toggle {
-      width: var(--quick-action-size);
-      height: var(--quick-action-size);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--btn-gap);
-      padding: var(--btn-padding);
-      font-size: var(--quick-actions-font-size);
-      line-height: 1;
-      letter-spacing: -0.01em;
-      text-align: center;
-      text-overflow: clip;
-      overflow: hidden
-    }
-
     .floating-actions-menu {
       position: absolute;
       bottom: calc(100% + 14px);
@@ -538,24 +510,17 @@
       isolation: isolate
     }
 
-    .floating-actions-menu button::before {
-      content: none;
-    }
 
     .floating-actions-menu button:hover {
       transform: translateY(-2px) scale(1.04);
       border-color: rgba(205, 214, 244, 0.35);
       background: rgba(255, 122, 31, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       box-shadow: 0 18px 36px -18px rgba(255, 122, 31, 0.65)
     }
 
     .floating-actions-menu button:active {
       transform: scale(0.95);
       background: rgba(255, 122, 31, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       box-shadow: 0 18px 36px -18px rgba(255, 122, 31, 0.65)
     }
 
@@ -563,8 +528,6 @@
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="warning"]) .floating-actions-menu button:hover,
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="warning"]) .floating-actions-menu button:active {
       background: rgba(243, 139, 168, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border-color: rgba(243, 139, 168, 0.38);
       box-shadow: 0 18px 36px -18px rgba(243, 139, 168, 0.75)
     }
@@ -572,8 +535,6 @@
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="success"]) .floating-actions-menu button:hover,
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="success"]) .floating-actions-menu button:active {
       background: rgba(166, 227, 161, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border-color: rgba(166, 227, 161, 0.38);
       box-shadow: 0 18px 36px -18px rgba(166, 227, 161, 0.75)
     }
@@ -581,8 +542,6 @@
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="amber"]) .floating-actions-menu button:hover,
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="amber"]) .floating-actions-menu button:active {
       background: rgba(249, 226, 175, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border-color: rgba(249, 226, 175, 0.38);
       box-shadow: 0 18px 36px -18px rgba(249, 226, 175, 0.75)
     }
@@ -590,8 +549,6 @@
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="neutral"]) .floating-actions-menu button:hover,
     .quick-actions-wrapper:has(#complete-workout-btn[data-variant="neutral"]) .floating-actions-menu button:active {
       background: rgba(108, 112, 134, 0.35);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border-color: rgba(108, 112, 134, 0.35);
       box-shadow: 0 18px 36px -18px rgba(108, 112, 134, 0.6)
     }
@@ -1562,9 +1519,6 @@
       box-shadow: var(--elev-1), var(--elev-2)
     }
 
-    .modal-card::before {
-      content: none;
-    }
 
     [data-theme="claro"] .modal-card {
       background: rgba(50, 52, 70, 0.35);
@@ -1581,38 +1535,6 @@
 
     [data-theme="claro"] .notepad-editor:empty::before {
       color: rgba(55, 60, 70, 0.65);
-    }
-
-    .notepad-format-btn {
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    .notepad-format-btn:hover {
-      background: rgba(40, 45, 55, 0.12);
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    .notepad-format-btn[data-active="true"] {
-      background: rgba(255, 160, 50, 0.2);
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    [data-theme="claro"] .notepad-format-btn {
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    [data-theme="claro"] .notepad-format-btn:hover {
-      background: rgba(40, 45, 55, 0.12);
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    [data-theme="claro"] .notepad-format-btn[data-active="true"] {
-      background: rgba(255, 160, 50, 0.2);
-      color: rgba(18, 20, 25, 1) !important;
-    }
-
-    .notepad-editor-toolbar {
-      border-bottom-color: rgba(0, 0, 0, 0.08);
     }
 
     [data-theme="claro"] .notepad-editor-toolbar {
@@ -1716,9 +1638,6 @@
       gap: 0.6rem
     }
 
-    .timer-control-btn::before {
-      content: none;
-    }
 
     .timer-control-btn.primary:hover:not(:disabled) {
       transform: translateY(-2px) scale(1.04);
@@ -1794,102 +1713,102 @@
       #edit-schedule-card {
         max-height: min(90dvh, 650px)
       }
+    }
+
+    .edit-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--primary-color);
+      text-transform: uppercase
+    }
+
+    .edit-header p {
+      color: rgba(226, 232, 240, 0.8);
+      font-size: 0.95rem;
+      margin-top: 0.35rem
+    }
+
+    #edit-schedule-list {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0
+    }
+
+    #edit-schedule-list::-webkit-scrollbar {
+      width: 6px
+    }
+
+    #edit-schedule-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px
+    }
+
+    @media (max-height:700px) {
+      #edit-schedule-card {
+        padding: 1.25rem 1.5rem 1.5rem
+      }
+
+      .edit-header {
+        margin-bottom: 1.25rem !important
+      }
 
       .edit-header h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        color: var(--primary-color);
-        text-transform: uppercase
+        font-size: 1.25rem
       }
 
       .edit-header p {
-        color: rgba(226, 232, 240, 0.8);
-        font-size: 0.95rem;
-        margin-top: 0.35rem
+        font-size: 0.85rem;
+        margin-top: 0.25rem
       }
 
       #edit-schedule-list {
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0
+        margin-bottom: 1.25rem !important
       }
 
-      #edit-schedule-list::-webkit-scrollbar {
-        width: 6px
+      #edit-schedule-card .flex.justify-end.gap-3 button {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem
       }
 
-      #edit-schedule-list::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 9999px
+      #edit-schedule-card .mt-8:last-child {
+        margin-top: 1rem !important
+      }
+    }
+
+    @media (max-height:600px) {
+      #edit-schedule-card {
+        padding: 1rem 1.25rem 1.25rem
       }
 
-      @media (max-height:700px) {
-        #edit-schedule-card {
-          padding: 1.25rem 1.5rem 1.5rem
-        }
-
-        .edit-header {
-          margin-bottom: 1.25rem !important
-        }
-
-        .edit-header h2 {
-          font-size: 1.25rem
-        }
-
-        .edit-header p {
-          font-size: 0.85rem;
-          margin-top: 0.25rem
-        }
-
-        #edit-schedule-list {
-          margin-bottom: 1.25rem !important
-        }
-
-        #edit-schedule-card .flex.justify-end.gap-3 button {
-          padding: 0.5rem 1rem;
-          font-size: 0.85rem
-        }
-
-        #edit-schedule-card .mt-8:last-child {
-          margin-top: 1rem !important
-        }
+      .edit-header {
+        margin-bottom: 1rem !important
       }
 
-      @media (max-height:600px) {
-        #edit-schedule-card {
-          padding: 1rem 1.25rem 1.25rem
-        }
+      .edit-header h2 {
+        font-size: 1.1rem
+      }
 
-        .edit-header {
-          margin-bottom: 1rem !important
-        }
+      .edit-header p {
+        font-size: 0.8rem
+      }
 
-        .edit-header h2 {
-          font-size: 1.1rem
-        }
+      #edit-schedule-list {
+        margin-bottom: 1rem !important
+      }
 
-        .edit-header p {
-          font-size: 0.8rem
-        }
+      #edit-schedule-card .flex.justify-end.gap-3 {
+        gap: 0.5rem !important
+      }
 
-        #edit-schedule-list {
-          margin-bottom: 1rem !important
-        }
+      #edit-schedule-card .flex.justify-end.gap-3 button {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.8rem
+      }
 
-        #edit-schedule-card .flex.justify-end.gap-3 {
-          gap: 0.5rem !important
-        }
-
-        #edit-schedule-card .flex.justify-end.gap-3 button {
-          padding: 0.45rem 0.9rem;
-          font-size: 0.8rem
-        }
-
-        #edit-schedule-card .text-\[0\.7rem\]:last-child {
-          margin-top: 0.75rem !important;
-          font-size: 0.65rem !important
-        }
+      #edit-schedule-card .text-\[0\.7rem\]:last-child {
+        margin-top: 0.75rem !important;
+        font-size: 0.65rem !important
       }
     }
 
@@ -2018,9 +1937,6 @@
       overflow: hidden
     }
 
-    .notepad-tab::before {
-      content: none;
-    }
 
     .notepad-tab:hover {
       border-color: rgba(205, 214, 244, 0.35);
@@ -2034,9 +1950,6 @@
       overflow: visible
     }
 
-    .notepad-tab.is-active::before {
-      content: none;
-    }
 
     .notepad-toolbar {
       display: flex;
@@ -4817,10 +4730,6 @@
     // Helpers utilitários
     // ======================
 
-    function buildNetlifyProxyUrl(url) {
-      return `/proxy?url=${encodeURIComponent(url)}`;
-    }
-
     // Remove wrappers de proxy para downloads diretos
     function unwrapProxiedUrl(url) {
       if (!url) return url;
@@ -4869,18 +4778,6 @@
       notepad: "hyperfitness-notepad"
     };
 
-    function ensureDevConsole() {
-      try {
-        if (typeof window === 'undefined') return;
-        if (window._erudaReady) return;
-
-        if (typeof eruda !== 'undefined' && eruda && typeof eruda.init === 'function') {
-          eruda.init();
-          eruda.show?.();
-          window._erudaReady = true;
-        }
-      } catch (_) { }
-    }
 
     // Helper para mostrar elemento com fade (global)
     function showElementWithFade(el) {
@@ -6962,9 +6859,6 @@
         return;
       }
       appInitialized = true;
-
-      // Inicializa Eruda apenas se já estiver presente (não interfere com extensões/inspector)
-      ensureDevConsole();
 
       Object.assign(DOM_ELEMENTS, {
         mainContent: document.getElementById("main-content"),
