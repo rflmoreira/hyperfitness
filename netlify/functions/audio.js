@@ -1,6 +1,6 @@
 // Netlify Function - Extrai áudio do YouTube via múltiplas APIs
 
-const RAPIDAPI_KEY = '2dc3f9865cmshd5ff3be5f0c40d7p13483fjsn6612a71d97f0';
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
