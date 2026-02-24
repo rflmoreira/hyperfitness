@@ -1394,7 +1394,8 @@
 }
 
 /* Radio disabled transport buttons */
-#player-controls-bar button.radio-disabled {
+#player-controls-bar button.radio-disabled,
+#mini-player-bar button.radio-disabled {
   pointer-events: none;
   cursor: default;
 }

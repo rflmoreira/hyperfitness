@@ -2560,19 +2560,58 @@ const MUSIC_PLAYER = (() => {
   function updateMiniPlayerBar() {
     const isModalOpen = ui.playerModal && !ui.playerModal.classList.contains('invisible');
     const { track, index } = getCurrentPlayingTrack();
-    const shouldShow = index >= 0 && track && !isModalOpen;
+    const isRadioActive = radioPlaying && radioCurrentChannel;
+    const shouldShow = (isRadioActive || (index >= 0 && track)) && !isModalOpen;
 
     ui.miniPlayerBar?.classList.toggle('visible', shouldShow);
 
     // Sincroniza estado de shuffle e repeat
     updateShuffleRepeatButtons();
 
-    updatePlayerBarInfo({
-      playBtn: ui.miniPlay,
-      titleEl: ui.miniTitle,
-      artistEl: ui.miniArtist,
-      coverEl: ui.miniCover
-    }, track);
+    // Desativa/ativa botões de transporte no mini-player
+    [ui.miniShuffle, ui.miniPrev, ui.miniNext, ui.miniRepeat].forEach(btn => {
+      if (!btn) return;
+      btn.disabled = isRadioActive;
+      btn.classList.toggle('radio-disabled', isRadioActive);
+    });
+
+    if (isRadioActive) {
+      // Mostra info da rádio
+      const playIcon = ui.miniPlay?.querySelector('i');
+      if (playIcon) playIcon.className = 'ph-bold ph-stop';
+
+      if (ui.miniTitle) ui.miniTitle.textContent = radioCurrentChannel.name;
+      if (ui.miniArtist) ui.miniArtist.textContent = 'SUNSHINE LIVE · Ao Vivo';
+
+      const coverImg = ui.miniCover?.querySelector('img');
+      if (coverImg) coverImg.style.display = 'none';
+
+      let radioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
+      if (!radioOverlay && ui.miniCover) {
+        radioOverlay = document.createElement('div');
+        radioOverlay.className = 'radio-cover-icon';
+        radioOverlay.innerHTML = `<i class="ph-fill ph-radio"></i>`;
+        ui.miniCover.appendChild(radioOverlay);
+      }
+      if (radioOverlay) {
+        radioOverlay.style.display = 'flex';
+        radioOverlay.style.setProperty('--accent', radioCurrentChannel.color);
+      }
+      ui.miniCover?.classList.add('playing');
+    } else {
+      // Restaura cover normal
+      const coverImg = ui.miniCover?.querySelector('img');
+      if (coverImg) coverImg.style.display = '';
+      const radioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
+      if (radioOverlay) radioOverlay.style.display = 'none';
+
+      updatePlayerBarInfo({
+        playBtn: ui.miniPlay,
+        titleEl: ui.miniTitle,
+        artistEl: ui.miniArtist,
+        coverEl: ui.miniCover
+      }, track);
+    }
   }
 
   function switchPlayerTab(tab) {
@@ -7369,11 +7408,17 @@ const MUSIC_PLAYER = (() => {
     radioPlaying = false;
     updateRadioChannelUI();
 
-    // Restaura a imagem do cover
+    // Restaura a imagem do cover no controls bar
     const coverImg = ui.ctrlCover?.querySelector('img');
     if (coverImg) coverImg.style.display = '';
     const radioOverlay = ui.ctrlCover?.querySelector('.radio-cover-icon');
     if (radioOverlay) radioOverlay.style.display = 'none';
+
+    // Restaura a imagem do cover no mini-player
+    const miniCoverImg = ui.miniCover?.querySelector('img');
+    if (miniCoverImg) miniCoverImg.style.display = '';
+    const miniRadioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
+    if (miniRadioOverlay) miniRadioOverlay.style.display = 'none';
 
     updateRadioControlsBar();
   }
