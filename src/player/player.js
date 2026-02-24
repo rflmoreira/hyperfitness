@@ -2662,9 +2662,9 @@ const MUSIC_PLAYER = (() => {
             <div class="absolute top-2 right-2">
               <i class="ph-fill ph-lightning text-orange-500 text-lg drop-shadow-lg"></i>
             </div>
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="special-play-btn w-14 h-14 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                <i class="ph-fill ph-play text-2xl text-black ml-1"></i>
+            <div class="discover-play-wrapper">
+              <button class="special-play-btn discover-play-circle" style="--btn-color: #eab308;">
+                <i class="ph-fill ph-play discover-play-icon"></i>
               </button>
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-3">
@@ -2712,9 +2712,9 @@ const MUSIC_PLAYER = (() => {
                  class="w-full h-full object-cover"
                  onerror="this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="featured-play-btn w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                <i class="ph-fill ph-play text-2xl text-white ml-1"></i>
+            <div class="discover-play-wrapper">
+              <button class="featured-play-btn discover-play-circle" style="--btn-color: #f97316;">
+                <i class="ph-fill ph-play discover-play-icon"></i>
               </button>
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-3">

@@ -1180,6 +1180,56 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+/* Discover Play Button (shared by special & featured cards) */
+.discover-play-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.group:hover .discover-play-wrapper {
+  opacity: 1;
+}
+
+.discover-play-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--btn-color, #f97316) 50%, transparent);
+  backdrop-filter: blur(15px) saturate(200%);
+  -webkit-backdrop-filter: blur(15px) saturate(200%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 1px rgba(255, 255, 255, 0.15);
+  transform: scale(0.9);
+  transition: transform 0.2s ease, background 0.2s ease;
+  pointer-events: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.group:hover .discover-play-circle {
+  transform: scale(1);
+}
+
+.discover-play-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  line-height: 20px;
+  display: block;
+}
+
 /* Responsividade Extra Small */
 @media (max-width: 360px) {
   .track-item {
@@ -1321,13 +1371,15 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: none;
-  background: var(--btn-color, #3b82f6);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--btn-color, #3b82f6) 50%, transparent);
+  backdrop-filter: blur(15px) saturate(200%);
+  -webkit-backdrop-filter: blur(15px) saturate(200%);
   color: #fff;
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 1px rgba(255, 255, 255, 0.15);
   transform: scale(0.9);
   transition: transform 0.2s ease, background 0.2s ease;
   pointer-events: auto;
