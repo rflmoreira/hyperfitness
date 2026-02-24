@@ -7353,6 +7353,7 @@ const MUSIC_PLAYER = (() => {
                class="w-full h-full object-cover"
                onerror="if(this.src.indexOf('default.svg')===-1){this.src='src/imagens/radio/default.svg'}else{this.src='src/imagens/genericCover.png'}">
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          ${btnColor === 'purple' ? '<div class="absolute top-2 right-2 z-[2]"><i class="ph-fill ph-lightning text-orange-500 text-lg drop-shadow-lg"></i></div>' : ''}
           <div class="radio-card-darken"></div>
           <div class="radio-play-wrapper">
             <button class="radio-play-circle" type="button">
