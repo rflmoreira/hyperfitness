@@ -7440,8 +7440,9 @@ const MUSIC_PLAYER = (() => {
       const playIcon = ui.ctrlPlay?.querySelector('i');
       if (playIcon) playIcon.className = state.isPlaying ? 'ph-bold ph-pause' : 'ph-bold ph-play';
 
-      // Restaura info da música
+      // Restaura info da música e media session
       updateControlsBar();
+      updateMediaSession();
       return;
     }
 
@@ -7467,6 +7468,45 @@ const MUSIC_PLAYER = (() => {
 
     // Ativa animação de wave no cover
     ui.ctrlCover?.classList.add('playing');
+
+    // Atualiza Media Session com dados da rádio
+    updateRadioMediaSession();
+  }
+
+  function updateRadioMediaSession() {
+    if (!('mediaSession' in navigator) || !radioCurrentChannel) return;
+
+    const artwork = [];
+    if (radioCurrentChannel.cover) {
+      artwork.push({ src: radioCurrentChannel.cover, sizes: '512x512', type: 'image/jpeg' });
+    }
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: radioCurrentChannel.name,
+      artist: 'SUNSHINE LIVE · Ao Vivo',
+      album: radioCurrentChannel.desc || '',
+      artwork
+    });
+
+    navigator.mediaSession.playbackState = radioPlaying ? 'playing' : 'none';
+
+    // Para rádio: pause e stop ambos param a rádio
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (radioCurrentChannel && !radioPlaying) startRadio(radioCurrentChannel);
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (radioPlaying) stopRadio();
+    });
+
+    try {
+      navigator.mediaSession.setActionHandler('stop', () => {
+        if (radioPlaying) stopRadio();
+      });
+    } catch (e) {}
+
+    navigator.mediaSession.setActionHandler('previoustrack', null);
+    navigator.mediaSession.setActionHandler('nexttrack', null);
+    forceRemoveSeekHandlers();
   }
 
   // Sobrescreve o comportamento do play button quando rádio está ativa
