@@ -154,6 +154,11 @@ export const handler = async (event) => {
     return makeResponse(400, { error: 'Invalid or missing video ID' });
   }
 
+  if (!RAPIDAPI_KEY) {
+    console.error('[AUDIO] RAPIDAPI_KEY not configured');
+    return makeResponse(503, { error: 'Audio service not configured. Set RAPIDAPI_KEY environment variable.' });
+  }
+
   console.log(`[AUDIO] Fetching audio for: ${videoId}`);
 
   // Tenta cada API em sequência

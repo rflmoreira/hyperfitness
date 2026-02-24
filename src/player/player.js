@@ -907,9 +907,11 @@ const MUSIC_PLAYER = (() => {
     tabDiscover: null,
     tabPlaylist: null,
     tabYoutube: null,
+    tabRadio: null,
     screenDiscover: null,
     screenPlaylist: null,
     screenYoutube: null,
+    screenRadio: null,
     youtubeEmptyState: null,
     youtubeSearchContent: null,
     featuredPlaylistsGrid: null,
@@ -981,9 +983,11 @@ const MUSIC_PLAYER = (() => {
     ui.tabDiscover = document.getElementById('tab-discover');
     ui.tabPlaylist = document.getElementById('tab-playlist');
     ui.tabYoutube = document.getElementById('tab-youtube');
+    ui.tabRadio = document.getElementById('tab-radio');
     ui.screenDiscover = document.getElementById('player-screen-discover');
     ui.screenPlaylist = document.getElementById('player-screen-playlist');
     ui.screenYoutube = document.getElementById('player-screen-youtube');
+    ui.screenRadio = document.getElementById('player-screen-radio');
     ui.youtubeEmptyState = document.getElementById('youtube-empty-state');
     ui.youtubeSearchContent = document.getElementById('youtube-search-content');
     ui.featuredPlaylistsGrid = document.getElementById('featured-playlists-grid');
@@ -2110,6 +2114,7 @@ const MUSIC_PLAYER = (() => {
     ui.tabDiscover?.addEventListener('click', () => switchPlayerTab('discover'));
     ui.tabPlaylist?.addEventListener('click', () => switchPlayerTab('playlist'));
     ui.tabYoutube?.addEventListener('click', () => switchPlayerTab('youtube'));
+    ui.tabRadio?.addEventListener('click', () => switchPlayerTab('radio'));
 
     // Botão de busca do YouTube (abre a barra de busca)
     ui.youtubeSearchTrigger?.addEventListener('click', openYoutubeSearchBar);
@@ -2539,6 +2544,9 @@ const MUSIC_PLAYER = (() => {
   }
 
   function updateControlsBar() {
+    // Não sobrescreve se a rádio está tocando
+    if (radioPlaying && radioCurrentChannel) return;
+
     const { track } = getCurrentPlayingTrack();
     updatePlayerBarInfo({
       playBtn: ui.ctrlPlay,
@@ -2571,16 +2579,19 @@ const MUSIC_PLAYER = (() => {
     const isDiscover = tab === 'discover';
     const isPlaylist = tab === 'playlist';
     const isYoutube = tab === 'youtube';
+    const isRadio = tab === 'radio';
 
     // Atualiza tabs - apenas toggle da classe active
     ui.tabDiscover?.classList.toggle('active', isDiscover);
     ui.tabPlaylist?.classList.toggle('active', isPlaylist);
     ui.tabYoutube?.classList.toggle('active', isYoutube);
+    ui.tabRadio?.classList.toggle('active', isRadio);
 
     // Atualiza telas
     toggleScreen(ui.screenDiscover, isDiscover);
     toggleScreen(ui.screenPlaylist, isPlaylist);
     toggleScreen(ui.screenYoutube, isYoutube);
+    toggleScreen(ui.screenRadio, isRadio);
     
     // Sempre esconde a barra de busca ao trocar de aba
     hideElementWithFade(ui.youtubeSearchBarWrapper);
@@ -2840,6 +2851,9 @@ const MUSIC_PLAYER = (() => {
 
         // Salva ao fechar/recarregar a página
         window.addEventListener('beforeunload', saveAllData);
+
+        // Inicializa a rádio
+        initRadio();
 
         initCompleted = true;
       } catch (error) {
@@ -6974,6 +6988,9 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
+    // Para a rádio se estiver tocando
+    if (radioPlaying) stopRadio();
+
     // Cancela crossfade em andamento se o usuário trocar manualmente
     cancelCrossfade();
 
@@ -7135,6 +7152,9 @@ const MUSIC_PLAYER = (() => {
   }
 
   function togglePlayback() {
+    // Se a rádio está tocando, para a rádio
+    if (handleCtrlPlayForRadio()) return;
+
     // Se estiver reproduzindo no YouTube, controla o áudio normalmente
     if (isPlayingFromYouTube()) {
       if (audio.paused) {
@@ -7241,6 +7261,203 @@ const MUSIC_PLAYER = (() => {
         element.scrollLeft = scrollLeft - (walk * 1.5);
       }
     });
+  }
+
+  // === RÁDIO SUNSHINE LIVE — Multi-canal ===
+  const RADIO_CHANNELS = [
+    { id: 'live',      name: 'Sunshine Live',   desc: 'O principal canal eletrônico',         icon: 'ph-radio',           color: '#ff7a1f', url: 'https://stream.sunshine-live.de/live/mp3-128' },
+    { id: '80er',      name: '80s',             desc: 'Synthpop, New Wave & Italo Disco',     icon: 'ph-cassette-tape',   color: '#e879f9', url: 'https://stream.sunshine-live.de/80er/mp3-128' },
+    { id: '90er',      name: '90s',             desc: 'Eurodance, Trance & Rave clássico',    icon: 'ph-vinyl-record',    color: '#38bdf8', url: 'https://stream.sunshine-live.de/90er/mp3-128' },
+    { id: '2000er',    name: '2000s',           desc: 'Electro, Progressive & Minimal',       icon: 'ph-disc',            color: '#4ade80', url: 'https://stream.sunshine-live.de/2000er/mp3-128' },
+    { id: '2010er',    name: '2010s',           desc: 'EDM, Future Bass & Big Room',          icon: 'ph-waveform',        color: '#fb923c', url: 'https://stream.sunshine-live.de/2010er/mp3-128' },
+    { id: 'edm',       name: 'EDM',             desc: 'Electronic Dance Music mainstream',    icon: 'ph-lightning',       color: '#facc15', url: 'https://stream.sunshine-live.de/edm/mp3-128' },
+    { id: 'club',      name: 'Club',            desc: 'House & Tech House para a pista',      icon: 'ph-martini',         color: '#f472b6', url: 'https://stream.sunshine-live.de/club/mp3-128' },
+    { id: 'classics',  name: 'Classics',        desc: 'Os clássicos eternos da eletrônica',   icon: 'ph-star',            color: '#c084fc', url: 'https://stream.sunshine-live.de/classics/mp3-128' },
+    { id: 'dnb',       name: "Drum 'n' Bass",   desc: 'Breakbeats rápidos e graves pesados',  icon: 'ph-speaker-high',    color: '#f87171', url: 'https://stream.sunshine-live.de/dnb/mp3-128' },
+    { id: 'hardcore',  name: 'Hardcore',         desc: 'Gabber, Hardcore & Hardstyle',         icon: 'ph-fire',            color: '#ef4444', url: 'https://stream.sunshine-live.de/Hardcore/mp3-128' },
+    { id: 'hardtechno',name: 'Hardtechno',       desc: 'Techno pesado e industrial',           icon: 'ph-skull',           color: '#a3a3a3', url: 'https://stream.sunshine-live.de/Hardtechno/mp3-128' },
+    { id: 'melodicb',  name: 'Melodic Beats',   desc: 'Melodic Techno & Progressive',         icon: 'ph-music-notes',     color: '#67e8f9', url: 'https://stream.sunshine-live.de/MelodicB/mp3-128' },
+    { id: 'afrohouse', name: 'Afro House',      desc: 'Ritmos africanos e house orgânico',    icon: 'ph-globe',           color: '#a78bfa', url: 'https://stream.sunshine-live.de/afrohouse/mp3-128' },
+    { id: 'blue',      name: 'Blue',            desc: 'Chillout, Lounge & Ambient',           icon: 'ph-cloud',           color: '#60a5fa', url: 'https://stream.sunshine-live.de/Blue/mp3-128' },
+    { id: 'calmflow',  name: 'Calm Flow',       desc: 'Lo-fi, Downtempo & relaxamento',       icon: 'ph-leaf',            color: '#34d399', url: 'https://stream.sunshine-live.de/calmflow/mp3-128' },
+    { id: 'amsterdam', name: 'Bunker',          desc: 'Underground direto de Amsterdam',       icon: 'ph-warehouse',       color: '#fbbf24', url: 'https://stream.sunshine-live.de/amsterdam/mp3-128' },
+  ];
+
+  let radioAudio = null;
+  let radioPlaying = false;
+  let radioCurrentChannel = null;
+
+  function initRadio() {
+    radioAudio = document.getElementById('radio-audio-player');
+    if (!radioAudio) return;
+
+    const grid = document.getElementById('radio-channels-grid');
+    if (grid) renderRadioChannels(grid);
+
+    radioAudio.addEventListener('playing', () => {
+      radioPlaying = true;
+      updateRadioChannelUI();
+      updateRadioControlsBar();
+    });
+
+    radioAudio.addEventListener('pause', () => {
+      radioPlaying = false;
+      updateRadioChannelUI();
+      updateRadioControlsBar();
+    });
+
+    radioAudio.addEventListener('error', () => {
+      radioPlaying = false;
+      updateRadioChannelUI();
+      updateRadioControlsBar();
+    });
+  }
+
+  function renderRadioChannels(grid) {
+    grid.innerHTML = RADIO_CHANNELS.map(ch => `
+      <button class="radio-channel-card group" data-radio-id="${ch.id}" aria-label="Ouvir ${ch.name}">
+        <div class="radio-card-inner" style="--accent: ${ch.color};">
+          <div class="radio-card-icon">
+            <i class="ph-bold ${ch.icon}"></i>
+          </div>
+          <div class="radio-card-eq" style="display:none;">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <p class="radio-card-name">${ch.name}</p>
+          <p class="radio-card-desc">${ch.desc}</p>
+          <div class="radio-card-live" style="display:none;">
+            <span class="radio-card-dot"></span> AO VIVO
+          </div>
+        </div>
+      </button>
+    `).join('');
+
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.radio-channel-card');
+      if (!card) return;
+      const id = card.dataset.radioId;
+      const ch = RADIO_CHANNELS.find(c => c.id === id);
+      if (!ch) return;
+
+      if (radioPlaying && radioCurrentChannel?.id === id) {
+        stopRadio();
+      } else {
+        startRadio(ch);
+      }
+    });
+  }
+
+  function startRadio(channel) {
+    if (!radioAudio || !channel) return;
+    // Pausa o player de música se estiver tocando
+    if (state.isPlaying && audio) {
+      pausePlaying();
+      updateUiState();
+    }
+    radioCurrentChannel = channel;
+    radioAudio.src = channel.url + '?t=' + Date.now();
+    radioAudio.load();
+    radioAudio.play().catch(() => {});
+  }
+
+  function stopRadio() {
+    if (!radioAudio) return;
+    radioAudio.pause();
+    radioAudio.removeAttribute('src');
+    radioAudio.load();
+    radioCurrentChannel = null;
+    radioPlaying = false;
+    updateRadioChannelUI();
+
+    // Restaura a imagem do cover
+    const coverImg = ui.ctrlCover?.querySelector('img');
+    if (coverImg) coverImg.style.display = '';
+    const radioOverlay = ui.ctrlCover?.querySelector('.radio-cover-icon');
+    if (radioOverlay) radioOverlay.style.display = 'none';
+
+    updateRadioControlsBar();
+  }
+
+  function updateRadioChannelUI() {
+    const grid = document.getElementById('radio-channels-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.radio-channel-card').forEach(card => {
+      const isActive = radioPlaying && radioCurrentChannel?.id === card.dataset.radioId;
+      card.classList.toggle('active', isActive);
+      const eq = card.querySelector('.radio-card-eq');
+      const live = card.querySelector('.radio-card-live');
+      if (eq) eq.style.display = isActive ? 'flex' : 'none';
+      if (live) live.style.display = isActive ? 'flex' : 'none';
+    });
+  }
+
+  function setRadioTransportDisabled(disabled) {
+    [ui.ctrlShuffle, ui.ctrlPrev, ui.ctrlNext, ui.ctrlRepeat].forEach(btn => {
+      if (!btn) return;
+      btn.disabled = disabled;
+      btn.classList.toggle('radio-disabled', disabled);
+    });
+  }
+
+  function updateRadioControlsBar() {
+    if (!radioPlaying || !radioCurrentChannel) {
+      // Restaura o estado normal do controls bar
+      const controlsBar = document.getElementById('player-controls-bar');
+      if (controlsBar) controlsBar.classList.remove('radio-mode');
+
+      // Reativa botões de transporte
+      setRadioTransportDisabled(false);
+
+      // Restaura o play button para controle de música
+      const playIcon = ui.ctrlPlay?.querySelector('i');
+      if (playIcon) playIcon.className = state.isPlaying ? 'ph-bold ph-pause' : 'ph-bold ph-play';
+
+      // Restaura info da música
+      updateControlsBar();
+      return;
+    }
+
+    const controlsBar = document.getElementById('player-controls-bar');
+    if (controlsBar) controlsBar.classList.add('radio-mode');
+
+    // Desativa botões de transporte (visíveis porém inativos)
+    setRadioTransportDisabled(true);
+
+    // Play/pause controla a rádio
+    const playIcon = ui.ctrlPlay?.querySelector('i');
+    if (playIcon) playIcon.className = 'ph-bold ph-stop';
+
+    // Atualiza info com dados da rádio
+    if (ui.ctrlTitle) ui.ctrlTitle.textContent = radioCurrentChannel.name;
+    if (ui.ctrlArtist) ui.ctrlArtist.textContent = 'SUNSHINE LIVE · Ao Vivo';
+
+    // Atualiza capa com ícone do canal
+    const coverImg = ui.ctrlCover?.querySelector('img');
+    if (coverImg) coverImg.style.display = 'none';
+    // Adiciona ícone de rádio no cover se não existir
+    let radioOverlay = ui.ctrlCover?.querySelector('.radio-cover-icon');
+    if (!radioOverlay && ui.ctrlCover) {
+      radioOverlay = document.createElement('div');
+      radioOverlay.className = 'radio-cover-icon';
+      radioOverlay.innerHTML = `<i class="ph-fill ph-radio"></i>`;
+      ui.ctrlCover.appendChild(radioOverlay);
+    }
+    if (radioOverlay) {
+      radioOverlay.style.display = 'flex';
+      radioOverlay.style.setProperty('--accent', radioCurrentChannel.color);
+    }
+
+    // Ativa animação de wave no cover
+    ui.ctrlCover?.classList.add('playing');
+  }
+
+  // Sobrescreve o comportamento do play button quando rádio está ativa
+  function handleCtrlPlayForRadio() {
+    if (radioPlaying) {
+      stopRadio();
+      return true;
+    }
+    return false;
   }
 
   return { init, openModal, importPlaylistFromCsv };
