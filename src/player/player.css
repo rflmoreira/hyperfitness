@@ -1244,6 +1244,33 @@
   }
 }
 
+/* Radio Screen Background */
+#player-screen-radio {
+  position: relative;
+}
+
+#player-screen-radio::before {
+  content: '';
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 420px;
+  background: 
+    url('../imagens/radio/Sunshine_Live_90er_2024.jpg') center top / cover no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.4) 30%, black 50%, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.4) 30%, black 50%, black 65%, transparent 100%);
+}
+
+#player-screen-radio > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Radio Pulse Animation */
 @keyframes radioPulse {
   0% {
