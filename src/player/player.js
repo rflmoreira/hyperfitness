@@ -7304,23 +7304,22 @@ const MUSIC_PLAYER = (() => {
 
   // === RÁDIO SUNSHINE LIVE — Multi-canal ===
   const RADIO_CHANNELS = [
-    { id: 'live',      name: 'Sunshine Live',   desc: 'O principal canal eletrônico',         icon: 'ph-radio',           color: '#ff7a1f', url: 'https://stream.sunshine-live.de/live/mp3-128' },
-    { id: '80er',      name: '80s',             desc: 'Synthpop, New Wave & Italo Disco',     icon: 'ph-cassette-tape',   color: '#e879f9', url: 'https://stream.sunshine-live.de/80er/mp3-128' },
-    { id: '90er',      name: '90s',             desc: 'Eurodance, Trance & Rave clássico',    icon: 'ph-vinyl-record',    color: '#38bdf8', url: 'https://stream.sunshine-live.de/90er/mp3-128' },
-    { id: '2000er',    name: '2000s',           desc: 'Electro, Progressive & Minimal',       icon: 'ph-disc',            color: '#4ade80', url: 'https://stream.sunshine-live.de/2000er/mp3-128' },
-    { id: '2010er',    name: '2010s',           desc: 'EDM, Future Bass & Big Room',          icon: 'ph-waveform',        color: '#fb923c', url: 'https://stream.sunshine-live.de/2010er/mp3-128' },
-    { id: 'edm',       name: 'EDM',             desc: 'Electronic Dance Music mainstream',    icon: 'ph-lightning',       color: '#facc15', url: 'https://stream.sunshine-live.de/edm/mp3-128' },
-    { id: 'club',      name: 'Club',            desc: 'House & Tech House para a pista',      icon: 'ph-martini',         color: '#f472b6', url: 'https://stream.sunshine-live.de/club/mp3-128' },
-    { id: 'classics',  name: 'Classics',        desc: 'Os clássicos eternos da eletrônica',   icon: 'ph-star',            color: '#c084fc', url: 'https://stream.sunshine-live.de/classics/mp3-128' },
-    { id: 'dnb',       name: "Drum 'n' Bass",   desc: 'Breakbeats rápidos e graves pesados',  icon: 'ph-speaker-high',    color: '#f87171', url: 'https://stream.sunshine-live.de/dnb/mp3-128' },
-    { id: 'hardcore',  name: 'Hardcore',         desc: 'Gabber, Hardcore & Hardstyle',         icon: 'ph-fire',            color: '#ef4444', url: 'https://stream.sunshine-live.de/Hardcore/mp3-128' },
-    { id: 'hardtechno',name: 'Hardtechno',       desc: 'Techno pesado e industrial',           icon: 'ph-skull',           color: '#a3a3a3', url: 'https://stream.sunshine-live.de/Hardtechno/mp3-128' },
-    { id: 'melodicb',  name: 'Melodic Beats',   desc: 'Melodic Techno & Progressive',         icon: 'ph-music-notes',     color: '#67e8f9', url: 'https://stream.sunshine-live.de/MelodicB/mp3-128' },
-    { id: 'afrohouse', name: 'Afro House',      desc: 'Ritmos africanos e house orgânico',    icon: 'ph-globe',           color: '#a78bfa', url: 'https://stream.sunshine-live.de/afrohouse/mp3-128' },
-    { id: 'blue',      name: 'Blue',            desc: 'Chillout, Lounge & Ambient',           icon: 'ph-cloud',           color: '#60a5fa', url: 'https://stream.sunshine-live.de/Blue/mp3-128' },
-    { id: 'calmflow',  name: 'Calm Flow',       desc: 'Lo-fi, Downtempo & relaxamento',       icon: 'ph-leaf',            color: '#34d399', url: 'https://stream.sunshine-live.de/calmflow/mp3-128' },
-    { id: 'amsterdam', name: 'Bunker',          desc: 'Underground direto de Amsterdam',       icon: 'ph-warehouse',       color: '#fbbf24', url: 'https://stream.sunshine-live.de/amsterdam/mp3-128' },
+    { id: 'live',      name: 'Sunshine Live',   desc: 'O principal canal eletrônico',         icon: 'ph-radio',           color: '#ff7a1f', cover: 'src/imagens/radio/sunshine-sunshine-logo_bg.webp',       url: 'https://stream.sunshine-live.de/live/mp3-128', featured: true },
+    { id: '80er',      name: '80s',             desc: 'Synthpop, New Wave & Italo Disco',     icon: 'ph-cassette-tape',   color: '#e879f9', cover: 'src/imagens/radio/Die80er.webp',        url: 'https://stream.sunshine-live.de/80er/mp3-128' },
+    { id: '90er',      name: '90s',             desc: 'Eurodance, Trance & Rave clássico',    icon: 'ph-vinyl-record',    color: '#38bdf8', cover: 'src/imagens/radio/Die90er.webp',        url: 'https://stream.sunshine-live.de/90er/mp3-128' },
+    { id: '2000er',    name: '2000s',           desc: 'Electro, Progressive & Minimal',       icon: 'ph-disc',            color: '#4ade80', cover: 'src/imagens/radio/2000er.webp',      url: 'https://stream.sunshine-live.de/2000er/mp3-128' },
+    { id: '2010er',    name: '2010s',           desc: 'EDM, Future Bass & Big Room',          icon: 'ph-waveform',        color: '#fb923c', cover: 'src/imagens/radio/2010er.webp',      url: 'https://stream.sunshine-live.de/2010er/mp3-128' },
+    { id: 'edm',       name: 'EDM',             desc: 'Electronic Dance Music mainstream',    icon: 'ph-lightning',       color: '#facc15', cover: 'src/imagens/radio/edm_bg.webp',        url: 'https://stream.sunshine-live.de/edm/mp3-128', featured: true },
+    { id: 'classics',  name: 'Classics',        desc: 'Os clássicos eternos da eletrônica',   icon: 'ph-star',            color: '#c084fc', cover: 'src/imagens/radio/classics.webp',   url: 'https://stream.sunshine-live.de/classics/mp3-128', featured: true },
+    { id: 'dnb',       name: "Drum 'n' Bass",   desc: 'Breakbeats rápidos e graves pesados',  icon: 'ph-speaker-high',    color: '#f87171', cover: 'src/imagens/radio/drumnbass.webp',        url: 'https://stream.sunshine-live.de/dnb/mp3-128' },
+    { id: 'hardcore',  name: 'Hardcore',         desc: 'Gabber, Hardcore & Hardstyle',         icon: 'ph-fire',            color: '#ef4444', cover: 'src/imagens/radio/hardcore.webp',   url: 'https://stream.sunshine-live.de/Hardcore/mp3-128' },
+    { id: 'hardtechno',name: 'Hardtechno',       desc: 'Techno pesado e industrial',           icon: 'ph-skull',           color: '#a3a3a3', cover: 'src/imagens/radio/hardtechno.webp', url: 'https://stream.sunshine-live.de/Hardtechno/mp3-128' },
+    { id: 'melodicb',  name: 'Melodic Beats',   desc: 'Melodic Techno & Progressive',         icon: 'ph-music-notes',     color: '#67e8f9', cover: 'src/imagens/radio/melodic_beats.webp',    url: 'https://stream.sunshine-live.de/MelodicB/mp3-128', featured: true },
+    { id: 'blue',      name: 'Blue',            desc: 'Chillout, Lounge & Ambient',           icon: 'ph-cloud',           color: '#60a5fa', cover: 'src/imagens/radio/blue.webp',       url: 'https://stream.sunshine-live.de/Blue/mp3-128' },
+    { id: 'calmflow',  name: 'Calm Flow',       desc: 'Lo-fi, Downtempo & relaxamento',       icon: 'ph-leaf',            color: '#34d399', cover: 'src/imagens/radio/calmflow_plain_1.webp',   url: 'https://stream.sunshine-live.de/calmflow/mp3-128', featured: true },
   ];
+
+  const RADIO_DEFAULT_COVER = 'src/imagens/radio/default.svg';
 
   let radioAudio = null;
   let radioPlaying = false;
@@ -7331,7 +7330,9 @@ const MUSIC_PLAYER = (() => {
     if (!radioAudio) return;
 
     const grid = document.getElementById('radio-channels-grid');
-    if (grid) renderRadioChannels(grid);
+    const featuredRow = document.getElementById('radio-featured-row');
+    if (grid) renderRadioChannels(grid, RADIO_CHANNELS);
+    if (featuredRow) renderRadioChannels(featuredRow, RADIO_CHANNELS.filter(ch => ch.featured));
 
     radioAudio.addEventListener('playing', () => {
       radioPlaying = true;
@@ -7352,26 +7353,31 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  function renderRadioChannels(grid) {
-    grid.innerHTML = RADIO_CHANNELS.map(ch => `
-      <button class="radio-channel-card group" data-radio-id="${ch.id}" aria-label="Ouvir ${ch.name}">
-        <div class="radio-card-inner" style="--accent: ${ch.color};">
-          <div class="radio-card-icon">
-            <i class="ph-bold ${ch.icon}"></i>
-          </div>
+  function renderRadioChannels(container, channels) {
+    container.innerHTML = channels.map(ch => `
+      <div class="radio-channel-card group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
+           data-radio-id="${ch.id}" style="--accent: ${ch.color};">
+        <div class="relative aspect-square">
+          <img src="${ch.cover}" 
+               alt="${ch.name}" 
+               class="w-full h-full object-cover"
+               onerror="if(this.src.indexOf('default.svg')===-1){this.src='src/imagens/radio/default.svg'}else{this.src='src/imagens/genericCover.png'}">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
           <div class="radio-card-eq" style="display:none;">
             <span></span><span></span><span></span><span></span>
           </div>
-          <p class="radio-card-name">${ch.name}</p>
-          <p class="radio-card-desc">${ch.desc}</p>
           <div class="radio-card-live" style="display:none;">
             <span class="radio-card-dot"></span> AO VIVO
           </div>
+          <div class="absolute bottom-0 left-0 right-0 p-3">
+            <p class="text-white font-semibold text-sm truncate">${ch.name}</p>
+            <p class="text-white/50 text-xs truncate">${ch.desc}</p>
+          </div>
         </div>
-      </button>
+      </div>
     `).join('');
 
-    grid.addEventListener('click', (e) => {
+    container.addEventListener('click', (e) => {
       const card = e.target.closest('.radio-channel-card');
       if (!card) return;
       const id = card.dataset.radioId;
@@ -7424,9 +7430,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function updateRadioChannelUI() {
-    const grid = document.getElementById('radio-channels-grid');
-    if (!grid) return;
-    grid.querySelectorAll('.radio-channel-card').forEach(card => {
+    document.querySelectorAll('.radio-channel-card').forEach(card => {
       const isActive = radioPlaying && radioCurrentChannel?.id === card.dataset.radioId;
       card.classList.toggle('active', isActive);
       const eq = card.querySelector('.radio-card-eq');

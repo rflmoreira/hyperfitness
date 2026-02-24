@@ -137,11 +137,30 @@
 
   <!-- TELA 3: Rádio -->
   <div id="player-screen-radio" class="player-screen flex-1 flex flex-col min-h-0 hidden relative">
-    <!-- Grid de canais -->
     <div id="radio-channels-container" class="absolute inset-0 overflow-y-auto px-4 sm:px-6 pt-[60px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 30px, rgba(0,0,0,0.5) 80px, rgba(0,0,0,0.85) 130px, black 180px); mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 30px, rgba(0,0,0,0.5) 80px, rgba(0,0,0,0.85) 130px, black 180px);">
-      <div id="radio-channels-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-        <!-- Canais renderizados via JS -->
+
+      <!-- Destaques do Canal -->
+      <div class="py-4 pt-8">
+        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <i class="ph-bold ph-star text-orange-500/80"></i>
+          Destaques do Canal
+        </h3>
+        <div id="radio-featured-row" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4">
+          <!-- Destaques renderizados via JS -->
+        </div>
       </div>
+
+      <!-- Todos os Canais -->
+      <div class="py-4">
+        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <i class="ph-bold ph-radio text-orange-500/80"></i>
+          Todos os Canais
+        </h3>
+        <div id="radio-channels-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4">
+          <!-- Canais renderizados via JS -->
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
