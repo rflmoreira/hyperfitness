@@ -7391,6 +7391,7 @@ const MUSIC_PLAYER = (() => {
     }
     radioCurrentChannel = channel;
     radioLoading = true;
+    radioPlaying = false;
     updateRadioChannelUI();
     radioAudio.src = channel.url + '?t=' + Date.now();
     radioAudio.load();
