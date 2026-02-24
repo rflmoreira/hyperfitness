@@ -7308,6 +7308,7 @@ const MUSIC_PLAYER = (() => {
 
   let radioAudio = null;
   let radioPlaying = false;
+  let radioLoading = false;
   let radioCurrentChannel = null;
 
   function initRadio() {
@@ -7321,46 +7322,45 @@ const MUSIC_PLAYER = (() => {
 
     radioAudio.addEventListener('playing', () => {
       radioPlaying = true;
+      radioLoading = false;
       updateRadioChannelUI();
       updateRadioControlsBar();
     });
 
     radioAudio.addEventListener('pause', () => {
       radioPlaying = false;
+      radioLoading = false;
       updateRadioChannelUI();
       updateRadioControlsBar();
     });
 
     radioAudio.addEventListener('error', () => {
       radioPlaying = false;
+      radioLoading = false;
       updateRadioChannelUI();
       updateRadioControlsBar();
     });
   }
 
   function renderRadioChannels(container, channels, btnColor = 'blue') {
-    const bgClass = btnColor === 'purple' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600';
+    const btnHex = btnColor === 'purple' ? '#8b5cf6' : '#3b82f6';
     container.innerHTML = channels.map(ch => `
       <div class="radio-channel-card group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
-           data-radio-id="${ch.id}" style="--accent: ${ch.color};">
+           data-radio-id="${ch.id}" style="--accent: ${ch.color}; --btn-color: ${btnHex};">
         <div class="relative aspect-square">
           <img src="${ch.cover}" 
                alt="${ch.name}" 
                class="w-full h-full object-cover"
                onerror="if(this.src.indexOf('default.svg')===-1){this.src='src/imagens/radio/default.svg'}else{this.src='src/imagens/genericCover.png'}">
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-          <div class="radio-card-eq" style="display:none;">
-            <span></span><span></span><span></span><span></span>
-          </div>
-          <div class="radio-card-live" style="display:none;">
-            <span class="radio-card-dot"></span> AO VIVO
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button class="w-14 h-14 rounded-full ${bgClass} flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-              <i class="ph-fill ph-play text-2xl text-white ml-1"></i>
+          <div class="radio-card-darken"></div>
+          <div class="radio-play-wrapper">
+            <button class="radio-play-circle" type="button">
+              <i class="ph-fill ph-play radio-icon-play"></i>
+              <i class="ph ph-spinner radio-icon-spinner"></i>
             </button>
           </div>
-          <div class="absolute bottom-0 left-0 right-0 p-3">
+          <div class="radio-card-text absolute bottom-0 left-0 right-0 p-3">
             <p class="text-white font-semibold text-sm truncate">${ch.name}</p>
             <p class="text-white/50 text-xs truncate">${ch.desc}</p>
           </div>
@@ -7385,12 +7385,13 @@ const MUSIC_PLAYER = (() => {
 
   function startRadio(channel) {
     if (!radioAudio || !channel) return;
-    // Pausa o player de música se estiver tocando
     if (state.isPlaying && audio) {
       pausePlaying();
       updateUiState();
     }
     radioCurrentChannel = channel;
+    radioLoading = true;
+    updateRadioChannelUI();
     radioAudio.src = channel.url + '?t=' + Date.now();
     radioAudio.load();
     radioAudio.play().catch(() => {});
@@ -7403,18 +7404,16 @@ const MUSIC_PLAYER = (() => {
     radioAudio.load();
     radioCurrentChannel = null;
     radioPlaying = false;
+    radioLoading = false;
     updateRadioChannelUI();
     updateRadioControlsBar();
   }
 
   function updateRadioChannelUI() {
     document.querySelectorAll('.radio-channel-card').forEach(card => {
-      const isActive = radioPlaying && radioCurrentChannel?.id === card.dataset.radioId;
-      card.classList.toggle('active', isActive);
-      const eq = card.querySelector('.radio-card-eq');
-      const live = card.querySelector('.radio-card-live');
-      if (eq) eq.style.display = isActive ? 'flex' : 'none';
-      if (live) live.style.display = isActive ? 'flex' : 'none';
+      const isTarget = radioCurrentChannel?.id === card.dataset.radioId;
+      card.classList.toggle('active', radioPlaying && isTarget);
+      card.classList.toggle('loading', radioLoading && isTarget);
     });
   }
 

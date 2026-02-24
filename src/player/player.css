@@ -1300,56 +1300,106 @@
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-/* Radio Card EQ bars */
-.radio-card-eq {
+/* Radio Card Darkening Overlay */
+.radio-channel-card.active .radio-card-darken,
+.radio-channel-card:hover .radio-card-darken {
+  opacity: 1;
+}
+
+.radio-card-darken {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 16px;
-  z-index: 2;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.radio-card-eq span {
-  width: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: radioEq 0.8s ease-in-out infinite;
+/* Hide play button on active radio card */
+.radio-channel-card.active .radio-play-wrapper {
+  display: none !important;
 }
 
-.radio-card-eq span:nth-child(1) { height: 6px; animation-delay: 0s; }
-.radio-card-eq span:nth-child(2) { height: 10px; animation-delay: 0.15s; }
-.radio-card-eq span:nth-child(3) { height: 4px; animation-delay: 0.3s; }
-.radio-card-eq span:nth-child(4) { height: 8px; animation-delay: 0.45s; }
-
-@keyframes radioEq {
-  0%, 100% { height: 4px; }
-  50% { height: 16px; }
-}
-
-/* Radio Card Live Badge */
-.radio-card-live {
+/* Radio Play Button */
+.radio-play-wrapper {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  inset: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #ef4444;
-  z-index: 2;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+  pointer-events: none;
 }
 
-.radio-card-dot {
-  width: 5px;
-  height: 5px;
+.radio-channel-card:hover .radio-play-wrapper {
+  opacity: 1;
+}
+
+.radio-play-circle {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #ef4444;
-  animation: pulse 1.5s ease-in-out infinite;
+  border: none;
+  background: var(--btn-color, #3b82f6);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  transition: transform 0.2s ease, background 0.2s ease;
+  pointer-events: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.radio-play-circle .radio-icon-play,
+.radio-play-circle .radio-icon-spinner {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  line-height: 20px;
+  display: block;
+}
+
+.radio-play-circle .radio-icon-spinner {
+  transform-origin: center center;
+  animation: spinner-rotate 1s linear infinite;
+}
+
+.radio-channel-card:hover .radio-play-circle {
+  transform: scale(1);
+}
+
+/* Loading: show spinner instead of play icon */
+.radio-icon-spinner {
+  display: none !important;
+}
+
+.radio-channel-card.loading .radio-play-wrapper {
+  opacity: 1 !important;
+  pointer-events: none;
+}
+
+.radio-channel-card.loading .radio-icon-play {
+  display: none !important;
+}
+
+.radio-channel-card.loading .radio-icon-spinner {
+  display: block !important;
+}
+
+.radio-channel-card.loading .radio-card-darken {
+  opacity: 1;
+}
+
+.radio-channel-card .radio-card-text {
+  z-index: 3;
 }
 
 /* Controls bar radio mode */
