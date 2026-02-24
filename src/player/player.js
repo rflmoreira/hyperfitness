@@ -2583,28 +2583,13 @@ const MUSIC_PLAYER = (() => {
       if (ui.miniTitle) ui.miniTitle.textContent = radioCurrentChannel.name;
       if (ui.miniArtist) ui.miniArtist.textContent = 'SUNSHINE LIVE · Ao Vivo';
 
+      // Mostra capa do canal
       const coverImg = ui.miniCover?.querySelector('img');
-      if (coverImg) coverImg.style.display = 'none';
-
-      let radioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
-      if (!radioOverlay && ui.miniCover) {
-        radioOverlay = document.createElement('div');
-        radioOverlay.className = 'radio-cover-icon';
-        radioOverlay.innerHTML = `<i class="ph-fill ph-radio"></i>`;
-        ui.miniCover.appendChild(radioOverlay);
-      }
-      if (radioOverlay) {
-        radioOverlay.style.display = 'flex';
-        radioOverlay.style.setProperty('--accent', radioCurrentChannel.color);
+      if (coverImg) {
+        coverImg.src = radioCurrentChannel.cover;
       }
       ui.miniCover?.classList.add('playing');
     } else {
-      // Restaura cover normal
-      const coverImg = ui.miniCover?.querySelector('img');
-      if (coverImg) coverImg.style.display = '';
-      const radioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
-      if (radioOverlay) radioOverlay.style.display = 'none';
-
       updatePlayerBarInfo({
         playBtn: ui.miniPlay,
         titleEl: ui.miniTitle,
@@ -7331,8 +7316,8 @@ const MUSIC_PLAYER = (() => {
 
     const grid = document.getElementById('radio-channels-grid');
     const featuredRow = document.getElementById('radio-featured-row');
-    if (grid) renderRadioChannels(grid, RADIO_CHANNELS);
-    if (featuredRow) renderRadioChannels(featuredRow, RADIO_CHANNELS.filter(ch => ch.featured));
+    if (grid) renderRadioChannels(grid, RADIO_CHANNELS, 'blue');
+    if (featuredRow) renderRadioChannels(featuredRow, RADIO_CHANNELS.filter(ch => ch.featured), 'purple');
 
     radioAudio.addEventListener('playing', () => {
       radioPlaying = true;
@@ -7353,7 +7338,8 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  function renderRadioChannels(container, channels) {
+  function renderRadioChannels(container, channels, btnColor = 'blue') {
+    const bgClass = btnColor === 'purple' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600';
     container.innerHTML = channels.map(ch => `
       <div class="radio-channel-card group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
            data-radio-id="${ch.id}" style="--accent: ${ch.color};">
@@ -7368,6 +7354,11 @@ const MUSIC_PLAYER = (() => {
           </div>
           <div class="radio-card-live" style="display:none;">
             <span class="radio-card-dot"></span> AO VIVO
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <button class="w-14 h-14 rounded-full ${bgClass} flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+              <i class="ph-fill ph-play text-2xl text-white ml-1"></i>
+            </button>
           </div>
           <div class="absolute bottom-0 left-0 right-0 p-3">
             <p class="text-white font-semibold text-sm truncate">${ch.name}</p>
@@ -7413,19 +7404,6 @@ const MUSIC_PLAYER = (() => {
     radioCurrentChannel = null;
     radioPlaying = false;
     updateRadioChannelUI();
-
-    // Restaura a imagem do cover no controls bar
-    const coverImg = ui.ctrlCover?.querySelector('img');
-    if (coverImg) coverImg.style.display = '';
-    const radioOverlay = ui.ctrlCover?.querySelector('.radio-cover-icon');
-    if (radioOverlay) radioOverlay.style.display = 'none';
-
-    // Restaura a imagem do cover no mini-player
-    const miniCoverImg = ui.miniCover?.querySelector('img');
-    if (miniCoverImg) miniCoverImg.style.display = '';
-    const miniRadioOverlay = ui.miniCover?.querySelector('.radio-cover-icon');
-    if (miniRadioOverlay) miniRadioOverlay.style.display = 'none';
-
     updateRadioControlsBar();
   }
 
@@ -7480,20 +7458,10 @@ const MUSIC_PLAYER = (() => {
     if (ui.ctrlTitle) ui.ctrlTitle.textContent = radioCurrentChannel.name;
     if (ui.ctrlArtist) ui.ctrlArtist.textContent = 'SUNSHINE LIVE · Ao Vivo';
 
-    // Atualiza capa com ícone do canal
+    // Atualiza capa com imagem do canal
     const coverImg = ui.ctrlCover?.querySelector('img');
-    if (coverImg) coverImg.style.display = 'none';
-    // Adiciona ícone de rádio no cover se não existir
-    let radioOverlay = ui.ctrlCover?.querySelector('.radio-cover-icon');
-    if (!radioOverlay && ui.ctrlCover) {
-      radioOverlay = document.createElement('div');
-      radioOverlay.className = 'radio-cover-icon';
-      radioOverlay.innerHTML = `<i class="ph-fill ph-radio"></i>`;
-      ui.ctrlCover.appendChild(radioOverlay);
-    }
-    if (radioOverlay) {
-      radioOverlay.style.display = 'flex';
-      radioOverlay.style.setProperty('--accent', radioCurrentChannel.color);
+    if (coverImg) {
+      coverImg.src = radioCurrentChannel.cover;
     }
 
     // Ativa animação de wave no cover
