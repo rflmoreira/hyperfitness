@@ -2547,6 +2547,158 @@
       object-fit: cover;
       pointer-events: none
     }
+
+    /* === Seleção de Programa (overlay premium) === */
+    .program-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 130;
+      padding: 18px 12px 22px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(10, 10, 18, 0.55);
+      overflow-y: auto;
+    }
+
+    #program-selection-inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .program-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .back-btn {
+      border: none;
+      color: #fff;
+      background: transparent;
+      border-radius: 999px;
+      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s ease;
+    }
+
+    .back-btn:hover { opacity: 0.8; }
+
+    .program-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+      text-align: center;
+      align-items: center;
+    }
+
+    .program-title {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin: 0;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .program-subtitle {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .program-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+
+    .program-card-premium {
+      position: relative;
+      width: 100%;
+      min-height: 208px;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 18px;
+      color: #fff;
+      isolation: isolate;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .program-card-premium::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.65) 100%);
+      z-index: 1;
+    }
+
+    .program-card-premium .card-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .program-card-premium:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.45);
+    }
+
+    .program-card-premium.is-selected::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(46, 204, 113, 0.25);
+      z-index: 1;
+    }
+
+    .program-card-premium .badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .program-card-premium .duration {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .program-card-premium .checkmark {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 2px solid #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .program-card-premium .checkmark-top {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 3;
+    }
   </style>
 </head>
 
@@ -2558,7 +2710,29 @@
     </div>
   </header>
 
-  <div id="main-content" class="container mx-auto p-4 md:p-6 max-w-6xl transition-all duration-500">
+  <section id="program-selection-screen" class="program-overlay hidden">
+    <div id="program-selection-inner" class="content-enter-animation">
+      <header class="program-header">
+        <button id="back-to-training-btn" class="back-btn" aria-label="Voltar">
+          <i class="ph-bold ph-arrow-left text-lg"></i>
+        </button>
+        <div class="program-title-block">
+          <h1 class="program-title">Selecionar programa</h1>
+        </div>
+      </header>
+
+      <div id="program-screen-list" class="program-list"></div>
+    </div>
+  </section>
+
+  <div id="main-content" class="container mx-auto p-4 md:p-6 max-w-6xl transition-all duration-500 hidden">
+
+    <div class="flex justify-end mb-4 content-enter-animation">
+      <button id="open-program-screen-btn" class="px-4 py-2 rounded-xl border border-[var(--surface-2)] text-sm font-semibold text-[var(--text-muted)] hover:text-white hover:border-[var(--primary-color)] transition-colors flex items-center gap-2">
+        <i class="ph-bold ph-arrows-left-right"></i>
+        Trocar programa
+      </button>
+    </div>
 
     <section id="phase-header" class="text-center mb-8 content-enter-animation" role="banner"></section>
 
@@ -2940,52 +3114,167 @@
       });
     })();
 
-    const WORKOUT_PHASES = {
-      phase1: {
-        title: "Fase 1: Adaptação", weeks: [1],
-        schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "A", Sex: "B", Sáb: "OFF", Dom: "OFF" },
-        workouts: {
-          A: { name: "Treino A - Puxar", exercises: [{ name: "Pulley Frente Aberto", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Puxada Triângulo", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Remada Serrote", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Rosca Direta Barra Reta", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Tríceps Corda", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Rosca Martelo + Tríceps Francês (Corda)", series: "3", rept: "15 a 20", descanso: "1 Min", method: "BI-SET" },] },
-          B: { name: "Treino B - Pernas", exercises: [{ name: "Cadeira Extensora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Adutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora (2)", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
-          C: { name: "Treino C - Empurrar", exercises: [{ name: "Supino Inclinado Máquina", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Inclinado", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Isometria" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Desenvolvimento Máquina Aberto", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Conv+Isometria" }, { name: "Elevação Lateral", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Paralela", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" },] },
-        },
+    const DEFAULT_PROGRAM_ID = "classic";
+    const PROGRAM_STATE_KEY = "hf_programs_state_v2";
+    const PROGRAM_PICK_KEY = "hf_program_selected_once";
+
+    const TRAINING_PROGRAMS = {
+      classic: {
+        id: "classic",
+        name: "Treino Atual (12 semanas)",
+        badge: "Treino atual",
+        subtitle: "Programa original de 12 semanas focado em hipertrofia",
+        frequency: "5-6x/sem",
+        duration: "60-90 min",
+        goal: "Hipertrofia e performance",
+        totalWeeks: 12,
+        rules: [],
+        phases: {
+          phase1: {
+            title: "Fase 1: Adaptação", weeks: [1],
+            schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "A", Sex: "B", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: { name: "Treino A - Puxar", exercises: [{ name: "Pulley Frente Aberto", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Puxada Triângulo", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Remada Serrote", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Rosca Direta Barra Reta", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Tríceps Corda", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Rosca Martelo + Tríceps Francês (Corda)", series: "3", rept: "15 a 20", descanso: "1 Min", method: "BI-SET" },] },
+              B: { name: "Treino B - Pernas", exercises: [{ name: "Cadeira Extensora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Adutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora (2)", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
+              C: { name: "Treino C - Empurrar", exercises: [{ name: "Supino Inclinado Máquina", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Inclinado", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Isometria" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Desenvolvimento Máquina Aberto", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Conv+Isometria" }, { name: "Elevação Lateral", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Paralela", series: "3", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" },] },
+            },
+          },
+          phase2: {
+            title: "Fase 2: Aumento de Volume", weeks: [2, 3, 4, 5, 6],
+            schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
+            workouts: {
+              A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "1 Min", method: "Pirâmide Crescente" }, { name: "Elevação Lateral na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set 1 descida" }, { name: "Elevação Frontal na Polia", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Frontal Barra", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Crucifixo Inverso Máquina", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Pull Face", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Drop Set 1 descida" },] },
+              B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "Convencional" },] },
+              C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Barra Fixa", series: "3", rept: "Falha", descanso: "60 seg", method: "Convencional" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Remada Pronada na Máquina", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
+              D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Crucifixo Inclinado", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
+              E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
+            },
+          },
+          phase3: {
+            title: "Fase 3: Mais Volume e Técnicas", weeks: [7, 8, 9, 10],
+            schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
+            workouts: {
+              A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "1 Min", method: "Pirâmide Crescente" }, { name: "Elevação Lateral na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Rest Pause Última Série" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set Todas as Séries" }, { name: "Elevação Frontal na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Frontal Barra", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Rest Pause Última Série" }, { name: "Crucifixo Inverso Máquina", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Pull Face", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set Todas as Séries" },] },
+              B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Smith", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Drop Set Todas as Séries" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "Convencional" },] },
+              C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Barra Fixa", series: "4", rept: "Falha", descanso: "60 seg", method: "Rest Pause Última Série" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set Todas as Séries" }, { name: "Remada Pronada na Máquina", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Rest Pause Última Série" }, { name: "Rosca Spider com Barra W", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Drop Set Todas as Séries" },] },
+              D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Crucifixo Inclinado", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
+              E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
+            },
+          },
+          phase4: {
+            title: "Fase 4: Método MAIS CINCO", weeks: [11, 12],
+            schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
+            workouts: {
+              A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Elevação Lateral Polia", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Frontal na Polia", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Frontal Barra", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Crucifixo Inverso Máquina", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Pull Face", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
+              B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Agachamento Smith", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "MAIS CINCO" },] },
+              C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Barra Fixa", series: "4", rept: "Falha", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada Pronada na Máquina", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Spider com Barra W", series: "3", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
+              D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Crucifixo Inclinado", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Francês Corda", series: "3", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
+              E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "4", rept: "8 a 12", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Cadeira Abdutora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" },] },
+            },
+          },
+        }
       },
-      phase2: {
-        title: "Fase 2: Aumento de Volume", weeks: [2, 3, 4, 5, 6],
-        schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
-        workouts: {
-          A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "1 Min", method: "Pirâmide Crescente" }, { name: "Elevação Lateral na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set 1 descida" }, { name: "Elevação Frontal na Polia", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Frontal Barra", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Convencional" }, { name: "Crucifixo Inverso Máquina", series: "3", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Pull Face", series: "3", rept: "15 a 20", descanso: "1 Min", method: "Drop Set 1 descida" },] },
-          B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "Convencional" },] },
-          C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Barra Fixa", series: "3", rept: "Falha", descanso: "60 seg", method: "Convencional" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Remada Pronada na Máquina", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
-          D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Crucifixo Inclinado", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
-          E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
-        },
-      },
-      phase3: {
-        title: "Fase 3: Mais Volume e Técnicas", weeks: [7, 8, 9, 10],
-        schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
-        workouts: {
-          A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "1 Min", method: "Pirâmide Crescente" }, { name: "Elevação Lateral na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Rest Pause Última Série" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set Todas as Séries" }, { name: "Elevação Frontal na Polia", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Elevação Frontal Barra", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Rest Pause Última Série" }, { name: "Crucifixo Inverso Máquina", series: "4", rept: "8 a 12", descanso: "1 Min", method: "Convencional" }, { name: "Pull Face", series: "4", rept: "15 a 20", descanso: "1 Min", method: "Drop Set Todas as Séries" },] },
-          B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Agachamento Smith", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "90 seg", method: "Drop Set Todas as Séries" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "Convencional" },] },
-          C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Barra Fixa", series: "4", rept: "Falha", descanso: "60 seg", method: "Rest Pause Última Série" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set Todas as Séries" }, { name: "Remada Pronada na Máquina", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Rest Pause Última Série" }, { name: "Rosca Spider com Barra W", series: "3", rept: "15 a 20", descanso: "60 seg", method: "Drop Set Todas as Séries" },] },
-          D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "20/18/15/12", descanso: "60 seg", method: "Pirâmide Crescente" }, { name: "Crucifixo Inclinado", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Convencional" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "60 seg", method: "Convencional" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "60 seg", method: "Drop Set 1 descida" },] },
-          E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "3", rept: "8 a 12", descanso: "90 seg", method: "Convencional" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "90 seg", method: "Drop Set 1 descida" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Cadeira Abdutora", series: "3", rept: "15 a 20", descanso: "90 seg", method: "Convencional" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "90 seg", method: "Pirâmide Crescente" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "90 seg", method: "Convencional" },] },
-        },
-      },
-      phase4: {
-        title: "Fase 4: Método MAIS CINCO", weeks: [11, 12],
-        schedule: { Seg: "A", Ter: "B", Qua: "C", Qui: "OFF", Sex: "D", Sáb: "E", Dom: "OFF" },
-        workouts: {
-          A: { name: "Treino A - Ombros", exercises: [{ name: "Desenvolvimento Máquina", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Elevação Lateral Polia", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Lateral com Halter", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Frontal na Polia", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Elevação Frontal Barra", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Crucifixo Inverso Máquina", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Pull Face", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
-          B: { name: "Treino B - Quadríceps", exercises: [{ name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Leg Press 45", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Agachamento Hack", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Agachamento Smith", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Cadeira Adutora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Cadeira Extensora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Panturrilha em Pé Máquina", series: "6", rept: "15 a 20", descanso: "45 seg", method: "MAIS CINCO" },] },
-          C: { name: "Treino C - Costas e Bíceps", exercises: [{ name: "Puxada Frente Aberta", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Barra Fixa", series: "4", rept: "Falha", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada na Máquina Articulada", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada Baixa Triângulo", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Remada Pronada na Máquina", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Direta Barra W", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Scott na Máquina com Barra W", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Rosca Spider com Barra W", series: "3", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
-          D: { name: "Treino D - Peito e Tríceps", exercises: [{ name: "Supino Inclinado Máquina", series: "4", rept: "20/18/15/12", descanso: "90 Seg", method: "Pirâmide + MAIS CINCO" }, { name: "Crucifixo Inclinado", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Supino Reto Máquina", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Crucifixo Máquina Reto", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Francês Corda", series: "3", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Paralela", series: "4", rept: "8 a 12", descanso: "90 Seg", method: "MAIS CINCO" }, { name: "Tríceps Corda", series: "4", rept: "15 a 20", descanso: "90 Seg", method: "MAIS CINCO" },] },
-          E: { name: "Treino E - Posterior e Glúteo", exercises: [{ name: "Mesa Flexora", series: "4", rept: "8 a 12", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Cadeira Flexora", series: "4", rept: "12 a 15", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Stiff", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Cadeira Abdutora", series: "4", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" }, { name: "Elevação Pélvica com Barra", series: "4", rept: "20/18/15/12", descanso: "2 Min", method: "Pirâmide + MAIS CINCO" }, { name: "Panturrilha em Pé Máquina", series: "5", rept: "15 a 20", descanso: "2 Min", method: "MAIS CINCO" },] },
-        },
-      },
+      strength: {
+        id: "strength",
+        name: "Fortalecimento Muscular (12 semanas)",
+        badge: "Novo treino",
+        subtitle: "Base de força, postura e consistência",
+        frequency: "3x/sem (seg/qua/sex)",
+        duration: "40-60 min",
+        goal: "Força, postura e base muscular",
+        totalWeeks: 12,
+        rules: [
+          "Começar com cargas leves (atenção à lombar)",
+          "Progressão gradual de carga",
+          "Priorizar execução correta",
+          "Descanso: 60-90s"
+        ],
+        phases: {
+          phase1: {
+            title: "Fase 1: Adaptação", weeks: [1, 2, 3, 4],
+            schedule: { Seg: "A", Ter: "OFF", Qua: "B", Qui: "OFF", Sex: "A", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A - Base",
+                exercises: [
+                  { name: "Leg press", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Puxada frente", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Remada máquina", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Prancha", series: "3", rept: "20s", descanso: "45-60s", method: "isometria" },
+                  { name: "Abdominal", series: "3", rept: "12", descanso: "45-60s", method: "tecnica" }
+                ]
+              },
+              B: {
+                name: "Treino B - Base",
+                exercises: [
+                  { name: "Supino máquina", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Desenvolvimento ombro", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Elevação de quadril", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Extensão lombar", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Caminhada leve", series: "1", rept: "10 min", descanso: "-", method: "tempo controlado" }
+                ]
+              }
+            }
+          },
+          phase2: {
+            title: "Fase 2: Força", weeks: [5, 6, 7, 8],
+            schedule: { Seg: "A", Ter: "OFF", Qua: "B", Qui: "OFF", Sex: "A", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A - Força",
+                exercises: [
+                  { name: "Agachamento", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Puxada frente", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Remada", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Prancha", series: "3", rept: "30s", descanso: "45-60s", method: "isometria" },
+                  { name: "Abdominal", series: "3", rept: "15", descanso: "45-60s", method: "tecnica" }
+                ]
+              },
+              B: {
+                name: "Treino B - Força",
+                exercises: [
+                  { name: "Supino", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Ombro halter", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Elevação quadril", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Lombar", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Cardio leve", series: "1", rept: "10-15 min", descanso: "-", method: "tempo controlado" }
+                ]
+              }
+            }
+          },
+          phase3: {
+            title: "Fase 3: Evolução", weeks: [9, 10, 11, 12],
+            schedule: { Seg: "A", Ter: "OFF", Qua: "B", Qui: "OFF", Sex: "A", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A - Evolução",
+                exercises: [
+                  { name: "Levantamento terra", series: "3", rept: "8", descanso: "60-90s", method: "tecnica" },
+                  { name: "Puxada frente", series: "3", rept: "8", descanso: "60-90s", method: "tecnica" },
+                  { name: "Remada", series: "3", rept: "8", descanso: "60-90s", method: "tecnica" },
+                  { name: "Prancha", series: "3", rept: "40s", descanso: "45-60s", method: "isometria" },
+                  { name: "Abdominal", series: "3", rept: "20", descanso: "45-60s", method: "tecnica" }
+                ]
+              },
+              B: {
+                name: "Treino B - Evolução",
+                exercises: [
+                  { name: "Supino inclinado", series: "3", rept: "8", descanso: "60-90s", method: "tecnica" },
+                  { name: "Ombro", series: "3", rept: "8", descanso: "60-90s", method: "tecnica" },
+                  { name: "Elevação quadril", series: "3", rept: "10", descanso: "60-90s", method: "tecnica" },
+                  { name: "Lombar", series: "3", rept: "12", descanso: "60-90s", method: "tecnica" },
+                  { name: "Cardio", series: "1", rept: "15 min", descanso: "-", method: "tempo controlado" }
+                ]
+              }
+            }
+          }
+        }
+      }
     };
 
     const APP_STATE = {
+      currentProgramId: DEFAULT_PROGRAM_ID,
+      programStates: {},
       currentWeekNumber: 1,
       currentDay: "Seg",
       highestUnlockedWeek: 1,
@@ -2995,6 +3284,122 @@
       confettiLaunched: {},
       seriesTracker: {}
     };
+
+    function getActiveProgram() {
+      const program = TRAINING_PROGRAMS[APP_STATE.currentProgramId];
+      return program || TRAINING_PROGRAMS[DEFAULT_PROGRAM_ID];
+    }
+
+    function getActivePhases() {
+      return getActiveProgram().phases;
+    }
+
+    function getTotalWeeks(programId = APP_STATE.currentProgramId) {
+      return TRAINING_PROGRAMS[programId]?.totalWeeks || 12;
+    }
+
+    function getCustomSchedulesForProgram(programId) {
+      const phases = TRAINING_PROGRAMS[programId]?.phases || {};
+      return Object.fromEntries(Object.entries(phases).map(([key, phase]) => [key, phase.schedule]));
+    }
+
+    function applyCustomSchedules(programId, savedSchedules = {}) {
+      const phases = TRAINING_PROGRAMS[programId]?.phases;
+      if (!phases) return;
+      Object.keys(savedSchedules || {}).forEach(key => {
+        if (phases[key]) {
+          phases[key].schedule = savedSchedules[key];
+        }
+      });
+    }
+
+    function getFirstActiveDay(schedule = {}) {
+      return Object.keys(schedule).find(day => schedule[day] !== "OFF") || Object.keys(schedule)[0] || "Seg";
+    }
+
+    function getDefaultProgramState(programId) {
+      const phases = TRAINING_PROGRAMS[programId]?.phases || getActivePhases();
+      const firstPhase = Object.values(phases)[0] || { weeks: [1], schedule: { Seg: "A" } };
+      const firstWeek = Array.isArray(firstPhase.weeks) ? firstPhase.weeks[0] || 1 : 1;
+      const firstDay = getFirstActiveDay(firstPhase.schedule);
+      const firstDayIndex = Object.keys(firstPhase.schedule).indexOf(firstDay);
+      return {
+        currentWeekNumber: firstWeek,
+        currentDay: firstDay,
+        highestUnlockedWeek: firstWeek,
+        highestUnlockedDayIndex: firstDayIndex >= 0 ? firstDayIndex : 0,
+        completionStatus: {},
+        allCompletions: {},
+        confettiLaunched: {},
+        seriesTracker: {},
+        customSchedules: getCustomSchedulesForProgram(programId)
+      };
+    }
+
+    function persistActiveProgramState() {
+      const programId = APP_STATE.currentProgramId;
+      const totalWeeks = getTotalWeeks(programId);
+      const clampedWeek = Math.min(Math.max(APP_STATE.currentWeekNumber || 1, 1), totalWeeks);
+      const clampedHighest = Math.min(Math.max(APP_STATE.highestUnlockedWeek || clampedWeek, 1), totalWeeks);
+
+      APP_STATE.programStates[programId] = {
+        currentWeekNumber: clampedWeek,
+        currentDay: APP_STATE.currentDay,
+        highestUnlockedWeek: clampedHighest,
+        highestUnlockedDayIndex: APP_STATE.highestUnlockedDayIndex || 0,
+        allCompletions: APP_STATE.allCompletions,
+        confettiLaunched: APP_STATE.confettiLaunched,
+        seriesTracker: APP_STATE.seriesTracker,
+        customSchedules: getCustomSchedulesForProgram(programId)
+      };
+    }
+
+    function applyProgramState(programId) {
+      const program = TRAINING_PROGRAMS[programId] || TRAINING_PROGRAMS[DEFAULT_PROGRAM_ID];
+      APP_STATE.currentProgramId = program.id;
+
+      const storedState = APP_STATE.programStates[program.id];
+      const state = storedState ? { ...storedState } : getDefaultProgramState(program.id);
+
+      if (state.customSchedules) {
+        applyCustomSchedules(program.id, state.customSchedules);
+      }
+
+      const totalWeeks = getTotalWeeks(program.id);
+      const safeWeek = Math.min(Math.max(state.currentWeekNumber || 1, 1), totalWeeks);
+      const phaseData = Object.values(program.phases).find(p => p.weeks.includes(safeWeek)) || Object.values(program.phases)[0];
+      const dayKeys = phaseData ? Object.keys(phaseData.schedule) : [];
+      let dayIndex = typeof state.highestUnlockedDayIndex === "number" ? state.highestUnlockedDayIndex : 0;
+      if (dayIndex < 0 || dayIndex >= dayKeys.length) {
+        dayIndex = Math.max(0, dayKeys.findIndex(d => phaseData?.schedule?.[d] !== "OFF"));
+      }
+      const defaultDay = dayKeys[dayIndex] || getFirstActiveDay(phaseData?.schedule);
+      const safeDay = dayKeys.includes(state.currentDay) ? state.currentDay : defaultDay;
+
+      Object.assign(APP_STATE, {
+        currentProgramId: program.id,
+        currentWeekNumber: safeWeek,
+        currentDay: safeDay,
+        highestUnlockedWeek: Math.min(Math.max(state.highestUnlockedWeek || safeWeek, 1), totalWeeks),
+        highestUnlockedDayIndex: dayIndex,
+        allCompletions: state.allCompletions || {},
+        confettiLaunched: state.confettiLaunched || {},
+        seriesTracker: state.seriesTracker || {},
+        completionStatus: {}
+      });
+
+      loadCurrentCompletionStatus();
+    }
+
+    function switchProgram(programId) {
+      if (!TRAINING_PROGRAMS[programId]) return;
+      persistActiveProgramState();
+      applyProgramState(programId);
+      saveApplicationState();
+      localStorage.setItem(PROGRAM_PICK_KEY, "1");
+      renderAllComponents();
+      showNotification(`Programa alterado para ${TRAINING_PROGRAMS[programId].name}`, "success");
+    }
 
     const DOM_ELEMENTS = {};
     let confettiInstance;
@@ -3097,12 +3502,12 @@
       event.stopPropagation();
     }
 
-    function showCompletionMessage() {
+    function showCompletionMessage(program = getActiveProgram()) {
       const modal = createElement("div", "fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4");
       modal.innerHTML = `
         <div class="rounded-lg p-8 text-center shadow-2xl content-enter-animation" style="background: var(--surface-0); border: 1px solid var(--surface-2);">
           <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-4">Parabéns!</h2>
-          <p class="text-white text-lg mb-6">Você concluiu o programa de 12 semanas!</p>
+          <p class="text-white text-lg mb-6">Você concluiu ${program.name || "o programa"} de ${program.totalWeeks || 12} semanas!</p>
           <button id="close-modal-btn" class="bg-[var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg hover:bg-[var(--primary-hover)] no-select touch-manipulation no-tap-highlight">Fechar</button>
         </div>
       `;
@@ -3191,18 +3596,11 @@
       }
     }
 
-    function resetApplicationState() {
-      localStorage.clear();
-      Object.assign(APP_STATE, {
-        currentWeekNumber: 1,
-        currentDay: "Seg",
-        highestUnlockedWeek: 1,
-        highestUnlockedDayIndex: 0,
-        completionStatus: {},
-        allCompletions: {},
-        confettiLaunched: {},
-        seriesTracker: {}
-      });
+    function resetApplicationState(programId = APP_STATE.currentProgramId) {
+      localStorage.removeItem(PROGRAM_STATE_KEY);
+      const defaults = getDefaultProgramState(programId);
+      APP_STATE.programStates = { ...APP_STATE.programStates, [programId]: defaults };
+      applyProgramState(programId);
       console.warn("Application state was reset.");
     }
 
@@ -3228,56 +3626,70 @@
     }
 
     function saveApplicationState() {
-      const progressData = {
-        highestUnlockedWeek: APP_STATE.highestUnlockedWeek,
-        highestUnlockedDayIndex: APP_STATE.highestUnlockedDayIndex,
-        allCompletions: APP_STATE.allCompletions,
-        confettiLaunched: APP_STATE.confettiLaunched,
-        seriesTracker: APP_STATE.seriesTracker
+      persistActiveProgramState();
+
+      const payload = {
+        activeProgramId: APP_STATE.currentProgramId,
+        programStates: APP_STATE.programStates
       };
 
-      localStorage.setItem("workoutProgress", JSON.stringify(progressData));
-
-      const customSchedules = Object.fromEntries(Object.entries(WORKOUT_PHASES).map(([key, phase]) => [key, phase.schedule]));
-      localStorage.setItem("customSchedules", JSON.stringify(customSchedules));
+      localStorage.setItem(PROGRAM_STATE_KEY, JSON.stringify(payload));
     }
 
     function loadApplicationState() {
       try {
+        const saved = JSON.parse(localStorage.getItem(PROGRAM_STATE_KEY) || "null");
 
-        const savedSchedules = JSON.parse(localStorage.getItem("customSchedules") || "{}");
-        Object.keys(savedSchedules).forEach(key => {
-          if (WORKOUT_PHASES[key]) WORKOUT_PHASES[key].schedule = savedSchedules[key];
-        });
+        if (saved && typeof saved === "object" && saved.programStates) {
+          APP_STATE.programStates = saved.programStates || {};
+          const activeId = (saved.activeProgramId && TRAINING_PROGRAMS[saved.activeProgramId])
+            ? saved.activeProgramId
+            : DEFAULT_PROGRAM_ID;
 
-        const savedState = JSON.parse(localStorage.getItem("workoutProgress"));
-        if (!savedState || typeof savedState.highestUnlockedWeek !== 'number') return;
+          if (APP_STATE.programStates[activeId]?.customSchedules) {
+            applyCustomSchedules(activeId, APP_STATE.programStates[activeId].customSchedules);
+          }
 
-        let { highestUnlockedWeek, highestUnlockedDayIndex, allCompletions, confettiLaunched, seriesTracker } = savedState;
-
-        if (highestUnlockedWeek < 1 || highestUnlockedWeek > 12) {
-          throw new Error("Invalid week");
+          applyProgramState(activeId);
+          return;
         }
 
-        const phaseData = getPhaseDataByWeek(highestUnlockedWeek);
-        if (!phaseData) throw new Error("Invalid phase data");
+        // Migração de versão anterior (single program)
+        const legacySchedules = JSON.parse(localStorage.getItem("customSchedules") || "{}");
+        const legacyState = JSON.parse(localStorage.getItem("workoutProgress") || "null");
+        if (legacyState && typeof legacyState.highestUnlockedWeek === "number") {
+          const programId = DEFAULT_PROGRAM_ID;
+          applyCustomSchedules(programId, legacySchedules);
 
-        const dayKeys = Object.keys(phaseData.schedule);
-        if (highestUnlockedDayIndex < 0 || highestUnlockedDayIndex >= dayKeys.length) {
-          highestUnlockedDayIndex = 0;
+          const totalWeeks = getTotalWeeks(programId);
+          const highestUnlockedWeek = Math.min(Math.max(legacyState.highestUnlockedWeek, 1), totalWeeks);
+          const phaseData = Object.values(TRAINING_PROGRAMS[programId].phases).find(p => p.weeks.includes(highestUnlockedWeek));
+          const dayKeys = phaseData ? Object.keys(phaseData.schedule) : [];
+          let highestUnlockedDayIndex = legacyState.highestUnlockedDayIndex;
+          if (highestUnlockedDayIndex < 0 || highestUnlockedDayIndex >= dayKeys.length) {
+            highestUnlockedDayIndex = Math.max(0, dayKeys.findIndex(d => phaseData?.schedule?.[d] !== "OFF"));
+          }
+
+          APP_STATE.programStates[programId] = {
+            currentWeekNumber: highestUnlockedWeek,
+            currentDay: dayKeys[highestUnlockedDayIndex] || getFirstActiveDay(phaseData?.schedule),
+            highestUnlockedWeek,
+            highestUnlockedDayIndex,
+            allCompletions: legacyState.allCompletions || {},
+            confettiLaunched: legacyState.confettiLaunched || {},
+            seriesTracker: legacyState.seriesTracker || {},
+            customSchedules: getCustomSchedulesForProgram(programId)
+          };
+
+          localStorage.removeItem("workoutProgress");
+          localStorage.removeItem("customSchedules");
+
+          applyProgramState(programId);
+          saveApplicationState();
+          return;
         }
 
-        Object.assign(APP_STATE, {
-          highestUnlockedWeek,
-          currentWeekNumber: highestUnlockedWeek,
-          highestUnlockedDayIndex,
-          currentDay: dayKeys[highestUnlockedDayIndex],
-          allCompletions: allCompletions || {},
-          confettiLaunched: confettiLaunched || {},
-          seriesTracker: seriesTracker || {}
-        });
-
-        loadCurrentCompletionStatus();
+        applyProgramState(DEFAULT_PROGRAM_ID);
       } catch (error) {
         console.error("Failed to load state, resetting.", error);
         resetApplicationState();
@@ -3285,12 +3697,14 @@
     }
 
     function getPhaseDataByWeek(weekNumber) {
-      return Object.values(WORKOUT_PHASES).find(p => p.weeks.includes(weekNumber)) || null;
+      const phases = getActivePhases();
+      return Object.values(phases).find(p => p.weeks.includes(weekNumber)) || null;
     }
 
     function getPhaseKeyByWeek(weekNumber) {
-      return Object.keys(WORKOUT_PHASES).find(key =>
-        WORKOUT_PHASES[key].weeks.includes(weekNumber)) || null;
+      const phases = getActivePhases();
+      return Object.keys(phases).find(key =>
+        phases[key].weeks.includes(weekNumber)) || null;
     }
 
     function loadCurrentCompletionStatus() {
@@ -3327,6 +3741,7 @@
 
     function renderStepperNavigation() {
       DOM_ELEMENTS.stepperNav.innerHTML = "";
+      const totalWeeks = getTotalWeeks();
       const container = document.createElement("div");
       container.className = "relative w-full px-1 md:px-2";
 
@@ -3334,7 +3749,9 @@
       track.className = "absolute top-1/2 -translate-y-1/2 left-0 w-full h-1 rounded-full";
       track.style.background = "var(--surface-1)";
 
-      const progressPercentage = APP_STATE.highestUnlockedWeek > 1 ? ((APP_STATE.highestUnlockedWeek - 1) / 11) * 100 : 0;
+      const progressPercentage = (APP_STATE.highestUnlockedWeek > 1 && totalWeeks > 1)
+        ? ((APP_STATE.highestUnlockedWeek - 1) / (totalWeeks - 1)) * 100
+        : 0;
       const progressFill = document.createElement("div");
       progressFill.className = "absolute top-1/2 -translate-y-1/2 left-0 h-1 bg-[var(--primary-color)] rounded-full transition-all duration-500";
       progressFill.style.width = `${progressPercentage}%`;
@@ -3344,7 +3761,7 @@
       const markersContainer = document.createElement("div");
       markersContainer.className = "relative flex justify-between items-center px-1 md:px-0";
 
-      for (let i = 1; i <= 12; i++) {
+      for (let i = 1; i <= totalWeeks; i++) {
         markersContainer.appendChild(createWeekMarker(i));
       }
 
@@ -3353,6 +3770,7 @@
     }
 
     function createWeekMarker(weekNumber) {
+      const totalWeeks = getTotalWeeks();
       const isLocked = weekNumber > APP_STATE.highestUnlockedWeek;
       const isCurrent = weekNumber === APP_STATE.currentWeekNumber;
       const isCompleted = weekNumber < APP_STATE.highestUnlockedWeek;
@@ -3376,7 +3794,7 @@
         markerClasses += " w-5 h-5 md:w-6 md:h-6";
         marker.style.background = "var(--surface-0)";
         marker.style.borderColor = "var(--overlay-0)";
-        const icon = weekNumber === 12 ? "ph-trophy text-amber-400 trophy-shine" : "ph-lock-key";
+        const icon = weekNumber === totalWeeks ? "ph-trophy text-amber-400 trophy-shine" : "ph-lock-key";
         marker.innerHTML = `<i class='ph-fill ${icon} text-xs md:text-sm'></i>`;
       } else {
         markerClasses += " w-3 h-3 md:w-4 md:h-4";
@@ -3407,10 +3825,18 @@
 
     function renderPhaseHeader() {
       const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
+      const program = getActiveProgram();
+      const totalWeeks = getTotalWeeks();
       if (phaseData) {
         DOM_ELEMENTS.phaseHeader.innerHTML = `
+            <p class="text-sm uppercase tracking-[0.18em] font-semibold text-[var(--text-muted)] mb-1">${program.name}</p>
             <h2 class="phase-title text-4xl font-black tracking-tight" style="color: #ff7a1f; position: relative; display: inline-block;">${phaseData.title}</h2>
-            <p class="text-lg font-light mt-1" style="color: var(--subtext-1);">Semana ${APP_STATE.currentWeekNumber} de 12</p>
+            <p class="text-lg font-light mt-1" style="color: var(--subtext-1);">Semana ${APP_STATE.currentWeekNumber} de ${totalWeeks}</p>
+            <div class="flex flex-wrap justify-center gap-3 text-xs sm:text-sm mt-3" style="color: var(--text-muted);">
+              <span class="flex items-center gap-1"><i class="ph-bold ph-calendar-dots"></i>${program.frequency}</span>
+              <span class="flex items-center gap-1"><i class="ph-bold ph-timer"></i>${program.duration}</span>
+              <span class="flex items-center gap-1"><i class="ph-bold ph-target"></i>${program.goal}</span>
+            </div>
           `;
       }
     }
@@ -3607,6 +4033,65 @@
           <div class="bg-[var(--primary-color)] h-2.5 rounded-full transition-all duration-500 progress-bar-striped" style="width: ${progress}%"></div>
         </div>
       `;
+    }
+
+    function renderProgramScreen() {
+      const container = DOM_ELEMENTS.programScreenList;
+      if (!container) return;
+
+      const activeProgramId = APP_STATE.currentProgramId;
+
+      const cards = Object.values(TRAINING_PROGRAMS).map(program => {
+        const isActive = program.id === activeProgramId;
+        const bgImage = program.image || "src/imagens/capa de fundo.jpg";
+
+        return `
+          <button class="program-card-premium ${isActive ? "is-selected" : ""}" style="background-image: url('${bgImage}');" data-program-id="${program.id}" aria-pressed="${isActive}">
+            ${isActive ? `<span class="checkmark checkmark-top"><i class="ph-bold ph-check"></i></span>` : ""}
+            <div class="card-content">
+              <h3 class="text-[20px] md:text-[22px] font-black leading-tight drop-shadow-sm">${program.name}</h3>
+              <div class="badge-row">
+                <span class="duration">${program.duration || program.frequency}</span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      container.innerHTML = cards;
+
+      container.querySelectorAll("[data-program-id]").forEach(card => {
+        card.addEventListener("click", () => {
+          const programId = card.getAttribute("data-program-id");
+          if (!programId) return;
+          if (programId !== APP_STATE.currentProgramId) {
+            switchProgram(programId);
+          }
+          localStorage.setItem(PROGRAM_PICK_KEY, "1");
+          closeProgramScreen();
+        });
+      });
+    }
+
+    function openProgramScreen(force = false) {
+      const screen = DOM_ELEMENTS.programScreen;
+      if (!screen) return;
+      const backBtn = DOM_ELEMENTS.backToTrainingBtn;
+      const hasChoice = !!localStorage.getItem(PROGRAM_PICK_KEY);
+      if (backBtn) backBtn.classList.toggle("hidden", !hasChoice && force);
+      screen.classList.remove("hidden");
+      screen.setAttribute("aria-hidden", "false");
+      DOM_ELEMENTS.mainContent?.classList.add("hidden");
+      renderProgramScreen();
+    }
+
+    function closeProgramScreen() {
+      const screen = DOM_ELEMENTS.programScreen;
+      if (!screen) return;
+      screen.classList.add("hidden");
+      screen.setAttribute("aria-hidden", "true");
+      DOM_ELEMENTS.mainContent?.classList.remove("hidden");
+      localStorage.setItem(PROGRAM_PICK_KEY, "1");
     }
 
     function createExerciseCard(exercise, index) {
@@ -4462,6 +4947,7 @@
     }
 
     function renderAllComponents() {
+      renderProgramScreen();
       renderStepperNavigation();
       renderPhaseHeader();
       renderDaySelector();
@@ -4481,6 +4967,7 @@
 
     function handleWorkoutCompletion() {
       const { currentWeekNumber, currentDay, highestUnlockedWeek, highestUnlockedDayIndex } = APP_STATE;
+      const totalWeeks = getTotalWeeks();
       const phaseData = getPhaseDataByWeek(currentWeekNumber);
       const workout = phaseData.workouts[phaseData.schedule[currentDay]];
       if (!workout) return;
@@ -4521,7 +5008,7 @@
           showNotification("Conclua todos os treinos da semana para avançar!");
           return;
         }
-        if (APP_STATE.highestUnlockedWeek < 12) {
+        if (APP_STATE.highestUnlockedWeek < totalWeeks) {
           APP_STATE.highestUnlockedWeek++;
           APP_STATE.currentWeekNumber = APP_STATE.highestUnlockedWeek;
           const nextPhaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
@@ -4530,7 +5017,7 @@
           APP_STATE.currentDay = nextDayKeys[APP_STATE.highestUnlockedDayIndex];
         } else {
           saveApplicationState();
-          showCompletionMessage();
+          showCompletionMessage(getActiveProgram());
           return;
         }
       } else {
@@ -4671,7 +5158,7 @@
       const phaseKey = getPhaseKeyByWeek(APP_STATE.currentWeekNumber);
       if (!phaseKey) return;
 
-      const phase = WORKOUT_PHASES[phaseKey];
+      const phase = getActivePhases()[phaseKey];
       const newSchedule = {};
       let firstActiveDay = null;
 
@@ -6862,6 +7349,10 @@
 
       Object.assign(DOM_ELEMENTS, {
         mainContent: document.getElementById("main-content"),
+        programScreen: document.getElementById("program-selection-screen"),
+        programScreenList: document.getElementById("program-screen-list"),
+        openProgramScreenBtn: document.getElementById("open-program-screen-btn"),
+        backToTrainingBtn: document.getElementById("back-to-training-btn"),
         stepperNav: document.getElementById("stepper-nav"),
         daySelector: document.getElementById("day-selector"),
         workoutDetails: document.getElementById("workout-details"),
@@ -6925,6 +7416,9 @@
       initializeCardParallaxSystem();
       loadApplicationState();
       renderAllComponents();
+      if (!localStorage.getItem(PROGRAM_PICK_KEY)) {
+        openProgramScreen(true);
+      }
       setupEventListeners();
       setupRepsOutsideClickHandler();
       setupMethodOutsideClickHandler();
@@ -6934,6 +7428,12 @@
       initializeFloatingActions();
       initializeQuickActionsToggleTextFit();
       setupHorizontalScrollForTabs();
+      const hasPick = !!localStorage.getItem(PROGRAM_PICK_KEY);
+      if (hasPick) {
+        closeProgramScreen();
+      } else {
+        openProgramScreen(true);
+      }
     }
 
     // Função unificada para scroll horizontal via wheel
@@ -6977,6 +7477,8 @@
         [DOM_ELEMENTS.cancelEditBtn, 'click', closeEditModal],
         [DOM_ELEMENTS.saveEditBtn, 'click', saveScheduleChanges],
         [DOM_ELEMENTS.workoutDetails, 'click', handleExerciseToggle],
+        [DOM_ELEMENTS.openProgramScreenBtn, 'click', () => openProgramScreen(false)],
+        [DOM_ELEMENTS.backToTrainingBtn, 'click', closeProgramScreen],
         [DOM_ELEMENTS.editScheduleModal, 'click', (e) => {
           if (e.target === DOM_ELEMENTS.editScheduleModal) closeEditModal();
         }]
