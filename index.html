@@ -2720,7 +2720,7 @@
 
 <body>
 
-  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px; -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); mask-image: linear-gradient(to bottom, black 60%, transparent 100%);">
+  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
       <div class="w-10"></div>
       <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.2));" />
@@ -2786,8 +2786,8 @@
   <!-- Quick Actions Overlay com blur -->
   <div id="quick-actions-overlay" class="fixed inset-0 z-[45] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
 
-  <!-- User Dropdown Overlay com blur -->
-  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <!-- User Dropdown Overlay -->
+  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
 
   <!-- Quick Actions Toggle (fora do footer para z-index independente) -->
   <div id="quick-actions-container" class="fixed bottom-4 z-[46]">
@@ -4229,14 +4229,16 @@
       window.addEventListener('scroll', () => {
         if (!topBar) return;
         if (window.scrollY > 30) {
-          topBar.style.background = 'transparent';
           topBar.style.backdropFilter = 'blur(4px) brightness(1.15) saturate(130%)';
           topBar.style.webkitBackdropFilter = 'blur(4px) brightness(1.15) saturate(130%)';
+          topBar.style.maskImage = 'linear-gradient(to bottom, black 60%, transparent 100%)';
+          topBar.style.webkitMaskImage = 'linear-gradient(to bottom, black 60%, transparent 100%)';
           if (topBarLogo) topBarLogo.style.opacity = '1';
         } else {
-          topBar.style.background = 'transparent';
           topBar.style.backdropFilter = 'none';
           topBar.style.webkitBackdropFilter = 'none';
+          topBar.style.maskImage = 'none';
+          topBar.style.webkitMaskImage = 'none';
           if (topBarLogo) topBarLogo.style.opacity = '0';
         }
       }, { passive: true });
