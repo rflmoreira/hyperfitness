@@ -3303,6 +3303,104 @@
             }
           }
         }
+      },
+      absDefinition: {
+        id: "absDefinition",
+        name: "Projeto Abdômen Trincado (12 semanas)",
+        badge: "Definição",
+        image: "src/imagens/gym-background-upy8osq1atcli7lh.webp",
+        subtitle: "Queima de gordura abdominal e definição do core",
+        frequency: "3-5x/sem",
+        duration: "30-50 min",
+        goal: "Queima calórica + core + resistência",
+        totalWeeks: 12,
+        rules: [
+          "Dieta é essencial (sem déficit calórico não perde barriga)",
+          "Manter cardio + corpo todo, não só abdômen",
+          "Progressão gradual de intensidade",
+          "Descanso: 30-60s",
+          "Manter consistência semanal"
+        ],
+        phases: {
+          phase1: {
+            title: "Fase 1: Ativação + Queima Inicial", weeks: [1, 2, 3, 4],
+            schedule: { Seg: "A", Ter: "OFF", Qua: "B", Qui: "OFF", Sex: "A", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A – Core + Cardio",
+                exercises: [
+                  { name: "Abdominal Tradicional", series: "3", rept: "15", descanso: "30s", method: "Convencional" },
+                  { name: "Prancha", series: "3", rept: "20s", descanso: "30s", method: "Isometria" },
+                  { name: "Bicicleta no Ar", series: "3", rept: "20", descanso: "30s", method: "Convencional" },
+                  { name: "Caminhada Rápida / Esteira", series: "1", rept: "15 min", descanso: "-", method: "Tempo controlado" },
+                  { name: "Polichinelo", series: "3", rept: "20", descanso: "30s", method: "Convencional" }
+                ]
+              },
+              B: {
+                name: "Treino B – Infra + Cardio",
+                exercises: [
+                  { name: "Elevação de Pernas", series: "3", rept: "12", descanso: "30s", method: "Convencional" },
+                  { name: "Prancha Lateral", series: "3", rept: "15s cada lado", descanso: "30s", method: "Isometria" },
+                  { name: "Abdominal Infra", series: "3", rept: "12", descanso: "30s", method: "Convencional" },
+                  { name: "Corrida Leve", series: "1", rept: "10-15 min", descanso: "-", method: "Tempo controlado" },
+                  { name: "Mountain Climber", series: "3", rept: "20", descanso: "30s", method: "Convencional" }
+                ]
+              }
+            }
+          },
+          phase2: {
+            title: "Fase 2: Intensidade + Definição", weeks: [5, 6, 7, 8],
+            schedule: { Seg: "A", Ter: "OFF", Qua: "B", Qui: "OFF", Sex: "A", Sáb: "B", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A – Core Intenso + HIIT",
+                exercises: [
+                  { name: "Abdominal com Carga", series: "3", rept: "15", descanso: "45s", method: "Convencional" },
+                  { name: "Prancha", series: "3", rept: "30s", descanso: "30s", method: "Isometria" },
+                  { name: "Bicicleta no Ar", series: "3", rept: "30", descanso: "30s", method: "Convencional" },
+                  { name: "HIIT (30s rápido / 30s leve)", series: "1", rept: "10 min", descanso: "-", method: "Intervalado" },
+                  { name: "Burpee", series: "3", rept: "10", descanso: "45s", method: "Convencional" }
+                ]
+              },
+              B: {
+                name: "Treino B – Infra Intenso + Corrida",
+                exercises: [
+                  { name: "Elevação de Pernas", series: "3", rept: "15", descanso: "45s", method: "Convencional" },
+                  { name: "Prancha Lateral", series: "3", rept: "25s cada lado", descanso: "30s", method: "Isometria" },
+                  { name: "Abdominal Infra", series: "3", rept: "15", descanso: "45s", method: "Convencional" },
+                  { name: "Corrida Moderada", series: "1", rept: "15 min", descanso: "-", method: "Tempo controlado" },
+                  { name: "Mountain Climber", series: "3", rept: "30", descanso: "30s", method: "Convencional" }
+                ]
+              }
+            }
+          },
+          phase3: {
+            title: "Fase 3: Definição Máxima", weeks: [9, 10, 11, 12],
+            schedule: { Seg: "A", Ter: "B", Qua: "OFF", Qui: "A", Sex: "B", Sáb: "OFF", Dom: "OFF" },
+            workouts: {
+              A: {
+                name: "Treino A – Core Máximo + HIIT",
+                exercises: [
+                  { name: "Abdominal com Carga", series: "4", rept: "15", descanso: "45s", method: "Convencional" },
+                  { name: "Prancha", series: "3", rept: "40s", descanso: "30s", method: "Isometria" },
+                  { name: "Bicicleta no Ar", series: "3", rept: "40", descanso: "30s", method: "Convencional" },
+                  { name: "HIIT (30s rápido / 30s leve)", series: "1", rept: "15 min", descanso: "-", method: "Intervalado" },
+                  { name: "Burpee", series: "3", rept: "15", descanso: "45s", method: "Convencional" }
+                ]
+              },
+              B: {
+                name: "Treino B – Infra Máximo + Corrida",
+                exercises: [
+                  { name: "Elevação de Pernas", series: "4", rept: "15", descanso: "45s", method: "Convencional" },
+                  { name: "Prancha Lateral", series: "3", rept: "30s cada lado", descanso: "30s", method: "Isometria" },
+                  { name: "Abdominal Infra", series: "3", rept: "20", descanso: "45s", method: "Convencional" },
+                  { name: "Corrida", series: "1", rept: "20 min", descanso: "-", method: "Tempo controlado" },
+                  { name: "Mountain Climber", series: "3", rept: "40", descanso: "30s", method: "Convencional" }
+                ]
+              }
+            }
+          }
+        }
       }
     };
 
