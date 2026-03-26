@@ -2575,17 +2575,31 @@
 
     .back-btn {
       border: none;
-      color: #fff;
-      background: transparent;
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(40, 40, 55, 0.7);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
+      backdrop-filter: blur(20px) saturate(130%);
+      border: 1px solid var(--glass-border);
       border-radius: 999px;
-      padding: 8px 10px;
+      width: 2.75rem;
+      height: 2.75rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.2s ease;
+      transition: all 0.2s ease;
+      transform: scale(1);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
     }
 
-    .back-btn:hover { opacity: 0.8; }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      transform: scale(1.1);
+    }
+
+    .back-btn:active {
+      transform: scale(0.95);
+    }
 
     .program-title-block {
       display: flex;
@@ -2704,7 +2718,28 @@
 
 <body>
 
-  <header class="text-center mb-10 header-background py-12">
+  <div id="top-bar" class="fixed top-0 left-0 right-0 z-30 hidden transition-all duration-300" style="padding-bottom: 12px; -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); mask-image: linear-gradient(to bottom, black 60%, transparent 100%);">
+    <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
+      <div class="w-10"></div>
+      <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.2));" />
+      <button id="user-avatar-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
+        style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
+        aria-label="Menu do usuário">
+        <i class="ph-bold ph-user text-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="user-dropdown" class="fixed z-40 hidden opacity-0 transition-all duration-200 origin-top-right scale-95" style="min-width: 180px;">
+    <div class="rounded-xl overflow-hidden py-1" style="background: rgba(25, 25, 25, 0.75); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 2px rgba(255, 255, 255, 0.2) inset; backdrop-filter: blur(20px) saturate(200%) brightness(1.5); -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.5); border: 1px solid rgba(255, 255, 255, 0.15);">
+      <button id="open-program-screen-btn" class="w-full px-4 py-3 flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 transition-colors text-sm">
+        <i class="ph-bold ph-arrows-left-right"></i>
+        Trocar programa
+      </button>
+    </div>
+  </div>
+
+  <header class="text-center mb-0 header-background py-12">
     <div class="flex justify-center items-center h-32">
       <img src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-24 md:h-32 w-auto" />
     </div>
@@ -2726,13 +2761,6 @@
   </section>
 
   <div id="main-content" class="container mx-auto p-4 md:p-6 max-w-6xl transition-all duration-500 hidden">
-
-    <div class="flex justify-end mb-4 content-enter-animation">
-      <button id="open-program-screen-btn" class="px-4 py-2 rounded-xl border border-[var(--surface-2)] text-sm font-semibold text-[var(--text-muted)] hover:text-white hover:border-[var(--primary-color)] transition-colors flex items-center gap-2">
-        <i class="ph-bold ph-arrows-left-right"></i>
-        Trocar programa
-      </button>
-    </div>
 
     <section id="phase-header" class="text-center mb-8 content-enter-animation" role="banner"></section>
 
@@ -4082,6 +4110,7 @@
       screen.classList.remove("hidden");
       screen.setAttribute("aria-hidden", "false");
       DOM_ELEMENTS.mainContent?.classList.add("hidden");
+      DOM_ELEMENTS.topBar?.classList.add("hidden");
       renderProgramScreen();
     }
 
@@ -4091,6 +4120,7 @@
       screen.classList.add("hidden");
       screen.setAttribute("aria-hidden", "true");
       DOM_ELEMENTS.mainContent?.classList.remove("hidden");
+      DOM_ELEMENTS.topBar?.classList.remove("hidden");
       localStorage.setItem(PROGRAM_PICK_KEY, "1");
     }
 
@@ -4186,6 +4216,53 @@
       const scrollHandler = () => scheduleCardParallaxUpdate();
       window.addEventListener('scroll', scrollHandler, { passive: true });
       window.addEventListener('resize', scrollHandler);
+
+      // Top bar blur on scroll
+      const topBar = document.getElementById('top-bar');
+      const topBarLogo = document.getElementById('top-bar-logo');
+      window.addEventListener('scroll', () => {
+        if (!topBar) return;
+        if (window.scrollY > 30) {
+          topBar.style.background = 'transparent';
+          topBar.style.backdropFilter = 'blur(4px) brightness(1.15) saturate(130%)';
+          topBar.style.webkitBackdropFilter = 'blur(4px) brightness(1.15) saturate(130%)';
+          if (topBarLogo) topBarLogo.style.opacity = '1';
+        } else {
+          topBar.style.background = 'transparent';
+          topBar.style.backdropFilter = 'none';
+          topBar.style.webkitBackdropFilter = 'none';
+          if (topBarLogo) topBarLogo.style.opacity = '0';
+        }
+      }, { passive: true });
+
+      // User avatar dropdown toggle
+      const avatarBtn = document.getElementById('user-avatar-btn');
+      const userDropdown = document.getElementById('user-dropdown');
+      if (avatarBtn && userDropdown) {
+        function positionDropdown() {
+          const rect = avatarBtn.getBoundingClientRect();
+          userDropdown.style.top = (rect.bottom + 8) + 'px';
+          userDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        }
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !userDropdown.classList.contains('hidden');
+          if (isOpen) {
+            userDropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => userDropdown.classList.add('hidden'), 200);
+          } else {
+            positionDropdown();
+            userDropdown.classList.remove('hidden');
+            requestAnimationFrame(() => userDropdown.classList.remove('opacity-0', 'scale-95'));
+          }
+        });
+        document.addEventListener('click', () => {
+          if (!userDropdown.classList.contains('hidden')) {
+            userDropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => userDropdown.classList.add('hidden'), 200);
+          }
+        });
+      }
 
       if (PREFERS_REDUCED_MOTION_QUERY) {
         const motionHandler = () => {
@@ -7349,6 +7426,7 @@
 
       Object.assign(DOM_ELEMENTS, {
         mainContent: document.getElementById("main-content"),
+        topBar: document.getElementById("top-bar"),
         programScreen: document.getElementById("program-selection-screen"),
         programScreenList: document.getElementById("program-screen-list"),
         openProgramScreenBtn: document.getElementById("open-program-screen-btn"),
