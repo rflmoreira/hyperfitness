@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
   <meta name="description" content="HyperFitness - Seu aplicativo de treinos" />
   <title>HyperFitness - Seu aplicativo de treinos</title>
   <link rel="icon" type="image/svg+xml"
@@ -80,28 +80,39 @@
     }
 
     /* Safari Liquid Glass (iOS 26) — tint elements.
-       Cobrem APENAS a faixa do safe-area-inset (barra de status / home indicator)
-       para que o algoritmo detecte background-color sólido e pinte as barras
-       do sistema. Ficam fora da área visível do top-bar/footer, sem afetar o blur. */
+       Safari 26 lê background-color de elementos position:fixed próximos às
+       bordas do viewport (≤4px do topo, ≤3px do fundo, ≥80% largura, ≥3px altura).
+       Posicionados parcialmente fora da viewport para ficarem invisíveis ao
+       usuário mas dentro da zona de detecção do Safari. */
     #safari-status-tint,
     #safari-bottom-tint {
       position: fixed;
       left: 0;
-      right: 0;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 12px;
       pointer-events: none;
       background-color: var(--background-dark);
+      display: none;
     }
 
     #safari-status-tint {
-      top: 0;
-      height: env(safe-area-inset-top, 0px);
+      top: -4px;
       z-index: 9999;
     }
 
     #safari-bottom-tint {
-      bottom: 0;
-      height: env(safe-area-inset-bottom, 0px);
+      bottom: -8px;
       z-index: 9999;
+    }
+
+    /* Mostrar apenas no Safari iOS (touch + Apple system font) */
+    @supports (-webkit-text-size-adjust: none) and (font: -apple-system-body) and (-webkit-touch-callout: none) {
+      #safari-status-tint,
+      #safari-bottom-tint {
+        display: block;
+      }
     }
 
     * {
@@ -114,7 +125,8 @@
       overflow-y: auto;
       width: 100%;
       max-width: 100%;
-      position: relative
+      position: relative;
+      background-color: var(--background-dark);
     }
 
     body {
@@ -2856,10 +2868,10 @@
   </div>
 
   <!-- Quick Actions Overlay com blur -->
-  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] pointer-events-none" style="display:none; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease;"></div>
 
   <!-- User Dropdown Overlay com blur -->
-  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="user-overlay" class="fixed inset-0 z-[35] pointer-events-none" style="display:none; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease;"></div>
 
   <!-- Quick Actions Toggle (fora do footer para z-index independente) -->
   <div id="quick-actions-container" class="fixed bottom-4 z-[46]">
@@ -2905,7 +2917,7 @@
 
   <div id="edit-schedule-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-50 flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="edit-title" aria-hidden="true">
+    role="dialog" aria-labelledby="edit-title" aria-hidden="true" style="display:none">
     <div id="edit-schedule-card"
       class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-7 pt-9 transform scale-95 transition-all duration-300 overflow-hidden"
       tabindex="-1">
@@ -2939,7 +2951,7 @@
 
   <div id="exercise-image-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-60 flex items-center justify-center opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="exercise-image-title" aria-hidden="true">
+    role="dialog" aria-labelledby="exercise-image-title" aria-hidden="true" style="display:none">
     <button id="close-exercise-image-btn"
       class="modal-close-btn glass-effect text-white/90 w-11 h-11 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center transition-all transform hover:scale-110 hover:rotate-90 shadow-lg no-tap-highlight touch-manipulation"
       aria-label="Fechar imagem do exercício" title="Fechar (Esc)">
@@ -2952,7 +2964,7 @@
 
   <div id="timer-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-50 flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="timer-title" aria-hidden="true">
+    role="dialog" aria-labelledby="timer-title" aria-hidden="true" style="display:none">
     <div id="timer-card"
       class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-7 pt-9 transform scale-95 transition-all duration-300 overflow-hidden"
       tabindex="-1">
@@ -2992,7 +3004,7 @@
 
   <div id="notepad-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-50 flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="notepad-title" aria-hidden="true">
+    role="dialog" aria-labelledby="notepad-title" aria-hidden="true" style="display:none">
     <div id="notepad-card"
       class="modal-card relative w-full max-w-lg glass-effect rounded-3xl p-7 pt-9 transform scale-95 transition-all duration-300 overflow-hidden"
       tabindex="-1">
@@ -3088,7 +3100,7 @@
 
   <div id="rename-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-[60] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="rename-modal-title" aria-hidden="true">
+    role="dialog" aria-labelledby="rename-modal-title" aria-hidden="true" style="display:none">
     <div id="rename-card"
       class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-6 transform scale-95 transition-all duration-300"
       tabindex="-1">
@@ -3133,7 +3145,7 @@
 
   <div id="delete-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-[60] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="delete-modal-title" aria-hidden="true">
+    role="dialog" aria-labelledby="delete-modal-title" aria-hidden="true" style="display:none">
     <div id="delete-card"
       class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-6 transform scale-95 transition-all duration-300"
       tabindex="-1">
@@ -4269,7 +4281,9 @@
       const userOverlay = document.getElementById('user-overlay');
       function showUserOverlay() {
         if (!userOverlay) return;
-        userOverlay.classList.remove('invisible', 'pointer-events-none');
+        userOverlay.style.display = '';
+        void userOverlay.offsetWidth;
+        userOverlay.classList.remove('pointer-events-none');
         userOverlay.classList.add('pointer-events-auto');
         userOverlay.style.opacity = '1';
         if (topBarLogo) topBarLogo.style.opacity = '0';
@@ -4278,7 +4292,11 @@
         if (!userOverlay) return;
         userOverlay.style.opacity = '0';
         userOverlay.classList.add('pointer-events-none');
-        setTimeout(() => userOverlay.classList.add('invisible'), 250);
+        setTimeout(() => {
+          if (userOverlay.style.opacity === '0') {
+            userOverlay.style.display = 'none';
+          }
+        }, 260);
         if (topBarLogo && window.scrollY > 30) topBarLogo.style.opacity = '1';
       }
       function closeUserDropdown() {
@@ -5195,11 +5213,24 @@
         unlockBodyScroll();
       }
 
+      if (show) {
+        modal.style.display = '';
+        void modal.offsetWidth;
+      }
+
       modal.classList.toggle("invisible", !show);
       modal.classList.toggle("opacity-0", !show);
       card.classList.toggle("scale-95", !show);
       DOM_ELEMENTS.mainContent?.classList.toggle("blur-sm", show);
       DOM_ELEMENTS.mainContent?.classList.toggle("scale-105", show);
+
+      if (!show) {
+        setTimeout(() => {
+          if (modal.classList.contains('invisible')) {
+            modal.style.display = 'none';
+          }
+        }, 310);
+      }
     }
 
     // Helper para bloquear scroll do body (modal aberto)
@@ -5237,6 +5268,8 @@
     // Helper para abrir modal com animação de escala
     function openScaledModal(modal, card) {
       if (!modal) return;
+      modal.style.display = '';
+      void modal.offsetWidth;
       modal.classList.remove('invisible', 'opacity-0');
       modal.setAttribute('aria-hidden', 'false');
       card?.classList.remove('scale-95');
@@ -5253,6 +5286,7 @@
       setTimeout(() => {
         restoreFocusAfterModal(modal);
         modal.classList.add('invisible');
+        modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
         onComplete?.();
       }, 300);
@@ -5396,8 +5430,10 @@
     // Helper para mostrar elemento com fade (global)
     function showElementWithFade(el) {
       if (!el) return;
+      el.style.display = '';
+      // Forçar reflow para que a transição de opacity funcione
+      void el.offsetWidth;
       el.style.opacity = '1';
-      el.style.visibility = 'visible';
       el.style.pointerEvents = 'auto';
     }
 
@@ -5405,8 +5441,13 @@
     function hideElementWithFade(el) {
       if (!el) return;
       el.style.opacity = '0';
-      el.style.visibility = 'hidden';
       el.style.pointerEvents = 'none';
+      // Aguardar a transição de opacity antes de remover do render tree
+      setTimeout(() => {
+        if (el.style.opacity === '0') {
+          el.style.display = 'none';
+        }
+      }, 260);
     }
 
     function initializeFloatingActions() {
@@ -5736,6 +5777,8 @@
 
       lockBodyScroll();
 
+      EXERCISE_IMAGE_MODAL.modal.style.display = '';
+      void EXERCISE_IMAGE_MODAL.modal.offsetWidth;
       EXERCISE_IMAGE_MODAL.modal.classList.remove('invisible');
       EXERCISE_IMAGE_MODAL.modal.setAttribute('aria-hidden', 'false');
 
@@ -5756,6 +5799,7 @@
       setTimeout(() => {
         restoreFocusAfterModal(EXERCISE_IMAGE_MODAL.modal);
         EXERCISE_IMAGE_MODAL.modal.classList.add('invisible');
+        EXERCISE_IMAGE_MODAL.modal.style.display = 'none';
         EXERCISE_IMAGE_MODAL.modal.setAttribute('aria-hidden', 'true');
 
         unlockBodyScroll();
