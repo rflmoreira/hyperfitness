@@ -3,9 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <meta name="description" content="HyperFitness - Seu aplicativo de treinos" />
-  <meta name="theme-color" content="#13121b" />
   <title>HyperFitness - Seu aplicativo de treinos</title>
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2313121b'/%3E%3Cpath d='M16 14h10v36H16zM38 14h10v36H38zM26 30h12v10H26z' fill='%23ff7a1f'/%3E%3C/svg%3E" />
@@ -78,6 +77,17 @@
     [data-theme="escuro"] {
       --background-dark: #13121b;
       --background-darker: #0c0b13
+    }
+
+    /* Safari Liquid Glass tint — acompanha o tema */
+    [data-theme="claro"] #safari-status-tint,
+    [data-theme="claro"] #safari-bottom-tint {
+      background-color: #eef0f6 !important;
+    }
+
+    [data-theme="escuro"] #safari-status-tint,
+    [data-theme="escuro"] #safari-bottom-tint {
+      background-color: #13121b !important;
     }
 
     * {
@@ -760,22 +770,6 @@
       position: fixed;
       overflow: visible;
     }
-
-    /* Safari Liquid Glass sentinels — zero-height fixed elements
-       at viewport edges so Safari samples their background-color
-       for the status-bar / toolbar tint without affecting the
-       visible blur layers. */
-    .safari-tint-sentinel {
-      position: fixed;
-      left: 0;
-      right: 0;
-      height: 0;
-      pointer-events: none;
-      background-color: var(--background-dark);
-      z-index: -1;
-    }
-    .safari-tint-sentinel--top { top: 0; }
-    .safari-tint-sentinel--bottom { bottom: 0; }
 
     #top-bar::before {
       content: '';
@@ -2778,9 +2772,13 @@
 
 <body>
 
-  <!-- Safari Liquid Glass tint sentinels -->
-  <div class="safari-tint-sentinel safari-tint-sentinel--top" aria-hidden="true"></div>
-  <div class="safari-tint-sentinel safari-tint-sentinel--bottom" aria-hidden="true"></div>
+  <!-- Safari Liquid Glass: elementos reais com background-color sólido para
+       que o algoritmo de detecção do iOS 26 pinte a barra de status e a barra
+       de endereço com a cor correta. Pseudo-elementos são ignorados. -->
+  <div id="safari-status-tint" aria-hidden="true"
+    style="position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);min-height:1px;background-color:#13121b;z-index:9999;pointer-events:none;"></div>
+  <div id="safari-bottom-tint" aria-hidden="true"
+    style="position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0px);min-height:1px;background-color:#13121b;z-index:9999;pointer-events:none;"></div>
 
   <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
