@@ -740,16 +740,17 @@
       max-width: 100%;
       position: fixed;
       overflow: visible;
+      background-color: rgba(19, 18, 27, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
 
-    #footer-container::before {
-      content: '';
+    .footer-blur-layer {
       position: absolute;
       top: -24px;
       left: 0;
       right: 0;
       bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-      z-index: -1;
       backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
@@ -760,16 +761,21 @@
     #top-bar {
       position: fixed;
       overflow: visible;
+      background-color: transparent;
     }
 
-    #top-bar::before {
-      content: '';
+    #top-bar.top-bar-blur-active {
+      background-color: rgba(19, 18, 27, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .top-bar-blur-layer {
       position: absolute;
       top: calc(-1 * env(safe-area-inset-top, 0px));
       left: 0;
       right: 0;
       bottom: -24px;
-      z-index: -1;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
@@ -778,13 +784,20 @@
       transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
     }
 
-    #top-bar.top-bar-blur-active::before {
+    #top-bar.top-bar-blur-active .top-bar-blur-layer {
       backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
     }
 
     #footer-container .container {
       overflow: visible
+    }
+
+    /* Safari iOS tinting fix: remove backdrop-filter from hidden fixed modals */
+    .invisible[class*="backdrop-blur"],
+    [aria-hidden="true"][class*="backdrop-blur"] {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
     }
 
     @media (min-width:1280px) {
@@ -2764,7 +2777,8 @@
 <body>
 
   <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: 12px;">
-    <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
+    <div class="top-bar-blur-layer" aria-hidden="true"></div>
+    <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3 relative z-[1]">
       <div class="w-10"></div>
       <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));" />
       <button id="user-avatar-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
@@ -2860,7 +2874,8 @@
   </div>
 
   <footer id="footer-container" class="fixed bottom-0 left-0 right-0 z-40" style="padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)) 1rem;">
-    <div class="container mx-auto max-w-4xl">
+    <div class="footer-blur-layer" aria-hidden="true"></div>
+    <div class="container mx-auto max-w-4xl relative z-[1]">
       <div class="quick-actions-wrapper">
         <button id="complete-workout-btn" class="btn-theme-principal no-select touch-manipulation no-tap-highlight"
           type="button" aria-label="Concluir treino atual">
