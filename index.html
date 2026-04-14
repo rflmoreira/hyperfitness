@@ -757,10 +757,10 @@
     }
 
     /* Safari 26+ Liquid Glass tinting helpers
-       background semi-transparente + backdrop-filter = Safari aplica
-       blur translúcido (Liquid Glass) nas barras em vez de cor sólida.
-       opacity:0 torna invisível visualmente, mas o Safari ainda lê
-       background-color e backdrop-filter para o tinting. */
+       Safari lê APENAS background-color de elementos fixed/sticky
+       próximos às bordas do viewport. backdrop-filter NÃO é amostrado.
+       O blur translúcido é nativo do Liquid Glass — controlamos só a cor.
+       visibility:hidden É amostrado; display:none NÃO. */
     .safari-tint-bar {
       position: fixed;
       left: 0;
@@ -769,11 +769,8 @@
       width: 100%;
       min-height: 12px;
       pointer-events: none;
-      background-color: rgba(19, 18, 27, 0.45);
-      -webkit-backdrop-filter: blur(20px) saturate(140%);
-      backdrop-filter: blur(20px) saturate(140%);
-      opacity: 0;
-      display: none;
+      background-color: rgba(19, 18, 27, 0.65);
+      visibility: hidden;
     }
 
     .safari-tint-bar--top {
@@ -786,20 +783,12 @@
       z-index: 9999;
     }
 
-    @supports (-webkit-text-size-adjust: none) and (font: -apple-system-body) and (-webkit-touch-callout: none) {
-      @media (max-width: 1024px) {
-        .safari-tint-bar {
-          display: block;
-        }
-      }
-    }
-
-    /* Neutralizar backdrop-filter e background em modais/overlays ocultos
-       para evitar interferência no tinting do Safari 26+ Liquid Glass */
+    /* Neutralizar background em modais/overlays ocultos para evitar
+       interferência no tinting do Safari 26+ Liquid Glass.
+       Safari amostra visibility:hidden, então precisamos zerar
+       background-color para que não compita com os tint bars. */
     .invisible[class*="backdrop-blur"],
-    .opacity-0[class*="backdrop-blur"] {
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
+    [aria-hidden="true"][class*="backdrop-blur"] {
       background-color: transparent !important;
     }
 
