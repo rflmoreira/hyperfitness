@@ -735,7 +735,20 @@
     }
 
     #footer-container {
-      max-width: 100%
+      max-width: 100%;
+      position: fixed;
+    }
+
+    #footer-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
+      -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
+      -webkit-mask-image: linear-gradient(to top, black 60%, transparent 100%);
+      mask-image: linear-gradient(to top, black 60%, transparent 100%);
+      pointer-events: none;
     }
 
     #footer-container .container {
