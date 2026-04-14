@@ -739,6 +739,7 @@
       max-width: 100%;
       position: fixed;
       overflow: visible;
+      background-color: transparent;
     }
 
     #footer-container > .footer-blur-layer {
@@ -757,7 +758,9 @@
 
     /* Safari 26+ Liquid Glass tinting helpers
        background semi-transparente + backdrop-filter = Safari aplica
-       blur translúcido (Liquid Glass) nas barras em vez de cor sólida */
+       blur translúcido (Liquid Glass) nas barras em vez de cor sólida.
+       opacity:0 torna invisível visualmente, mas o Safari ainda lê
+       background-color e backdrop-filter para o tinting. */
     .safari-tint-bar {
       position: fixed;
       left: 0;
@@ -769,16 +772,17 @@
       background-color: rgba(19, 18, 27, 0.45);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
       backdrop-filter: blur(20px) saturate(140%);
+      opacity: 0;
       display: none;
     }
 
     .safari-tint-bar--top {
-      top: -4px;
+      top: 0;
       z-index: 9999;
     }
 
     .safari-tint-bar--bottom {
-      bottom: -8px;
+      bottom: 0;
       z-index: 9999;
     }
 
@@ -790,17 +794,24 @@
       }
     }
 
-    /* Neutralizar backdrop-filter em modais/overlays ocultos para evitar
-       interferência no tinting do Safari 26+ Liquid Glass */
+    /* Neutralizar backdrop-filter e background em modais/overlays ocultos
+       para evitar interferência no tinting do Safari 26+ Liquid Glass */
     .invisible[class*="backdrop-blur"],
     .opacity-0[class*="backdrop-blur"] {
       -webkit-backdrop-filter: none !important;
       backdrop-filter: none !important;
+      background-color: transparent !important;
+    }
+
+    /* Canvas de confetti: garantir que não interfira no tinting */
+    #confetti-canvas {
+      background-color: transparent !important;
     }
 
     #top-bar {
       position: fixed;
       overflow: visible;
+      background-color: transparent;
     }
 
     #top-bar > .top-bar-blur-layer {
@@ -2872,10 +2883,10 @@
   </div>
 
   <!-- Quick Actions Overlay com blur -->
-  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] invisible pointer-events-none" style="transition: opacity 0.25s ease, visibility 0.25s ease; opacity: 0;"></div>
 
   <!-- User Dropdown Overlay com blur -->
-  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="user-overlay" class="fixed inset-0 z-[35] invisible pointer-events-none" style="transition: opacity 0.25s ease, visibility 0.25s ease; opacity: 0;"></div>
 
   <!-- Quick Actions Toggle (fora do footer para z-index independente) -->
   <div id="quick-actions-container" class="fixed bottom-4 z-[46]">
@@ -5413,21 +5424,30 @@
     // Helper para mostrar elemento com fade (global)
     function showElementWithFade(el) {
       if (!el) return;
+      el.style.background = 'rgba(0,0,0,0.3)';
+      el.style.backdropFilter = 'blur(8px)';
+      el.style.webkitBackdropFilter = 'blur(8px)';
       el.style.opacity = '1';
       el.style.visibility = 'visible';
       el.style.pointerEvents = 'auto';
-      el.style.backdropFilter = 'blur(8px)';
-      el.style.webkitBackdropFilter = 'blur(8px)';
+      el.classList.remove('invisible');
     }
 
     // Helper para esconder elemento com fade (global)
     function hideElementWithFade(el) {
       if (!el) return;
       el.style.opacity = '0';
-      el.style.visibility = 'hidden';
       el.style.pointerEvents = 'none';
-      el.style.backdropFilter = 'none';
-      el.style.webkitBackdropFilter = 'none';
+      // Remover background e blur após a transição para não interferir no tinting do Safari
+      setTimeout(() => {
+        if (el.style.opacity === '0') {
+          el.style.visibility = 'hidden';
+          el.style.background = 'transparent';
+          el.style.backdropFilter = 'none';
+          el.style.webkitBackdropFilter = 'none';
+          el.classList.add('invisible');
+        }
+      }, 260);
     }
 
     function initializeFloatingActions() {
