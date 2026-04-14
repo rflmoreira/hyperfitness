@@ -79,15 +79,29 @@
       --background-darker: #0c0b13
     }
 
-    /* Safari Liquid Glass tint — acompanha o tema */
-    [data-theme="claro"] #safari-status-tint,
-    [data-theme="claro"] #safari-bottom-tint {
-      background-color: #eef0f6 !important;
+    /* Safari Liquid Glass (iOS 26) — tint elements.
+       Cobrem APENAS a faixa do safe-area-inset (barra de status / home indicator)
+       para que o algoritmo detecte background-color sólido e pinte as barras
+       do sistema. Ficam fora da área visível do top-bar/footer, sem afetar o blur. */
+    #safari-status-tint,
+    #safari-bottom-tint {
+      position: fixed;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+      background-color: var(--background-dark);
     }
 
-    [data-theme="escuro"] #safari-status-tint,
-    [data-theme="escuro"] #safari-bottom-tint {
-      background-color: #13121b !important;
+    #safari-status-tint {
+      top: 0;
+      height: env(safe-area-inset-top, 0px);
+      z-index: 9999;
+    }
+
+    #safari-bottom-tint {
+      bottom: 0;
+      height: env(safe-area-inset-bottom, 0px);
+      z-index: 9999;
     }
 
     * {
@@ -2772,13 +2786,11 @@
 
 <body>
 
-  <!-- Safari Liquid Glass: elementos reais com background-color sólido para
-       que o algoritmo de detecção do iOS 26 pinte a barra de status e a barra
-       de endereço com a cor correta. Pseudo-elementos são ignorados. -->
-  <div id="safari-status-tint" aria-hidden="true"
-    style="position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);min-height:1px;background-color:#13121b;z-index:9999;pointer-events:none;"></div>
-  <div id="safari-bottom-tint" aria-hidden="true"
-    style="position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0px);min-height:1px;background-color:#13121b;z-index:9999;pointer-events:none;"></div>
+  <!-- Safari Liquid Glass (iOS 26): divs reais com background-color sólido
+       posicionados atrás do #top-bar e #footer-container para que o algoritmo
+       de detecção pinte a barra de status e a barra de endereço. -->
+  <div id="safari-status-tint" aria-hidden="true"></div>
+  <div id="safari-bottom-tint" aria-hidden="true"></div>
 
   <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
