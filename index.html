@@ -755,7 +755,9 @@
       pointer-events: none;
     }
 
-    /* Safari 26+ Liquid Glass tinting helpers */
+    /* Safari 26+ Liquid Glass tinting helpers
+       background semi-transparente + backdrop-filter = Safari aplica
+       blur translúcido (Liquid Glass) nas barras em vez de cor sólida */
     .safari-tint-bar {
       position: fixed;
       left: 0;
@@ -764,7 +766,9 @@
       width: 100%;
       min-height: 12px;
       pointer-events: none;
-      background-color: var(--background-dark);
+      background-color: rgba(19, 18, 27, 0.45);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
       display: none;
     }
 
