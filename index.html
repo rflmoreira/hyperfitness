@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
   <meta name="description" content="HyperFitness - Seu aplicativo de treinos" />
-  <meta name="theme-color" content="#13121b" />
   <title>HyperFitness - Seu aplicativo de treinos</title>
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2313121b'/%3E%3Cpath d='M16 14h10v36H16zM38 14h10v36H38zM26 30h12v10H26z' fill='%23ff7a1f'/%3E%3C/svg%3E" />
@@ -97,7 +96,7 @@
     body {
       font-family: "Poppins", sans-serif;
       margin: 0;
-      padding: env(safe-area-inset-top, 0px) 0 calc(120px + env(safe-area-inset-bottom, 0px)) 0;
+      padding: 0 0 120px 0;
       background-color: var(--background-dark);
       color: var(--text);
       user-select: none;
@@ -740,17 +739,15 @@
       max-width: 100%;
       position: fixed;
       overflow: visible;
-      background-color: rgba(19, 18, 27, 0.5);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
     }
 
-    .footer-blur-layer {
+    #footer-container > .footer-blur-layer {
       position: absolute;
       top: -24px;
       left: 0;
       right: 0;
       bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+      z-index: -1;
       backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
@@ -758,24 +755,57 @@
       pointer-events: none;
     }
 
+    /* Safari 26+ Liquid Glass tinting helpers */
+    .safari-tint-bar {
+      position: fixed;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 12px;
+      pointer-events: none;
+      background-color: var(--background-dark);
+      display: none;
+    }
+
+    .safari-tint-bar--top {
+      top: -4px;
+      z-index: 9999;
+    }
+
+    .safari-tint-bar--bottom {
+      bottom: -8px;
+      z-index: 9999;
+    }
+
+    @supports (-webkit-text-size-adjust: none) and (font: -apple-system-body) and (-webkit-touch-callout: none) {
+      @media (max-width: 1024px) {
+        .safari-tint-bar {
+          display: block;
+        }
+      }
+    }
+
+    /* Neutralizar backdrop-filter em modais/overlays ocultos para evitar
+       interferência no tinting do Safari 26+ Liquid Glass */
+    .invisible[class*="backdrop-blur"],
+    .opacity-0[class*="backdrop-blur"] {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
     #top-bar {
       position: fixed;
       overflow: visible;
-      background-color: transparent;
     }
 
-    #top-bar.top-bar-blur-active {
-      background-color: rgba(19, 18, 27, 0.5);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-    }
-
-    .top-bar-blur-layer {
+    #top-bar > .top-bar-blur-layer {
       position: absolute;
       top: calc(-1 * env(safe-area-inset-top, 0px));
       left: 0;
       right: 0;
       bottom: -24px;
+      z-index: -1;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
@@ -784,20 +814,13 @@
       transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
     }
 
-    #top-bar.top-bar-blur-active .top-bar-blur-layer {
+    #top-bar.top-bar-blur-active > .top-bar-blur-layer {
       backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
       -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(130%);
     }
 
     #footer-container .container {
       overflow: visible
-    }
-
-    /* Safari iOS tinting fix: remove backdrop-filter from hidden fixed modals */
-    .invisible[class*="backdrop-blur"],
-    [aria-hidden="true"][class*="backdrop-blur"] {
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
     }
 
     @media (min-width:1280px) {
@@ -2776,9 +2799,13 @@
 
 <body>
 
-  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: 12px;">
+  <!-- Safari 26+ Liquid Glass: tinting bars para colorir status bar e barra de endereço -->
+  <div class="safari-tint-bar safari-tint-bar--top" aria-hidden="true"></div>
+  <div class="safari-tint-bar safari-tint-bar--bottom" aria-hidden="true"></div>
+
+  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="top-bar-blur-layer" aria-hidden="true"></div>
-    <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3 relative z-[1]">
+    <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
       <div class="w-10"></div>
       <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));" />
       <button id="user-avatar-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
@@ -2841,10 +2868,10 @@
   </div>
 
   <!-- Quick Actions Overlay com blur -->
-  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
 
   <!-- User Dropdown Overlay com blur -->
-  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
+  <div id="user-overlay" class="fixed inset-0 z-[35] opacity-0 invisible pointer-events-none" style="background: rgba(0,0,0,0.3); transition: opacity 0.25s ease, visibility 0.25s ease;"></div>
 
   <!-- Quick Actions Toggle (fora do footer para z-index independente) -->
   <div id="quick-actions-container" class="fixed bottom-4 z-[46]">
@@ -2873,9 +2900,9 @@
     </div>
   </div>
 
-  <footer id="footer-container" class="fixed bottom-0 left-0 right-0 z-40" style="padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)) 1rem;">
+  <footer id="footer-container" class="fixed bottom-0 left-0 right-0 p-4 z-40">
     <div class="footer-blur-layer" aria-hidden="true"></div>
-    <div class="container mx-auto max-w-4xl relative z-[1]">
+    <div class="container mx-auto max-w-4xl">
       <div class="quick-actions-wrapper">
         <button id="complete-workout-btn" class="btn-theme-principal no-select touch-manipulation no-tap-highlight"
           type="button" aria-label="Concluir treino atual">
@@ -5385,6 +5412,8 @@
       el.style.opacity = '1';
       el.style.visibility = 'visible';
       el.style.pointerEvents = 'auto';
+      el.style.backdropFilter = 'blur(8px)';
+      el.style.webkitBackdropFilter = 'blur(8px)';
     }
 
     // Helper para esconder elemento com fade (global)
@@ -5393,6 +5422,8 @@
       el.style.opacity = '0';
       el.style.visibility = 'hidden';
       el.style.pointerEvents = 'none';
+      el.style.backdropFilter = 'none';
+      el.style.webkitBackdropFilter = 'none';
     }
 
     function initializeFloatingActions() {
