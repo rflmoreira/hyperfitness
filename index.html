@@ -181,6 +181,10 @@
       right: 0
     }
 
+    html.modal-open {
+      overflow: hidden;
+    }
+
 
     @keyframes fadeIn {
       from {
@@ -380,24 +384,10 @@
       -webkit-backdrop-filter: blur(20px)
     }
 
-    .backdrop-blur-18 {
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px)
-    }
-
-    .backdrop-blur-16 {
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px)
-    }
-
-    .backdrop-blur-10 {
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px)
-    }
-
-    .backdrop-blur-6 {
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px)
+    .overlay-blur {
+      backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      background: rgba(0, 0, 0, 0.45);
     }
 
     button,
@@ -562,29 +552,29 @@
     }
 
     /* Herdar cores do complete-workout-btn ao interagir */
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="warning"]) .floating-actions-menu button:hover,
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="warning"]) .floating-actions-menu button:active {
+    #quick-actions-container[data-variant="warning"] .floating-actions-menu button:hover,
+    #quick-actions-container[data-variant="warning"] .floating-actions-menu button:active {
       background: rgba(243, 139, 168, 0.35);
       border-color: rgba(243, 139, 168, 0.38);
       box-shadow: 0 18px 36px -18px rgba(243, 139, 168, 0.75)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="success"]) .floating-actions-menu button:hover,
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="success"]) .floating-actions-menu button:active {
+    #quick-actions-container[data-variant="success"] .floating-actions-menu button:hover,
+    #quick-actions-container[data-variant="success"] .floating-actions-menu button:active {
       background: rgba(166, 227, 161, 0.35);
       border-color: rgba(166, 227, 161, 0.38);
       box-shadow: 0 18px 36px -18px rgba(166, 227, 161, 0.75)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="amber"]) .floating-actions-menu button:hover,
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="amber"]) .floating-actions-menu button:active {
+    #quick-actions-container[data-variant="amber"] .floating-actions-menu button:hover,
+    #quick-actions-container[data-variant="amber"] .floating-actions-menu button:active {
       background: rgba(249, 226, 175, 0.35);
       border-color: rgba(249, 226, 175, 0.38);
       box-shadow: 0 18px 36px -18px rgba(249, 226, 175, 0.75)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="neutral"]) .floating-actions-menu button:hover,
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="neutral"]) .floating-actions-menu button:active {
+    #quick-actions-container[data-variant="neutral"] .floating-actions-menu button:hover,
+    #quick-actions-container[data-variant="neutral"] .floating-actions-menu button:active {
       background: rgba(108, 112, 134, 0.35);
       border-color: rgba(108, 112, 134, 0.35);
       box-shadow: 0 18px 36px -18px rgba(108, 112, 134, 0.6)
@@ -727,28 +717,28 @@
       background: rgba(108, 112, 134, 0.5)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="warning"]) .quick-actions-inner>.btn-theme-principal {
+    #quick-actions-container[data-variant="warning"] .quick-actions-inner>.btn-theme-principal {
       --btn-shadow: 0 18px 40px -18px rgba(243, 139, 168, 0.75);
       --btn-shadow-hover: 0 28px 65px -22px rgba(243, 139, 168, 0.95);
       --btn-border-color: rgba(243, 139, 168, 0.38);
       background: rgba(243, 139, 168, 0.6)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="success"]) .quick-actions-inner>.btn-theme-principal {
+    #quick-actions-container[data-variant="success"] .quick-actions-inner>.btn-theme-principal {
       --btn-shadow: 0 18px 40px -18px rgba(166, 227, 161, 0.75);
       --btn-shadow-hover: 0 28px 65px -22px rgba(166, 227, 161, 0.95);
       --btn-border-color: rgba(166, 227, 161, 0.38);
       background: rgba(166, 227, 161, 0.6)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="amber"]) .quick-actions-inner>.btn-theme-principal {
+    #quick-actions-container[data-variant="amber"] .quick-actions-inner>.btn-theme-principal {
       --btn-shadow: 0 18px 40px -18px rgba(249, 226, 175, 0.75);
       --btn-shadow-hover: 0 28px 65px -22px rgba(249, 226, 175, 0.92);
       --btn-border-color: rgba(249, 226, 175, 0.38);
       background: rgba(249, 226, 175, 0.65)
     }
 
-    .quick-actions-wrapper:has(#complete-workout-btn[data-variant="neutral"]) .quick-actions-inner>.btn-theme-principal {
+    #quick-actions-container[data-variant="neutral"] .quick-actions-inner>.btn-theme-principal {
       --btn-shadow: 0 18px 40px -18px rgba(108, 112, 134, 0.6);
       --btn-shadow-hover: 0 28px 65px -22px rgba(108, 112, 134, 0.72);
       --btn-border-color: rgba(108, 112, 134, 0.35);
@@ -787,6 +777,7 @@
       z-index: -1;
       backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      background: rgba(0, 0, 0, 0.45);
       -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
       mask-image: linear-gradient(to top, black 55%, transparent 100%);
       pointer-events: none;
@@ -816,6 +807,7 @@
     #top-bar.top-bar-blur-active::before {
       backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      background: rgba(0, 0, 0, 0.45);
     }
 
     #footer-container .container {
@@ -2634,10 +2626,8 @@
       inset: 0;
       z-index: 130;
       padding: 18px 12px 22px;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      background: rgba(10, 10, 18, 0.55);
       overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     #program-selection-inner {
@@ -2804,7 +2794,7 @@
   <div id="safari-status-tint" aria-hidden="true"></div>
   <div id="safari-bottom-tint" aria-hidden="true"></div>
 
-  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[38] hidden transition-all duration-300" style="padding-bottom: 12px;">
+  <div id="top-bar" class="fixed top-0 left-0 right-0 z-[31] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
       <div class="w-10"></div>
       <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));" />
@@ -2832,7 +2822,7 @@
     </div>
   </header>
 
-  <section id="program-selection-screen" class="program-overlay hidden">
+  <section id="program-selection-screen" class="program-overlay overlay-blur hidden">
     <div id="program-selection-inner" class="content-enter-animation">
       <header class="program-header">
         <button id="back-to-training-btn" class="back-btn" aria-label="Voltar">
@@ -2868,13 +2858,13 @@
   </div>
 
   <!-- Quick Actions Overlay com blur -->
-  <div id="quick-actions-overlay" class="fixed inset-0 z-[45] pointer-events-none" style="display:none; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease;"></div>
+  <div id="quick-actions-overlay" class="fixed inset-0 z-[32] pointer-events-none overlay-blur" style="display:none; transition: opacity 0.25s ease;"></div>
 
   <!-- User Dropdown Overlay com blur -->
-  <div id="user-overlay" class="fixed inset-0 z-[35] pointer-events-none" style="display:none; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease;"></div>
+  <div id="user-overlay" class="fixed inset-0 z-[35] pointer-events-none overlay-blur" style="display:none; transition: opacity 0.25s ease;"></div>
 
   <!-- Quick Actions Toggle (fora do footer para z-index independente) -->
-  <div id="quick-actions-container" class="fixed bottom-4 z-[46]">
+  <div id="quick-actions-container" class="fixed bottom-4 z-[33]">
     <div class="quick-actions-inner">
       <button id="quick-actions-toggle"
         class="quick-actions-toggle btn-theme-principal backdrop-blur-20 no-select touch-manipulation no-tap-highlight"
@@ -2900,7 +2890,7 @@
     </div>
   </div>
 
-  <footer id="footer-container" class="fixed bottom-0 left-0 right-0 p-4 z-40">
+  <footer id="footer-container" class="fixed bottom-0 left-0 right-0 p-4 z-[31]">
     <div class="container mx-auto max-w-4xl">
       <div class="quick-actions-wrapper">
         <button id="complete-workout-btn" class="btn-theme-principal no-select touch-manipulation no-tap-highlight"
@@ -4088,6 +4078,15 @@
         delete button.dataset.variant;
       }
 
+      const qac = document.getElementById('quick-actions-container');
+      if (qac) {
+        if (config.variant && config.variant !== "primary") {
+          qac.dataset.variant = config.variant;
+        } else {
+          delete qac.dataset.variant;
+        }
+      }
+
       button.innerHTML = `<i class="ph-bold ${config.icon} text-2xl"></i> ${config.text}`;
       button.disabled = config.disabled;
       button.setAttribute("aria-label", config.text);
@@ -4151,9 +4150,9 @@
       const backBtn = DOM_ELEMENTS.backToTrainingBtn;
       const hasChoice = !!localStorage.getItem(PROGRAM_PICK_KEY);
       if (backBtn) backBtn.classList.toggle("hidden", !hasChoice && force);
+      lockBodyScroll();
       screen.classList.remove("hidden");
       screen.setAttribute("aria-hidden", "false");
-      DOM_ELEMENTS.mainContent?.classList.add("hidden");
       DOM_ELEMENTS.topBar?.classList.add("hidden");
       renderProgramScreen();
     }
@@ -4165,6 +4164,7 @@
       screen.setAttribute("aria-hidden", "true");
       DOM_ELEMENTS.mainContent?.classList.remove("hidden");
       DOM_ELEMENTS.topBar?.classList.remove("hidden");
+      unlockBodyScroll();
       localStorage.setItem(PROGRAM_PICK_KEY, "1");
     }
 
@@ -4281,6 +4281,7 @@
       const userOverlay = document.getElementById('user-overlay');
       function showUserOverlay() {
         if (!userOverlay) return;
+        lockBodyScroll();
         userOverlay.style.display = '';
         void userOverlay.offsetWidth;
         userOverlay.classList.remove('pointer-events-none');
@@ -4292,6 +4293,7 @@
         if (!userOverlay) return;
         userOverlay.style.opacity = '0';
         userOverlay.classList.add('pointer-events-none');
+        unlockBodyScroll();
         setTimeout(() => {
           if (userOverlay.style.opacity === '0') {
             userOverlay.style.display = 'none';
@@ -5238,12 +5240,14 @@
       const scrollY = window.scrollY;
       document.body.style.top = `-${scrollY}px`;
       document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
     }
 
     // Helper para desbloquear scroll do body (modal fechado)
     function unlockBodyScroll() {
       const scrollY = document.body.style.top;
       document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
       document.body.style.top = '';
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
@@ -5486,9 +5490,11 @@
         const overlay = document.getElementById('quick-actions-overlay');
         if (overlay) {
           if (open) {
+            lockBodyScroll();
             showElementWithFade(overlay);
           } else {
             hideElementWithFade(overlay);
+            unlockBodyScroll();
           }
         }
 
