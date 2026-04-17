@@ -178,7 +178,8 @@
       position: fixed;
       width: 100%;
       left: 0;
-      right: 0
+      right: 0;
+      touch-action: none
     }
 
     html.modal-open {
@@ -4146,7 +4147,7 @@
 
     function openProgramScreen(force = false) {
       const screen = DOM_ELEMENTS.programScreen;
-      if (!screen) return;
+      if (!screen || !screen.classList.contains("hidden")) return;
       const backBtn = DOM_ELEMENTS.backToTrainingBtn;
       const hasChoice = !!localStorage.getItem(PROGRAM_PICK_KEY);
       if (backBtn) backBtn.classList.toggle("hidden", !hasChoice && force);
@@ -5241,6 +5242,7 @@
       document.body.style.top = `-${scrollY}px`;
       document.body.classList.add('modal-open');
       document.documentElement.classList.add('modal-open');
+      document.addEventListener('touchmove', preventBodyScroll, { passive: false });
     }
 
     // Helper para desbloquear scroll do body (modal fechado)
@@ -5249,7 +5251,22 @@
       document.body.classList.remove('modal-open');
       document.documentElement.classList.remove('modal-open');
       document.body.style.top = '';
+      document.removeEventListener('touchmove', preventBodyScroll);
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    function preventBodyScroll(e) {
+      let target = e.target;
+      while (target && target !== document.body) {
+        const style = window.getComputedStyle(target);
+        const overflowY = style.getPropertyValue('overflow-y');
+        if (overflowY === 'auto' || overflowY === 'scroll') {
+          const isScrollable = target.scrollHeight > target.clientHeight;
+          if (isScrollable) return;
+        }
+        target = target.parentElement;
+      }
+      e.preventDefault();
     }
 
     // Helper para restaurar foco após fechar modal
