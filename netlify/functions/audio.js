@@ -161,12 +161,29 @@ export const handler = async (event) => {
 
   console.log(`[AUDIO] Fetching audio for: ${videoId}`);
 
+  // Valida se a URL de áudio é acessível (HEAD request com timeout curto)
+  async function isUrlAccessible(url) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      clearTimeout(timeout);
+      return res.ok || res.status === 206;
+    } catch {
+      return false;
+    }
+  }
+
   // Tenta cada API em sequência
   const apis = [
-    { name: 'youtube-mp36', fn: tryYoutubeMp36 },
     { name: 'ytstream', fn: tryYtstream },
-    { name: 'youtube-mp3-downloader2', fn: tryYoutubeMp3Downloader2 },
-    { name: 'youtube-media-downloader', fn: tryYoutubeMediaDownloader }
+    { name: 'youtube-media-downloader', fn: tryYoutubeMediaDownloader },
+    { name: 'youtube-mp36', fn: tryYoutubeMp36 },
+    { name: 'youtube-mp3-downloader2', fn: tryYoutubeMp3Downloader2 }
   ];
 
   for (const api of apis) {
@@ -174,6 +191,12 @@ export const handler = async (event) => {
       console.log(`[AUDIO] Trying ${api.name}...`);
       const result = await api.fn(videoId);
       if (result) {
+        // Valida se a URL é acessível
+        const accessible = await isUrlAccessible(result.audioUrl);
+        if (!accessible) {
+          console.log(`[AUDIO] ${api.name} URL not accessible, trying next`);
+          continue;
+        }
         console.log(`[AUDIO] Success with ${api.name}`);
         return makeResponse(200, {
           videoId,

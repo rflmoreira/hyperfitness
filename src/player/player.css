@@ -330,7 +330,7 @@
   perspective-origin: center center;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  gap: 6px;
+  gap: 4px;
   transition: opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out;
   transform-origin: center top;
   touch-action: pan-x pinch-zoom;
@@ -383,7 +383,7 @@
 #playlists-container .playlist-item.carousel-left-1 {
   --rotation: 30deg;
   --translateZ: -5px;
-  --translateX: 14px;
+  --translateX: 20px;
   --scale: 0.88;
   --opacity: 0.75;
   --blur: 0px;
@@ -393,7 +393,7 @@
 #playlists-container .playlist-item.carousel-right-1 {
   --rotation: -30deg;
   --translateZ: -5px;
-  --translateX: -14px;
+  --translateX: -20px;
   --scale: 0.88;
   --opacity: 0.75;
   --blur: 0px;
@@ -403,7 +403,7 @@
 #playlists-container .playlist-item.carousel-left-2 {
   --rotation: 45deg;
   --translateZ: -25px;
-  --translateX: 18px;
+  --translateX: 24px;
   --scale: 0.75;
   --opacity: 0.45;
   --blur: 1px;
@@ -413,7 +413,7 @@
 #playlists-container .playlist-item.carousel-right-2 {
   --rotation: -45deg;
   --translateZ: -25px;
-  --translateX: -18px;
+  --translateX: -24px;
   --scale: 0.75;
   --opacity: 0.45;
   --blur: 1px;

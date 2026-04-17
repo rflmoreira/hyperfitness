@@ -5529,19 +5529,19 @@ const MUSIC_PLAYER = (() => {
         imageContent = `
           <img src="${firstTrackCover}" 
             alt="${playlist.name}" 
-            class="w-28 h-28 object-cover group-hover:scale-110 transition-transform duration-300">
+            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
         `;
       } else {
         const imageUrl = getPlaylistCover(playlist);
         imageContent = `
           <img src="${imageUrl}" 
             alt="${playlist.name}" 
-            class="w-28 h-28 object-cover group-hover:scale-110 transition-transform duration-300">
+            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
         `;
       }
 
       return `
-      <div class="playlist-item flex-shrink-0 w-28 group cursor-pointer" data-playlist-id="${playlist.id}">
+      <div class="playlist-item flex-shrink-0 w-32 group cursor-pointer" data-playlist-id="${playlist.id}">
         <div class="relative rounded-xl overflow-hidden shadow-lg transition-all duration-300">
           ${imageContent}
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -5620,12 +5620,10 @@ const MUSIC_PLAYER = (() => {
       const itemRect = item.getBoundingClientRect();
       const itemCenter = itemRect.left + itemRect.width / 2;
       const distance = itemCenter - containerCenter;
-      const itemWidth = itemRect.width + 4; // width + gap
+      const itemWidth = itemRect.width + 4;
 
-      // Remove todas as classes de posição
       item.classList.remove('carousel-center', 'carousel-left-1', 'carousel-right-1', 'carousel-left-2', 'carousel-right-2');
 
-      // Calcula posição relativa
       const position = Math.round(distance / itemWidth);
 
       if (Math.abs(position) === 0) {
@@ -6987,7 +6985,7 @@ const MUSIC_PLAYER = (() => {
         return null;
       }
 
-      console.log(`✅ [AUDIO] Got audio URL for ${videoId}`);
+      console.log(`✅ [AUDIO] Got audio URL for ${videoId}`, data.audioUrl?.substring(0, 80));
 
       // Cache a URL
       setCacheEntry(state.audioCache, videoId, data.audioUrl);
