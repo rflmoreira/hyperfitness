@@ -1,4 +1,4 @@
-// Netlify Function - Extrai áudio do YouTube via múltiplas APIs
+// Netlify Function - Extrai áudio do YouTube via youtube-mp36
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 
@@ -17,8 +17,7 @@ function makeResponse(statusCode, body) {
   };
 }
 
-// API 1: youtube-mp36
-async function tryYoutubeMp36(videoId) {
+async function getAudio(videoId) {
   const response = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`, {
     method: 'GET',
     headers: {
@@ -34,108 +33,9 @@ async function tryYoutubeMp36(videoId) {
     return {
       audioUrl: data.link,
       title: data.title || '',
-      duration: data.duration || 0,
-      source: 'youtube-mp36'
+      duration: data.duration || 0
     };
   }
-  return null;
-}
-
-// API 2: youtube-mp3-downloader2
-async function tryYoutubeMp3Downloader2(videoId) {
-  const response = await fetch(`https://youtube-mp3-downloader2.p.rapidapi.com/ytmp3/ytmp3/?url=https://www.youtube.com/watch?v=${videoId}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': RAPIDAPI_KEY,
-      'x-rapidapi-host': 'youtube-mp3-downloader2.p.rapidapi.com'
-    }
-  });
-
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  if (data.status === 'finished' && data.dlink) {
-    return {
-      audioUrl: data.dlink,
-      title: data.title || '',
-      duration: 0,
-      source: 'youtube-mp3-downloader2'
-    };
-  }
-  return null;
-}
-
-// API 3: ytstream-download-youtube-videos
-async function tryYtstream(videoId) {
-  const response = await fetch(`https://ytstream-download-youtube-videos.p.rapidapi.com/dl?id=${videoId}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': RAPIDAPI_KEY,
-      'x-rapidapi-host': 'ytstream-download-youtube-videos.p.rapidapi.com'
-    }
-  });
-
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  
-  // Procura por formato de áudio
-  if (data.status === 'OK' && data.adaptiveFormats) {
-    const audioFormat = data.adaptiveFormats.find(f => 
-      f.mimeType && f.mimeType.includes('audio') && f.url
-    );
-    if (audioFormat) {
-      return {
-        audioUrl: audioFormat.url,
-        title: data.title || '',
-        duration: data.lengthSeconds || 0,
-        source: 'ytstream'
-      };
-    }
-  }
-  
-  // Fallback para formats
-  if (data.formats) {
-    const format = data.formats.find(f => f.url);
-    if (format) {
-      return {
-        audioUrl: format.url,
-        title: data.title || '',
-        duration: data.lengthSeconds || 0,
-        source: 'ytstream-video'
-      };
-    }
-  }
-  
-  return null;
-}
-
-// API 4: youtube-media-downloader
-async function tryYoutubeMediaDownloader(videoId) {
-  const response = await fetch(`https://youtube-media-downloader.p.rapidapi.com/v2/video/details?videoId=${videoId}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': RAPIDAPI_KEY,
-      'x-rapidapi-host': 'youtube-media-downloader.p.rapidapi.com'
-    }
-  });
-
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  
-  if (data.audios && data.audios.items && data.audios.items.length > 0) {
-    const audio = data.audios.items[0];
-    if (audio.url) {
-      return {
-        audioUrl: audio.url,
-        title: data.title || '',
-        duration: data.lengthSeconds || 0,
-        source: 'youtube-media-downloader'
-      };
-    }
-  }
-  
   return null;
 }
 
@@ -161,30 +61,15 @@ export const handler = async (event) => {
 
   console.log(`[AUDIO] Fetching audio for: ${videoId}`);
 
-  // Tenta cada API em sequência
-  const apis = [
-    { name: 'youtube-mp36', fn: tryYoutubeMp36 },
-    { name: 'ytstream', fn: tryYtstream },
-    { name: 'youtube-mp3-downloader2', fn: tryYoutubeMp3Downloader2 },
-    { name: 'youtube-media-downloader', fn: tryYoutubeMediaDownloader }
-  ];
-
-  for (const api of apis) {
-    try {
-      console.log(`[AUDIO] Trying ${api.name}...`);
-      const result = await api.fn(videoId);
-      if (result) {
-        console.log(`[AUDIO] Success with ${api.name}`);
-        return makeResponse(200, {
-          videoId,
-          ...result
-        });
-      }
-    } catch (error) {
-      console.log(`[AUDIO] ${api.name} failed:`, error.message);
+  try {
+    const result = await getAudio(videoId);
+    if (result) {
+      console.log(`[AUDIO] Success for ${videoId}`);
+      return makeResponse(200, { videoId, ...result });
     }
+  } catch (error) {
+    console.error(`[AUDIO] Error: ${error.message}`);
   }
 
-  console.error(`[AUDIO] All APIs failed for ${videoId}`);
-  return makeResponse(404, { error: 'Could not extract audio from any source' });
+  return makeResponse(404, { error: 'Could not extract audio' });
 };
