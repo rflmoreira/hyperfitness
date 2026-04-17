@@ -174,16 +174,18 @@
     }
 
     body.modal-open {
-      overflow: hidden;
+      overflow: hidden !important;
       position: fixed;
       width: 100%;
       left: 0;
       right: 0;
-      touch-action: none
+      touch-action: none;
+      height: 100%;
     }
 
     html.modal-open {
-      overflow: hidden;
+      overflow: hidden !important;
+      height: 100%;
     }
 
 
@@ -2628,7 +2630,9 @@
       z-index: 130;
       padding: 18px 12px 22px;
       overflow-y: auto;
-      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: none;
+      touch-action: pan-y;
     }
 
     #program-selection-inner {
@@ -4151,10 +4155,11 @@
       const backBtn = DOM_ELEMENTS.backToTrainingBtn;
       const hasChoice = !!localStorage.getItem(PROGRAM_PICK_KEY);
       if (backBtn) backBtn.classList.toggle("hidden", !hasChoice && force);
+      DOM_ELEMENTS.mainContent?.classList.add("hidden");
+      DOM_ELEMENTS.topBar?.classList.add("hidden");
       lockBodyScroll();
       screen.classList.remove("hidden");
       screen.setAttribute("aria-hidden", "false");
-      DOM_ELEMENTS.topBar?.classList.add("hidden");
       renderProgramScreen();
     }
 
@@ -5261,8 +5266,18 @@
         const style = window.getComputedStyle(target);
         const overflowY = style.getPropertyValue('overflow-y');
         if (overflowY === 'auto' || overflowY === 'scroll') {
-          const isScrollable = target.scrollHeight > target.clientHeight;
-          if (isScrollable) return;
+          if (target.scrollHeight > target.clientHeight) {
+            const atTop = target.scrollTop <= 0;
+            const atBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 1;
+            if (atTop && atBottom) break;
+            if (e.touches && e.touches.length) {
+              if (!target._lastTouchY) { target._lastTouchY = e.touches[0].clientY; return; }
+              const dy = e.touches[0].clientY - target._lastTouchY;
+              target._lastTouchY = e.touches[0].clientY;
+              if ((atTop && dy > 0) || (atBottom && dy < 0)) { e.preventDefault(); return; }
+            }
+            return;
+          }
         }
         target = target.parentElement;
       }
