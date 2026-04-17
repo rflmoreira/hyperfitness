@@ -1044,7 +1044,6 @@ const MUSIC_PLAYER = (() => {
   const createAudioElement = (existing = null) => {
     const el = existing || new Audio();
     el.preload = 'auto';
-    el.crossOrigin = 'anonymous';
     el.playsInline = true;
     return el;
   };
