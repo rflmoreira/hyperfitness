@@ -5529,20 +5529,20 @@ const MUSIC_PLAYER = (() => {
         imageContent = `
           <img src="${firstTrackCover}" 
             alt="${playlist.name}" 
-            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+            class="w-28 h-28 object-cover group-hover:scale-110 transition-transform duration-300">
         `;
       } else {
         const imageUrl = getPlaylistCover(playlist);
         imageContent = `
           <img src="${imageUrl}" 
             alt="${playlist.name}" 
-            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+            class="w-28 h-28 object-cover group-hover:scale-110 transition-transform duration-300">
         `;
       }
 
       return `
-      <div class="playlist-item flex-shrink-0 w-32 group cursor-pointer" data-playlist-id="${playlist.id}">
-        <div class="relative rounded-md overflow-hidden shadow-lg transition-all duration-300">
+      <div class="playlist-item flex-shrink-0 w-28 group cursor-pointer" data-playlist-id="${playlist.id}">
+        <div class="relative rounded-xl overflow-hidden shadow-lg transition-all duration-300">
           ${imageContent}
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
@@ -5562,6 +5562,13 @@ const MUSIC_PLAYER = (() => {
       card.addEventListener('click', () => {
         if (!playlist) return;
 
+        // Scroll para centralizar o item clicado no carrossel
+        card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+        // Marca como ativo visualmente
+        ui.playlistsContainer.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('carousel-active'));
+        card.classList.add('carousel-active');
+
         if (state.currentPlaylist && state.currentPlaylist.id === playlist.id) {
           openPlayerModal();
           return;
@@ -5580,6 +5587,15 @@ const MUSIC_PLAYER = (() => {
 
     // Inicializa o carrossel 3D
     initCarousel3D(scrollToFirst);
+
+    // Marca a playlist ativa no carrossel
+    if (state.currentPlaylist) {
+      const activeCard = ui.playlistsContainer.querySelector(`.playlist-item[data-playlist-id="${state.currentPlaylist.id}"]`);
+      if (activeCard) {
+        activeCard.classList.add('carousel-active');
+        requestAnimationFrame(() => activeCard.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' }));
+      }
+    }
     
     // Atualiza o empty state
     updatePlaylistEmptyState();
@@ -5588,6 +5604,7 @@ const MUSIC_PLAYER = (() => {
   // Carrossel 3D - atualiza classes baseado na posição do scroll
   let carouselScrollHandler = null;
   let carouselRafId = null;
+  let carouselScrollEndTimer = null;
 
   function updateCarouselPositions() {
     const container = ui.playlistsContainer;
@@ -5640,6 +5657,25 @@ const MUSIC_PLAYER = (() => {
         updateCarouselPositions();
         carouselRafId = null;
       });
+
+      // Detecta fim do scroll para selecionar a playlist central
+      if (carouselScrollEndTimer) clearTimeout(carouselScrollEndTimer);
+      carouselScrollEndTimer = setTimeout(() => {
+        const centerItem = ui.playlistsContainer?.querySelector('.carousel-center');
+        if (!centerItem) return;
+        const playlistId = centerItem.dataset.playlistId;
+        if (!playlistId) return;
+
+        // Marca como ativo visualmente
+        ui.playlistsContainer.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('carousel-active'));
+        centerItem.classList.add('carousel-active');
+
+        // Seleciona a playlist se for diferente da atual
+        const playlist = state.playlists.find(p => p.id === playlistId);
+        if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlistId)) {
+          selectPlaylist(playlist, false);
+        }
+      }, 200);
     };
 
     // Atualiza posições no scroll

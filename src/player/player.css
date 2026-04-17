@@ -324,14 +324,14 @@
   overflow-x: auto !important;
   overflow-y: visible !important;
   max-width: 100%;
-  padding: 8px 0 20px;
+  padding: 12px 0 24px;
   margin-top: 0;
-  perspective: 800px;
+  perspective: 1000px;
   perspective-origin: center center;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  gap: 4px;
-  transition: opacity 0.25s ease-out, transform 0.25s ease-out, filter 0.25s ease-out;
+  gap: 6px;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out;
   transform-origin: center top;
   touch-action: pan-x pinch-zoom;
   pointer-events: auto;
@@ -350,19 +350,19 @@
 
 #playlists-container .playlist-item {
   --rotation: 0deg;
-  --translateZ: -20px;
+  --translateZ: -30px;
   --translateX: 0px;
-  --scale: 0.82;
-  --opacity: 0.45;
-  --blur: 1px;
+  --scale: 0.75;
+  --opacity: 0.35;
+  --blur: 2px;
   flex-shrink: 0;
   scroll-snap-align: center;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    opacity 0.4s ease,
-    filter 0.4s ease;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.45s ease,
+    filter 0.45s ease;
   transform-style: preserve-3d;
   will-change: transform, opacity;
-  transform: perspective(800px) rotateY(var(--rotation)) translateZ(var(--translateZ)) translateX(var(--translateX)) scale(var(--scale));
+  transform: perspective(1000px) rotateY(var(--rotation)) translateZ(var(--translateZ)) translateX(var(--translateX)) scale(var(--scale));
   opacity: var(--opacity);
   filter: blur(var(--blur));
   pointer-events: auto;
@@ -372,56 +372,56 @@
 
 #playlists-container .playlist-item.carousel-center {
   --rotation: 0deg;
-  --translateZ: 0px;
+  --translateZ: 10px;
   --translateX: 0px;
-  --scale: 0.95;
-  --opacity: 0.9;
+  --scale: 1.12;
+  --opacity: 1;
   --blur: 0px;
   z-index: 10;
 }
 
 #playlists-container .playlist-item.carousel-left-1 {
-  --rotation: 25deg;
-  --translateZ: -10px;
-  --translateX: 8px;
+  --rotation: 30deg;
+  --translateZ: -5px;
+  --translateX: 14px;
   --scale: 0.88;
-  --opacity: 0.7;
+  --opacity: 0.75;
   --blur: 0px;
   z-index: 5;
 }
 
 #playlists-container .playlist-item.carousel-right-1 {
-  --rotation: -25deg;
-  --translateZ: -10px;
-  --translateX: -8px;
+  --rotation: -30deg;
+  --translateZ: -5px;
+  --translateX: -14px;
   --scale: 0.88;
-  --opacity: 0.7;
+  --opacity: 0.75;
   --blur: 0px;
   z-index: 5;
 }
 
 #playlists-container .playlist-item.carousel-left-2 {
-  --rotation: 40deg;
-  --translateZ: -20px;
-  --translateX: 12px;
-  --scale: 0.78;
-  --opacity: 0.5;
-  --blur: 0.5px;
+  --rotation: 45deg;
+  --translateZ: -25px;
+  --translateX: 18px;
+  --scale: 0.75;
+  --opacity: 0.45;
+  --blur: 1px;
   z-index: 2;
 }
 
 #playlists-container .playlist-item.carousel-right-2 {
-  --rotation: -40deg;
-  --translateZ: -20px;
-  --translateX: -12px;
-  --scale: 0.78;
-  --opacity: 0.5;
-  --blur: 0.5px;
+  --rotation: -45deg;
+  --translateZ: -25px;
+  --translateX: -18px;
+  --scale: 0.75;
+  --opacity: 0.45;
+  --blur: 1px;
   z-index: 2;
 }
 
 #playlists-container .playlist-item:hover {
-  --scale: 0.98;
+  --scale: 1.02;
   --opacity: 1;
   --blur: 0px;
   z-index: 20;
@@ -429,37 +429,50 @@
 
 #playlists-container .playlist-item>div:first-child {
   box-shadow:
-    0 8px 20px -8px rgba(0, 0, 0, 0.5),
-    0 4px 10px -4px rgba(0, 0, 0, 0.3);
-  transition: box-shadow 0.4s ease;
-  border-radius: 10px;
+    0 8px 24px -8px rgba(0, 0, 0, 0.5),
+    0 4px 12px -4px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.45s ease, border-color 0.45s ease;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 #playlists-container .playlist-item.carousel-center>div:first-child {
   box-shadow:
-    0 12px 28px -8px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 122, 31, 0.15);
+    0 16px 40px -12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 122, 31, 0.2),
+    0 0 20px -4px rgba(255, 122, 31, 0.1);
+  border-color: rgba(255, 122, 31, 0.15);
 }
 
 #playlists-container .playlist-item:hover>div:first-child {
   box-shadow:
-    0 15px 35px -10px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(255, 122, 31, 0.25);
+    0 20px 50px -14px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 122, 31, 0.3),
+    0 0 30px -4px rgba(255, 122, 31, 0.15);
 }
 
 #playlists-container .playlist-item.carousel-center>div:first-child::before {
   content: '';
   position: absolute;
-  inset: -2px;
+  inset: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 122, 31, 0.4) 0%, rgba(255, 122, 31, 0.1) 100%);
-  z-index: -1;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  z-index: 1;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 #playlists-container .playlist-item.carousel-center>div:first-child:hover::before {
   opacity: 1;
+}
+
+#playlists-container .playlist-item.carousel-active>div:first-child {
+  box-shadow:
+    0 18px 45px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 2px rgba(255, 122, 31, 0.5),
+    0 0 24px -2px rgba(255, 122, 31, 0.2);
+  border-color: rgba(255, 122, 31, 0.35);
 }
 
 /* Containers de conteúdo do player */

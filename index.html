@@ -178,8 +178,7 @@
       position: fixed;
       width: 100%;
       left: 0;
-      right: 0;
-      touch-action: none
+      right: 0
     }
 
     html.modal-open {
@@ -5264,10 +5263,9 @@
       while (target && target !== document.body) {
         const style = window.getComputedStyle(target);
         const overflowY = style.getPropertyValue('overflow-y');
-        if (overflowY === 'auto' || overflowY === 'scroll') {
-          const isScrollable = target.scrollHeight > target.clientHeight;
-          if (isScrollable) return;
-        }
+        const overflowX = style.getPropertyValue('overflow-x');
+        if ((overflowY === 'auto' || overflowY === 'scroll') && target.scrollHeight > target.clientHeight) return;
+        if ((overflowX === 'auto' || overflowX === 'scroll') && target.scrollWidth > target.clientWidth) return;
         target = target.parentElement;
       }
       e.preventDefault();
