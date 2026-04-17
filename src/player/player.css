@@ -29,7 +29,7 @@
   grid-template-columns: 48px minmax(0, 1fr) auto auto auto;
   align-items: center;
   column-gap: 12px;
-  border-radius: 0.75rem;
+  border-radius: 0;
   padding: 0.7rem 0.85rem;
   width: 100%;
   box-sizing: border-box;
@@ -38,6 +38,20 @@
   background: transparent;
   transition: background-color 0.2s ease, transform 0.15s ease;
   contain: layout style;
+}
+
+.track-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.85rem;
+  right: 0.85rem;
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.1) 0px, rgba(255, 255, 255, 0.1) 3px, transparent 3px, transparent 9px);
+}
+
+.track-item:last-child::after {
+  display: none;
 }
 
 .track-item::before {
