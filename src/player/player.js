@@ -6985,7 +6985,7 @@ const MUSIC_PLAYER = (() => {
         return null;
       }
 
-      console.log(`✅ [AUDIO] Got audio URL for ${videoId}`, data.audioUrl?.substring(0, 80));
+      console.log(`✅ [AUDIO] Got audio URL for ${videoId}`);
 
       // Cache a URL
       setCacheEntry(state.audioCache, videoId, data.audioUrl);

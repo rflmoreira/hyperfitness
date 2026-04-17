@@ -161,22 +161,12 @@ export const handler = async (event) => {
 
   console.log(`[AUDIO] Fetching audio for: ${videoId}`);
 
-  // Verifica se a URL é de um domínio conhecido como problemático
-  function isKnownBadDomain(url) {
-    try {
-      const hostname = new URL(url).hostname;
-      return hostname.includes('123tokyo.xyz');
-    } catch {
-      return false;
-    }
-  }
-
   // Tenta cada API em sequência
   const apis = [
+    { name: 'youtube-mp36', fn: tryYoutubeMp36 },
     { name: 'ytstream', fn: tryYtstream },
-    { name: 'youtube-media-downloader', fn: tryYoutubeMediaDownloader },
     { name: 'youtube-mp3-downloader2', fn: tryYoutubeMp3Downloader2 },
-    { name: 'youtube-mp36', fn: tryYoutubeMp36 }
+    { name: 'youtube-media-downloader', fn: tryYoutubeMediaDownloader }
   ];
 
   for (const api of apis) {
@@ -184,12 +174,7 @@ export const handler = async (event) => {
       console.log(`[AUDIO] Trying ${api.name}...`);
       const result = await api.fn(videoId);
       if (result) {
-        // Rejeita URLs de domínios problemáticos
-        if (isKnownBadDomain(result.audioUrl)) {
-          console.log(`[AUDIO] ${api.name} returned URL from blocked domain, trying next`);
-          continue;
-        }
-        console.log(`[AUDIO] Success with ${api.name}: ${result.audioUrl?.substring(0, 60)}`);
+        console.log(`[AUDIO] Success with ${api.name}`);
         return makeResponse(200, {
           videoId,
           ...result
