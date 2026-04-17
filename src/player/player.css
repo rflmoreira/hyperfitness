@@ -2,6 +2,13 @@
    HyperMusic Player - Estilos
    ======================================== */
 
+/* Overlay blur padrão (duplicado do index para independência futura) */
+.overlay-blur {
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  background: rgba(0, 0, 0, 0.45);
+}
+
 /* Playlist Cards */
 .playlist-card {
   transition: all 0.3s ease;
