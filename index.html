@@ -4266,7 +4266,7 @@
       const topBar = document.getElementById('top-bar');
       const topBarLogo = document.getElementById('top-bar-logo');
       window.addEventListener('scroll', () => {
-        if (!topBar) return;
+        if (!topBar || topBar.classList.contains('hidden')) return;
         if (window.scrollY > 30) {
           topBar.classList.add('top-bar-blur-active');
           if (topBarLogo) topBarLogo.style.opacity = '1';
@@ -5254,6 +5254,10 @@
       document.removeEventListener('touchmove', preventBodyScroll);
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
+
+    // Expor globalmente para o player
+    window._lockBodyScroll = lockBodyScroll;
+    window._unlockBodyScroll = unlockBodyScroll;
 
     function preventBodyScroll(e) {
       let target = e.target;
