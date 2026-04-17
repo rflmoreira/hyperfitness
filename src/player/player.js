@@ -38,7 +38,8 @@ async function injectPlayerHtml() {
 }
 
 const MUSIC_PLAYER = (() => {
-  const CACHE_TTL_MS = 5 * 60 * 60 * 1000; // 5 horas
+  const CACHE_TTL_MS = 5 * 60 * 60 * 1000; // 5 horas para buscas de vídeo
+  const AUDIO_URL_TTL_MS = 10 * 60 * 1000; // 10 minutos para URLs de áudio (expiram rápido)
   const COVER_CACHE_TTL_MS = 5 * 60 * 60 * 1000; // 5 horas para capas
   const COVER_PROXY_BLOCK_MS = 45 * 1000; // cooldown curto por proxy
   const COVER_SUSPEND_MS = 5 * 60 * 1000; // suspender tentativas após muitos erros
@@ -1223,7 +1224,33 @@ const MUSIC_PLAYER = (() => {
   }
 
   async function tryPlayElement(target) {
-    const retryDelays = [0, 25, 25];
+    // Espera o áudio estar pronto antes de tentar reproduzir
+    if (target.readyState < 2) {
+      try {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            target.removeEventListener('canplay', onReady);
+            target.removeEventListener('error', onError);
+            reject(new Error('canplay timeout'));
+          }, 15000);
+          const onReady = () => {
+            clearTimeout(timeout);
+            target.removeEventListener('error', onError);
+            resolve();
+          };
+          const onError = () => {
+            clearTimeout(timeout);
+            target.removeEventListener('canplay', onReady);
+            reject(new Error('audio load error'));
+          };
+          target.addEventListener('canplay', onReady, { once: true });
+          target.addEventListener('error', onError, { once: true });
+        });
+      } catch (_) {
+        return false;
+      }
+    }
+    const retryDelays = [0, 50, 100];
     for (const waitMs of retryDelays) {
       if (waitMs > 0) await delay(waitMs);
       try {
@@ -1660,8 +1687,8 @@ const MUSIC_PLAYER = (() => {
   state.isBuffering = false;
   state.bufferingStartTime = 0;
   state.stalledTimer = null;
-  const MAX_RECONNECT_ATTEMPTS = 10;
-  const RECONNECT_INTERVAL_MS = 1500; // Reduzido de 3000ms para tentativas mais rápidas
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const RECONNECT_INTERVAL_MS = 2000; // 2s base com backoff progressivo
   const BUFFERING_TIMEOUT_MS = 15000; // Reduzido de 30000ms
   const SLOW_CONNECTION_THRESHOLD_MS = 10000; // Aumentado para 10s - evita avisos frequentes
   const STALLED_DELAY_MS = 12000; // Aumentado para 12s - evita falsos positivos durante carregamento inicial
@@ -1766,8 +1793,8 @@ const MUSIC_PLAYER = (() => {
       try { audio.pause(); } catch (_) { }
       await delay(AUDIO_RESET_DELAY_MS);
 
-      // Busca uma nova URL (preserva falhas para continuar rotação)
-      const forceRefresh = state.reconnectAttempts > 1;
+      // Busca uma nova URL (sempre força refresh para evitar URLs expiradas)
+      const forceRefresh = true;
       const resolved = await resolveTrackWithCache(track, trackIndex, { forceRefresh, preserveFailures: true });
 
       if (!resolved?.audioUrl) {
@@ -1780,7 +1807,7 @@ const MUSIC_PLAYER = (() => {
 
       // Aguarda o áudio estar pronto antes de tentar tocar (reduzido para 8s)
       await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout aguardando canplay')), 8000);
+        const timeout = setTimeout(() => reject(new Error('Timeout aguardando canplay')), 15000);
         const onCanPlay = () => {
           clearTimeout(timeout);
           audio.removeEventListener('canplay', onCanPlay);
@@ -1819,6 +1846,11 @@ const MUSIC_PLAYER = (() => {
       return;
     } catch (error) {
       console.warn(`⚠️ [RECONNECT] Falha na tentativa ${state.reconnectAttempts}: ${error.message}`);
+      // Limpa cache de áudio para forçar nova URL na próxima tentativa
+      if (attemptedUrl) {
+        const videoId = getTrackVideoId(track);
+        if (videoId) state.audioCache.delete(videoId);
+      }
     }
 
     // Se ainda não atingiu o máximo de tentativas, agenda próxima
@@ -6892,7 +6924,7 @@ const MUSIC_PLAYER = (() => {
   async function getAudioUrl(videoId, retryCount = 0) {
     if (!videoId) return null;
 
-    const cached = getCacheEntry(state.audioCache, videoId);
+    const cached = getCacheEntry(state.audioCache, videoId, AUDIO_URL_TTL_MS);
     if (cached !== null) return cached;
 
     try {
