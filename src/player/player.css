@@ -1164,6 +1164,7 @@
   
   #player-screen-playlist {
     overflow: hidden !important;
+    margin-top: -55px;
   }
   
   #player-screen-playlist #tracks-container {
@@ -1199,6 +1200,7 @@
 
   #player-modal #playlists-container {
     height: 260px;
+    margin-top: 77px;
   }
 
   #player-modal #playlists-container .playlist-item {
