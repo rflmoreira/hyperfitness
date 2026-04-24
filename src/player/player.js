@@ -5541,13 +5541,15 @@ const MUSIC_PLAYER = (() => {
       return `
       <div class="playlist-item flex-shrink-0 group cursor-pointer" data-playlist-id="${playlist.id}">
         <div class="carousel-card">
-          <div class="carousel-card-inner">
-            ${imageContent}
-            <div class="carousel-shine"></div>
-            <div class="carousel-hover-overlay">
-              <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
-                <i class="ph-bold ph-trash text-lg text-white"></i>
-              </button>
+          <div class="carousel-float-wrapper">
+            <div class="carousel-card-inner">
+              ${imageContent}
+              <div class="carousel-shine"></div>
+              <div class="carousel-hover-overlay">
+                <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
+                  <i class="ph-bold ph-trash text-lg text-white"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div class="carousel-reflection" aria-hidden="true">
@@ -5587,14 +5589,15 @@ const MUSIC_PLAYER = (() => {
       const absOffset = Math.abs(offset);
       const sign = Math.sign(offset);
 
-      // Curvas refinadas
+      // Curvas ultra-refinadas com easing natural
+      const t = Math.min(absOffset, 4); // clamp
       const translateX = offset * spacing;
-      const translateZ = absOffset === 0 ? 30 : -(absOffset * 40 + Math.pow(absOffset, 1.8) * 12);
-      const rotateY = sign * Math.min(absOffset * 28, 55) * -1;
-      const translateY = absOffset === 0 ? -12 : Math.min(absOffset * 3, 10);
-      const scale = absOffset === 0 ? 1.06 : Math.max(0.58, 1 - absOffset * 0.1);
-      const opacity = absOffset === 0 ? 1 : Math.max(0.1, 1 - absOffset * 0.32);
-      const blur = absOffset > 1.3 ? Math.min((absOffset - 1.3) * 2, 4) : 0;
+      const translateZ = absOffset < 0.5 ? 35 - absOffset * 70 : -(t * 38 + Math.pow(t, 1.9) * 10);
+      const rotateY = sign * (t * 26 / (1 + t * 0.15)) * -1; // curva logarítmica
+      const translateY = absOffset < 0.5 ? -14 + absOffset * 28 : Math.min(t * 2.5, 8);
+      const scale = absOffset < 0.5 ? 1.06 - absOffset * 0.12 : Math.max(0.58, 1 - t * 0.1);
+      const opacity = absOffset < 0.5 ? 1 : Math.max(0.08, 1 - t * 0.34);
+      const blur = t > 1.3 ? Math.min((t - 1.3) * 2.2, 4.5) : 0;
 
       if (carouselDragging) {
         item.style.transition = 'none';
