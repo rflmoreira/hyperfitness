@@ -501,7 +501,7 @@
   right: 6px;
   z-index: 4;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.4s ease 0.15s;
   pointer-events: none;
 }
 
@@ -519,18 +519,17 @@
   height: 26px;
   border-radius: 50%;
   border: none;
-  background: rgba(220, 50, 50, 0.7);
+  background: rgba(220, 50, 50, 0.4);
   color: #fff;
   font-size: 11px;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, transform 0.15s ease;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 .carousel-hover-overlay .delete-playlist-btn:hover {
-  background: rgba(220, 50, 50, 0.6);
-  color: #fff;
+  background: rgba(220, 50, 50, 0.7);
   transform: scale(1.1);
 }
 
@@ -538,10 +537,14 @@
   transform: scale(0.9);
 }
 
-/* Touch: mostra ao pressionar o item */
+/* Touch: aparece ao pressionar */
 @media (hover: none) {
   .playlist-item.carousel-active .carousel-hover-overlay {
-    opacity: 0.5;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .playlist-item.carousel-active:active .carousel-hover-overlay {
+    opacity: 1;
     pointer-events: auto;
   }
 }
