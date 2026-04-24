@@ -5528,169 +5528,227 @@ const MUSIC_PLAYER = (() => {
         const firstTrackCover = playlist.tracks[0]?.thumbnail || getFallbackCover(playlist.name);
         imageContent = `
           <img src="${firstTrackCover}" 
-            alt="${playlist.name}" 
-            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+            alt="${playlist.name}">
         `;
       } else {
         const imageUrl = getPlaylistCover(playlist);
         imageContent = `
           <img src="${imageUrl}" 
-            alt="${playlist.name}" 
-            class="w-32 h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+            alt="${playlist.name}">
         `;
       }
 
       return `
-      <div class="playlist-item flex-shrink-0 w-32 group cursor-pointer" data-playlist-id="${playlist.id}">
-        <div class="relative rounded-xl overflow-hidden shadow-lg transition-all duration-300">
-          ${imageContent}
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
-              <i class="ph-bold ph-trash text-lg text-white"></i>
-            </button>
+      <div class="playlist-item flex-shrink-0 group cursor-pointer" data-playlist-id="${playlist.id}">
+        <div class="carousel-card">
+          <div class="carousel-card-inner">
+            ${imageContent}
+            <div class="carousel-shine"></div>
+            <div class="carousel-hover-overlay">
+              <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
+                <i class="ph-bold ph-trash text-lg text-white"></i>
+              </button>
+            </div>
+          </div>
+          <div class="carousel-reflection" aria-hidden="true">
+            ${imageContent}
           </div>
         </div>
-        <p class="text-white mt-2 text-xs truncate text-center">${playlist.name}</p>
-        <p class="text-white/60 text-[11px] text-center">${trackCount} faixa${trackCount === 1 ? '' : 's'}</p>
+        <p class="carousel-label">${playlist.name}</p>
+        <p class="carousel-sublabel">${trackCount} faixa${trackCount === 1 ? '' : 's'}</p>
       </div>
     `;
     }).join('');
 
-    ui.playlistsContainer.querySelectorAll('.playlist-item').forEach(card => {
-      const playlist = sortedPlaylists.find(p => p.id === card.dataset.playlistId);
-
-      card.addEventListener('click', () => {
-        if (!playlist) return;
-
-        // Scroll para centralizar o item clicado no carrossel
-        card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-
-        // Marca como ativo visualmente
-        ui.playlistsContainer.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('carousel-active'));
-        card.classList.add('carousel-active');
-
-        if (state.currentPlaylist && state.currentPlaylist.id === playlist.id) {
-          openPlayerModal();
-          return;
-        }
-
-        selectPlaylist(playlist, false);
-      });
-
-      card.querySelector('.delete-playlist-btn')?.addEventListener('click', (event) => {
-        event.stopPropagation();
-        if (!playlist) return;
-        
-        deletePlaylist(playlist.id);
-      });
-    });
-
     // Inicializa o carrossel 3D
     initCarousel3D(scrollToFirst);
-
-    // Marca a playlist ativa no carrossel
-    if (state.currentPlaylist) {
-      const activeCard = ui.playlistsContainer.querySelector(`.playlist-item[data-playlist-id="${state.currentPlaylist.id}"]`);
-      if (activeCard) {
-        activeCard.classList.add('carousel-active');
-        requestAnimationFrame(() => activeCard.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' }));
-      }
-    }
     
     // Atualiza o empty state
     updatePlaylistEmptyState();
   }
 
-  // Carrossel 3D - atualiza classes baseado na posição do scroll
-  let carouselScrollHandler = null;
-  let carouselRafId = null;
-  let carouselScrollEndTimer = null;
+  // Carrossel 3D controlado por JS
+  let carouselIndex = 0;
+  let carouselTouchStartX = 0;
+  let carouselTouchDelta = 0;
+  let carouselDragging = false;
 
-  function updateCarouselPositions() {
+  function updateCarouselPositions(dragOffset = 0) {
     const container = ui.playlistsContainer;
     if (!container) return;
-
     const items = container.querySelectorAll('.playlist-item');
     if (!items.length) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const containerCenter = containerRect.left + containerRect.width / 2;
+    const spacing = 160;
+    const fractionalOffset = dragOffset / spacing;
 
-    items.forEach(item => {
-      const itemRect = item.getBoundingClientRect();
-      const itemCenter = itemRect.left + itemRect.width / 2;
-      const distance = itemCenter - containerCenter;
-      const itemWidth = itemRect.width + 4;
+    items.forEach((item, i) => {
+      const offset = i - carouselIndex + fractionalOffset;
+      const absOffset = Math.abs(offset);
+      const sign = Math.sign(offset);
 
-      item.classList.remove('carousel-center', 'carousel-left-1', 'carousel-right-1', 'carousel-left-2', 'carousel-right-2');
+      // Curvas refinadas
+      const translateX = offset * spacing;
+      const translateZ = absOffset === 0 ? 30 : -(absOffset * 40 + Math.pow(absOffset, 1.8) * 12);
+      const rotateY = sign * Math.min(absOffset * 28, 55) * -1;
+      const translateY = absOffset === 0 ? -12 : Math.min(absOffset * 3, 10);
+      const scale = absOffset === 0 ? 1.06 : Math.max(0.58, 1 - absOffset * 0.1);
+      const opacity = absOffset === 0 ? 1 : Math.max(0.1, 1 - absOffset * 0.32);
+      const blur = absOffset > 1.3 ? Math.min((absOffset - 1.3) * 2, 4) : 0;
 
-      const position = Math.round(distance / itemWidth);
-
-      if (Math.abs(position) === 0) {
-        item.classList.add('carousel-center');
-      } else if (position === -1) {
-        item.classList.add('carousel-left-1');
-      } else if (position === 1) {
-        item.classList.add('carousel-right-1');
-      } else if (position <= -2) {
-        item.classList.add('carousel-left-2');
-      } else if (position >= 2) {
-        item.classList.add('carousel-right-2');
+      if (carouselDragging) {
+        item.style.transition = 'none';
+      } else {
+        item.style.transition = '';
       }
+
+      item.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+      item.style.opacity = opacity;
+      item.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+      item.style.zIndex = 100 - Math.round(absOffset);
+
+      item.classList.toggle('carousel-active', Math.abs(offset) < 0.5 && !carouselDragging);
     });
   }
 
-  function initCarousel3D(scrollToFirst = false) {
-    if (!ui.playlistsContainer) return;
+  function carouselGoTo(index) {
+    const container = ui.playlistsContainer;
+    if (!container) return;
+    const items = container.querySelectorAll('.playlist-item');
+    if (!items.length) return;
 
-    // Remove listener anterior se existir
-    if (carouselScrollHandler) {
-      ui.playlistsContainer.removeEventListener('scroll', carouselScrollHandler);
+    carouselIndex = Math.max(0, Math.min(index, items.length - 1));
+    updateCarouselPositions();
+
+    const activeItem = items[carouselIndex];
+    const playlistId = activeItem?.dataset.playlistId;
+    if (playlistId) {
+      const playlist = state.playlists.find(p => p.id === playlistId);
+      if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlistId)) {
+        selectPlaylist(playlist, false);
+      }
+    }
+  }
+
+  function initCarousel3D(scrollToFirst = false) {
+    const container = ui.playlistsContainer;
+    if (!container) return;
+
+    container.replaceWith(container.cloneNode(true));
+    const newContainer = document.getElementById('playlists-container');
+    ui.playlistsContainer = newContainer;
+    if (!newContainer) return;
+
+    if (scrollToFirst) {
+      carouselIndex = 0;
+    } else if (state.currentPlaylist) {
+      const items = newContainer.querySelectorAll('.playlist-item');
+      items.forEach((item, i) => {
+        if (item.dataset.playlistId === state.currentPlaylist.id) {
+          carouselIndex = i;
+        }
+      });
     }
 
-    // Cria novo handler com throttle
-    carouselScrollHandler = () => {
-      if (carouselRafId) return;
-      carouselRafId = requestAnimationFrame(() => {
+    // Touch
+    newContainer.addEventListener('touchstart', (e) => {
+      carouselTouchStartX = e.touches[0].clientX;
+      carouselDragging = true;
+      carouselTouchDelta = 0;
+    }, { passive: true });
+
+    newContainer.addEventListener('touchmove', (e) => {
+      if (!carouselDragging) return;
+      carouselTouchDelta = e.touches[0].clientX - carouselTouchStartX;
+      updateCarouselPositions(carouselTouchDelta);
+    }, { passive: true });
+
+    newContainer.addEventListener('touchend', () => {
+      if (!carouselDragging) return;
+      carouselDragging = false;
+      if (Math.abs(carouselTouchDelta) > 40) {
+        carouselGoTo(carouselIndex + (carouselTouchDelta < 0 ? 1 : -1));
+      } else {
         updateCarouselPositions();
-        carouselRafId = null;
-      });
+      }
+      carouselTouchDelta = 0;
+    });
 
-      // Detecta fim do scroll para selecionar a playlist central
-      if (carouselScrollEndTimer) clearTimeout(carouselScrollEndTimer);
-      carouselScrollEndTimer = setTimeout(() => {
-        const centerItem = ui.playlistsContainer?.querySelector('.carousel-center');
-        if (!centerItem) return;
-        const playlistId = centerItem.dataset.playlistId;
-        if (!playlistId) return;
+    // Mouse
+    let mouseStartX = 0;
+    let mouseDelta = 0;
+    let mouseDragging = false;
 
-        // Marca como ativo visualmente
-        ui.playlistsContainer.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('carousel-active'));
-        centerItem.classList.add('carousel-active');
+    newContainer.addEventListener('mousedown', (e) => {
+      mouseStartX = e.clientX;
+      mouseDragging = true;
+      carouselDragging = true;
+      mouseDelta = 0;
+      e.preventDefault();
+    });
 
-        // Seleciona a playlist se for diferente da atual
-        const playlist = state.playlists.find(p => p.id === playlistId);
-        if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlistId)) {
-          selectPlaylist(playlist, false);
-        }
-      }, 200);
+    const onMouseMove = (e) => {
+      if (!mouseDragging) return;
+      mouseDelta = e.clientX - mouseStartX;
+      updateCarouselPositions(mouseDelta);
     };
 
-    // Atualiza posições no scroll
-    ui.playlistsContainer.addEventListener('scroll', carouselScrollHandler, { passive: true });
+    const onMouseUp = () => {
+      if (!mouseDragging) return;
+      mouseDragging = false;
+      carouselDragging = false;
+      if (Math.abs(mouseDelta) > 40) {
+        carouselGoTo(carouselIndex + (mouseDelta < 0 ? 1 : -1));
+      } else {
+        updateCarouselPositions();
+      }
+      mouseDelta = 0;
+    };
 
-    // Se deve scrollar para o primeiro item (ex: após adicionar nova playlist)
-    if (scrollToFirst) {
-      ui.playlistsContainer.scrollLeft = 0;
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    // Click nos itens
+    newContainer.querySelectorAll('.playlist-item').forEach((item, i) => {
+      item.addEventListener('click', (e) => {
+        if (Math.abs(carouselTouchDelta) > 10 || Math.abs(mouseDelta) > 10) return;
+        if (e.target.closest('.delete-playlist-btn')) return;
+        if (i !== carouselIndex) {
+          carouselGoTo(i);
+        }
+      });
+
+      item.querySelector('.delete-playlist-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const playlistId = item.dataset.playlistId;
+        if (playlistId) deletePlaylist(playlistId);
+      });
+    });
+
+    // Scroll do mouse (wheel) - registrado no modal com capture para interceptar antes dos outros handlers
+    let wheelThrottle = false;
+    const playerModal = document.getElementById('player-modal');
+    if (playerModal) {
+      playerModal.addEventListener('wheel', (e) => {
+        // Só intercepta se o cursor está sobre o carrossel
+        const rect = newContainer.getBoundingClientRect();
+        if (e.clientY < rect.top || e.clientY > rect.bottom) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        if (wheelThrottle) return;
+        wheelThrottle = true;
+        
+        const direction = Math.sign(e.deltaX || e.deltaY);
+        if (direction !== 0) {
+          carouselGoTo(carouselIndex + direction);
+        }
+        
+        setTimeout(() => { wheelThrottle = false; }, 300);
+      }, { passive: false, capture: true });
     }
 
-    // Atualiza posições iniciais
-    requestAnimationFrame(updateCarouselPositions);
-
-    // Atualiza também após um pequeno delay (para garantir que o layout está pronto)
-    setTimeout(updateCarouselPositions, 50);
-    setTimeout(updateCarouselPositions, 150);
-    setTimeout(updateCarouselPositions, 300);
+    updateCarouselPositions();
   }
 
   async function selectPlaylist(playlist, autoPlay = false, options = {}) {
@@ -7308,10 +7366,7 @@ const MUSIC_PLAYER = (() => {
   // === Funções de Scroll/Drag do Player ===
   
   function setupPlaylistsWheelCapture() {
-    const playlistsContainer = document.getElementById('playlists-container');
-    const playerModal = document.getElementById('player-modal');
-    if (!playlistsContainer || !playerModal) return;
-    enableHorizontalWheelScroll(playlistsContainer, { capture: true, parentElement: playerModal });
+    // Desativado - carrossel 3D usa seu próprio wheel handler
   }
 
   function enableDragScroll(element) {
