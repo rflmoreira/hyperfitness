@@ -5552,10 +5552,8 @@ const MUSIC_PLAYER = (() => {
               </div>
             </div>
           </div>
-          <div class="carousel-reflection" aria-hidden="true">
-            ${imageContent}
-          </div>
         </div>
+        <div class="carousel-shadow" aria-hidden="true"></div>
         <p class="carousel-label">${playlist.name}</p>
         <p class="carousel-sublabel">${trackCount} faixa${trackCount === 1 ? '' : 's'}</p>
       </div>

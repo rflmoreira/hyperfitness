@@ -328,11 +328,6 @@
   50% { transform: translateY(-5px); }
 }
 
-@keyframes carousel-reflection-breathe {
-  0%, 100% { transform: scaleY(-1) scaleX(0.7); opacity: 1; filter: blur(4px) brightness(0.3); }
-  50% { transform: scaleY(-0.9) scaleX(0.62); opacity: 0.35; filter: blur(5px) brightness(0.2); }
-}
-
 #playlists-container {
   position: relative;
   display: flex;
@@ -492,31 +487,28 @@
   opacity: 1;
 }
 
-/* Reflexo espelhado */
-.carousel-reflection {
-  position: relative;
-  margin-top: 10px;
-  overflow: visible;
-  transform: scaleY(-1) scaleX(0.7);
-  height: 10px;
+/* Sombra projetada */
+.carousel-shadow {
+  width: 90%;
+  height: 24px;
+  margin: 4px auto 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 45%, transparent 70%);
   opacity: 0;
   transition: opacity 0.7s ease;
   pointer-events: none;
-  filter: blur(4px) brightness(0.3) saturate(1.2);
-  -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.5) 0%, transparent 70%);
-  mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.5) 0%, transparent 70%);
+  filter: blur(3px);
+  transform-style: flat;
 }
 
-.carousel-reflection img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  object-position: bottom;
+.playlist-item.carousel-active .carousel-shadow {
+  opacity: 1;
+  animation: carousel-shadow-breathe 4s ease-in-out infinite;
 }
 
-.carousel-reflection::after {
-  display: none;
+@keyframes carousel-shadow-breathe {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(0.85); opacity: 0.6; }
 }
 
 /* ---- Estado ativo — destaque máximo ---- */
@@ -533,15 +525,6 @@
   opacity: 1;
 }
 
-.playlist-item.carousel-active .carousel-reflection {
-  opacity: 1;
-}
-
-/* Reflexo respira inversamente ao float */
-.playlist-item.carousel-active .carousel-reflection {
-  animation: carousel-reflection-breathe 4s ease-in-out infinite;
-}
-
 /* Labels */
 .carousel-label,
 .carousel-sublabel {
@@ -550,7 +533,7 @@
 }
 
 .carousel-label {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 122, 31, 0.95);
   font-size: 0.78rem;
   font-weight: 600;
   margin-top: 10px;
