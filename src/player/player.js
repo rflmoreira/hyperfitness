@@ -5711,8 +5711,12 @@ const MUSIC_PLAYER = (() => {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
 
-    // Click nos itens
+    // Click nos itens + auto-hide do botão de excluir
+    let deleteHideTimer = null;
+
     newContainer.querySelectorAll('.playlist-item').forEach((item, i) => {
+      const overlay = item.querySelector('.carousel-hover-overlay');
+
       item.addEventListener('click', (e) => {
         if (Math.abs(carouselTouchDelta) > 10 || Math.abs(mouseDelta) > 10) return;
         if (e.target.closest('.delete-playlist-btn')) return;
@@ -5725,6 +5729,28 @@ const MUSIC_PLAYER = (() => {
         e.stopPropagation();
         const playlistId = item.dataset.playlistId;
         if (playlistId) deletePlaylist(playlistId);
+      });
+
+      // Mostra o botão e agenda auto-hide em 4s
+      const showDeleteBtn = () => {
+        if (!overlay) return;
+        overlay.style.opacity = '';
+        overlay.style.pointerEvents = '';
+        if (deleteHideTimer) clearTimeout(deleteHideTimer);
+        deleteHideTimer = setTimeout(() => {
+          overlay.style.opacity = '0';
+          overlay.style.pointerEvents = 'none';
+        }, 4000);
+      };
+
+      item.addEventListener('mouseenter', showDeleteBtn);
+      item.addEventListener('mousemove', showDeleteBtn);
+
+      item.addEventListener('mouseleave', () => {
+        if (!overlay) return;
+        if (deleteHideTimer) clearTimeout(deleteHideTimer);
+        overlay.style.opacity = '';
+        overlay.style.pointerEvents = '';
       });
     });
 
