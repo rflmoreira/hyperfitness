@@ -1169,6 +1169,7 @@
   
   #player-screen-playlist #tracks-container {
     overflow-y: auto !important;
+    padding-top: 140px;
     padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
   }
   
