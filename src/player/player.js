@@ -2947,6 +2947,7 @@ const MUSIC_PLAYER = (() => {
   function togglePlayerModal(show) {
     const modal = ui.playerModal;
     const controlsBar = document.getElementById('player-controls-bar');
+    const controlsBlur = document.getElementById('player-controls-blur');
     const tabsBar = document.getElementById('player-tabs-bar');
     const feedbackBar = document.getElementById('player-feedback');
     const headerButtons = document.getElementById('player-header-buttons');
@@ -2967,6 +2968,7 @@ const MUSIC_PLAYER = (() => {
 
     toggleElementVisibility(modal, show);
     toggleElementVisibility(controlsBar, show);
+    toggleElementVisibility(controlsBlur, show);
     toggleElementVisibility(tabsBar, show);
     toggleElementVisibility(headerButtons, show);
 

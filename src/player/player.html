@@ -45,6 +45,9 @@
     <img src="src/imagens/HyperMusic.png" alt="HyperMusic" class="h-[96px] md:h-[108px] w-auto object-contain ml-3" style="filter: drop-shadow(0 4px 8px rgba(180, 180, 180, 0.4));">
   </header>
 
+  <!-- Blur dissolvido do header até abaixo do tabs -->
+  <div id="player-tabs-blur"></div>
+
   <!-- TELA 0: Descobrir -->
   <div id="player-screen-discover" class="player-screen flex-1 flex flex-col overflow-hidden relative">
     <div id="discover-container" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-24 scrollbar-hide" style="margin-top: -60px; padding-top: 60px; -webkit-mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 60px, rgba(0,0,0,0.5) 110px, rgba(0,0,0,0.85) 160px, black 210px); mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 60px, rgba(0,0,0,0.5) 110px, rgba(0,0,0,0.85) 160px, black 210px);">
@@ -344,6 +347,9 @@
     </div>
   </div>
 </div>
+
+<!-- Player Controls Blur (camada de blur dissolvido abaixo da bar) -->
+<div id="player-controls-blur" class="fixed opacity-0 invisible" style="pointer-events: none;"></div>
 
 <!-- Player Controls Bar (fora do modal para blur funcionar) -->
 <div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">

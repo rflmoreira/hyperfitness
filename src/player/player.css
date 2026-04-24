@@ -347,28 +347,7 @@
 
 #playlists-container::before,
 #playlists-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 60px;
-  z-index: 200;
-  pointer-events: none;
-  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
-  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
-  background: rgba(0, 0, 0, 0.45);
-}
-
-#playlists-container::before {
-  left: -10px;
-  -webkit-mask-image: linear-gradient(to right, black 20%, transparent 100%);
-  mask-image: linear-gradient(to right, black 20%, transparent 100%);
-}
-
-#playlists-container::after {
-  right: -10px;
-  -webkit-mask-image: linear-gradient(to left, black 20%, transparent 100%);
-  mask-image: linear-gradient(to left, black 20%, transparent 100%);
+  display: none;
 }
 
 /* Item do carrossel */
@@ -703,6 +682,10 @@
   z-index: 1;
 }
 
+#player-modal>header {
+  z-index: 31;
+}
+
 #player-screen-playlist {
   overflow: hidden !important;
   position: relative;
@@ -956,6 +939,23 @@
   right: 20px;
   z-index: 51;
   pointer-events: none !important;
+  overflow: visible;
+}
+
+/* Player Controls Blur - blur dissolvido abaixo da bar */
+#player-controls-blur {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 50;
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
+  mask-image: linear-gradient(to top, black 55%, transparent 100%);
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #player-controls-bar .controls-inner {
@@ -1111,6 +1111,21 @@
   pointer-events: none !important;
 }
 
+/* Player Tabs Blur - blur dissolvido do header até abaixo do tabs bar */
+#player-tabs-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 30;
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+  pointer-events: none;
+}
+
 #player-tabs-bar .tabs-container {
   display: flex;
   pointer-events: auto;
@@ -1221,6 +1236,10 @@
   #player-tabs-bar {
     top: 140px;
     padding: 5px 6px;
+  }
+
+  #player-tabs-blur {
+    height: 195px;
   }
 
   #player-tabs-bar .tabs-container {
