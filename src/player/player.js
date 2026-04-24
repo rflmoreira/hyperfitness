@@ -5655,6 +5655,7 @@ const MUSIC_PLAYER = (() => {
 
     // Touch
     newContainer.addEventListener('touchstart', (e) => {
+      if (newContainer.style.pointerEvents === 'none') return;
       carouselTouchStartX = e.touches[0].clientX;
       carouselDragging = true;
       carouselTouchDelta = 0;
@@ -5683,6 +5684,7 @@ const MUSIC_PLAYER = (() => {
     let mouseDragging = false;
 
     newContainer.addEventListener('mousedown', (e) => {
+      if (newContainer.style.pointerEvents === 'none') return;
       mouseStartX = e.clientX;
       mouseDragging = true;
       carouselDragging = true;
@@ -5733,9 +5735,16 @@ const MUSIC_PLAYER = (() => {
     const playerModal = document.getElementById('player-modal');
     if (playerModal) {
       playerModal.addEventListener('wheel', (e) => {
+        // Não intercepta se o carrossel está desabilitado (tracks scrolladas por cima)
+        if (newContainer.style.pointerEvents === 'none') return;
+        
         // Só intercepta se o cursor está sobre o carrossel
         const rect = newContainer.getBoundingClientRect();
         if (e.clientY < rect.top || e.clientY > rect.bottom) return;
+        
+        // Verifica se o tracks-container está scrollado
+        const tracksContainer = document.getElementById('tracks-container');
+        if (tracksContainer && tracksContainer.scrollTop > 20) return;
         
         e.preventDefault();
         e.stopPropagation();
@@ -6315,6 +6324,13 @@ const MUSIC_PLAYER = (() => {
   function setupGridTracksInteraction() {
     const playerScreen = document.getElementById('player-screen-playlist');
     if (!playerScreen || !ui.tracksContainer || !ui.playlistsContainer) return;
+    
+    // Desabilita carrossel quando tracks estão scrolladas por cima
+    ui.tracksContainer.addEventListener('scroll', function() {
+      const scrolled = ui.tracksContainer.scrollTop > 20;
+      ui.playlistsContainer.style.pointerEvents = scrolled ? 'none' : '';
+      ui.playlistsContainer.style.opacity = scrolled ? '0.3' : '';
+    }, { passive: true });
     
     // Wheel event para scroll vertical
     playerScreen.addEventListener('wheel', function(e) {
