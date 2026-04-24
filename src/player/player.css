@@ -345,6 +345,32 @@
   margin-top: 22px;
 }
 
+#playlists-container::before,
+#playlists-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 200;
+  pointer-events: none;
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#playlists-container::before {
+  left: -10px;
+  -webkit-mask-image: linear-gradient(to right, black 20%, transparent 100%);
+  mask-image: linear-gradient(to right, black 20%, transparent 100%);
+}
+
+#playlists-container::after {
+  right: -10px;
+  -webkit-mask-image: linear-gradient(to left, black 20%, transparent 100%);
+  mask-image: linear-gradient(to left, black 20%, transparent 100%);
+}
+
 /* Item do carrossel */
 #playlists-container .playlist-item {
   position: absolute;
