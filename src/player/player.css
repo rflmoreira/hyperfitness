@@ -494,23 +494,56 @@
   opacity: 1;
 }
 
-/* Hover overlay */
+/* Botão de excluir no canto */
 .carousel-hover-overlay {
   position: absolute;
-  inset: 0;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.playlist-item.carousel-active:hover .carousel-hover-overlay,
+.playlist-item.carousel-active:active .carousel-hover-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.carousel-hover-overlay .delete-playlist-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0);
-  opacity: 0;
-  transition: all 0.25s ease;
-  z-index: 4;
-  border-radius: 16px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 50, 50, 0.7);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.playlist-item.carousel-active:hover .carousel-hover-overlay {
-  background: rgba(0, 0, 0, 0.35);
-  opacity: 1;
+.carousel-hover-overlay .delete-playlist-btn:hover {
+  background: rgba(220, 50, 50, 0.6);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.carousel-hover-overlay .delete-playlist-btn:active {
+  transform: scale(0.9);
+}
+
+/* Touch: mostra ao pressionar o item */
+@media (hover: none) {
+  .playlist-item.carousel-active .carousel-hover-overlay {
+    opacity: 0.5;
+    pointer-events: auto;
+  }
 }
 
 /* Sombra projetada */
@@ -570,7 +603,7 @@
 }
 
 .carousel-sublabel {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   font-size: 0.65rem;
   margin-top: 2px;
   letter-spacing: 0.04em;
@@ -1563,16 +1596,4 @@
   cursor: default;
 }
 
-/* Playlist Item Delete Button */
-.playlist-item .delete-playlist-btn {
-  transition: all 0.3s ease;
-  background: rgba(30, 41, 59, 0.15) !important;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.playlist-item .delete-playlist-btn:hover {
-  background: rgba(239, 68, 68, 0.4) !important;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
+/* Playlist Item Delete Button — controlado por .carousel-hover-overlay */

@@ -5546,8 +5546,8 @@ const MUSIC_PLAYER = (() => {
               ${imageContent}
               <div class="carousel-shine"></div>
               <div class="carousel-hover-overlay">
-                <button class="delete-playlist-btn liquid-glass w-10 h-10 rounded-full flex items-center justify-center transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-red-500/30">
-                  <i class="ph-bold ph-trash text-lg text-white"></i>
+                <button class="delete-playlist-btn" aria-label="Excluir playlist">
+                  <i class="ph-bold ph-trash"></i>
                 </button>
               </div>
             </div>
