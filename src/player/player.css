@@ -997,9 +997,12 @@
 #player-controls-bar .expanded-cover-wrapper img {
   width: 100%;
   aspect-ratio: 1;
+  max-height: calc(100vh - 200px);
+  max-width: calc(100vh - 200px);
   object-fit: cover;
   border-radius: 16px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  margin: 0 auto;
 }
 
 #player-controls-bar .expanded-cover-wrapper.visible {
