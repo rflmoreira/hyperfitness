@@ -2200,33 +2200,7 @@ const MUSIC_PLAYER = (() => {
     ui.ctrlNext?.addEventListener('click', playNextTrack);
     ui.ctrlShuffle?.addEventListener('click', toggleShuffle);
     ui.ctrlRepeat?.addEventListener('click', toggleRepeat);
-    ui.ctrlVolumeBtn?.addEventListener('click', () => toggleVolumeSlider('volume-slider-container'));
-    ui.ctrlVolume?.addEventListener('input', handleVolumeChange);
-    ui.ctrlVolume?.addEventListener('change', handleVolumeChange);
-    
-    // Touch support para volume slider
-    if (ui.ctrlVolume) {
-      setupVolumeTouchEvents(ui.ctrlVolume);
-    }
-
-    const volumeContainer = ui.volumeContainer;
-    const miniVolumeContainer = ui.miniVolumeContainer;
-
-    const restoreControlsCenter = (selector) => {
-      const controlsCenter = document.querySelector(selector);
-      if (!controlsCenter) return;
-      controlsCenter.style.opacity = '';
-      controlsCenter.style.width = '';
-      controlsCenter.style.overflow = '';
-      controlsCenter.style.margin = '';
-      controlsCenter.style.padding = '';
-    };
-
-    const closeVolumeContainer = (container, selector) => {
-      if (!container?.classList.contains('visible')) return;
-      container.classList.remove('visible');
-      restoreControlsCenter(selector);
-    };
+    ui.ctrlVolumeBtn?.addEventListener('click', toggleMute);
 
     // === Mini Player Bar ===
     ui.miniPlay?.addEventListener('click', togglePlayback);
@@ -2234,24 +2208,7 @@ const MUSIC_PLAYER = (() => {
     ui.miniNext?.addEventListener('click', playNextTrack);
     ui.miniShuffle?.addEventListener('click', toggleShuffle);
     ui.miniRepeat?.addEventListener('click', toggleRepeat);
-    ui.miniVolumeBtn?.addEventListener('click', () => toggleVolumeSlider('mini-volume-slider-container'));
-    ui.miniVolume?.addEventListener('input', handleVolumeChange);
-    ui.miniVolume?.addEventListener('change', handleVolumeChange);
-    
-    // Touch support para mini volume slider
-    if (ui.miniVolume) {
-      setupVolumeTouchEvents(ui.miniVolume);
-    }
-
-    // Fecha sliders ao clicar fora
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.volume-control')) {
-        closeVolumeContainer(volumeContainer, '#player-controls-bar .controls-center');
-      }
-      if (!e.target.closest('#mini-player-bar .volume-control')) {
-        closeVolumeContainer(miniVolumeContainer, '#mini-player-bar .controls-center');
-      }
-    });
+    ui.miniVolumeBtn?.addEventListener('click', toggleMute);
 
     // Clique no mini-player abre o modal do player
     ui.miniPlayerBar?.addEventListener('click', (e) => {
@@ -2284,8 +2241,8 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover(false);
     });
 
-    // Inicializa o visual dos sliders
-    updateAllVolumeSliders(100);
+    // Inicializa ícones de volume
+    updateMuteIcons();
   }
 
   // Toggle da capa flutuante
@@ -2355,108 +2312,33 @@ const MUSIC_PLAYER = (() => {
     ui.manualSearchInput?.blur();
   }
 
-  // Função unificada para toggle de volume slider
-  function toggleVolumeSlider(containerId = 'volume-slider-container') {
-    const container = document.getElementById(containerId);
-    container?.classList.toggle('visible');
+  // Mute/Unmute toggle
+  let isMuted = false;
+  let volumeBeforeMute = 1;
+
+  function toggleMute() {
+    const audio = document.getElementById('audio-player');
+    const radioAudio = document.getElementById('radio-audio-player');
     
-    // Determina qual controls-center ocultar baseado no container
-    const isMini = containerId === 'mini-volume-slider-container';
-    const controlsCenter = isMini 
-      ? document.querySelector('#mini-player-bar .controls-center')
-      : document.querySelector('#player-controls-bar .controls-center');
-    
-    if (controlsCenter) {
-      if (container?.classList.contains('visible')) {
-        controlsCenter.style.opacity = '0';
-        controlsCenter.style.width = '0';
-        controlsCenter.style.overflow = 'hidden';
-        controlsCenter.style.margin = '0';
-        controlsCenter.style.padding = '0';
-      } else {
-        controlsCenter.style.opacity = '';
-        controlsCenter.style.width = '';
-        controlsCenter.style.overflow = '';
-        controlsCenter.style.margin = '';
-        controlsCenter.style.padding = '';
-      }
+    if (isMuted) {
+      // Unmute
+      isMuted = false;
+      setUserVolume(volumeBeforeMute);
+    } else {
+      // Mute
+      volumeBeforeMute = userVolume || 1;
+      isMuted = true;
+      setUserVolume(0);
     }
+    updateMuteIcons();
   }
 
-  // Setup touch events para volume sliders (mobile)
-  function setupVolumeTouchEvents(slider) {
-    let isDragging = false;
-    
-    const updateVolumeFromTouch = (e) => {
-      const touch = e.touches[0] || e.changedTouches[0];
-      const rect = slider.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-      slider.value = Math.round(percentage);
-      setUserVolume(percentage / 100);
-      updateAllVolumeSliders(Math.round(percentage));
-    };
-    
-    slider.addEventListener('touchstart', (e) => {
-      isDragging = true;
-      e.stopPropagation();
-      updateVolumeFromTouch(e);
-    }, { passive: true });
-    
-    slider.addEventListener('touchmove', (e) => {
-      if (isDragging) {
-        e.preventDefault();
-        e.stopPropagation();
-        updateVolumeFromTouch(e);
-      }
-    }, { passive: false });
-    
-    slider.addEventListener('touchend', (e) => {
-      if (isDragging) {
-        isDragging = false;
-        e.stopPropagation();
-      }
-    }, { passive: true });
-    
-    // Previne que o container feche ao interagir com o slider
-    slider.parentElement?.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-    }, { passive: true });
-    
-    slider.parentElement?.addEventListener('touchmove', (e) => {
-      e.stopPropagation();
-    }, { passive: true });
-  }
-
-  // Função unificada para atualizar volume
-  function handleVolumeChange(e) {
-    const value = parseInt(e.target.value);
-    setUserVolume(value / 100);
-    updateAllVolumeSliders(value);
-  }
-
-  // Atualiza todos os sliders e ícones de volume
-  function updateAllVolumeSliders(value) {
-    const sliders = [ui.ctrlVolume, ui.miniVolume];
+  function updateMuteIcons() {
     const buttons = [ui.ctrlVolumeBtn, ui.miniVolumeBtn];
-
-    sliders.forEach(slider => {
-      if (slider) {
-        slider.value = value;
-        slider.style.background = `linear-gradient(to right, rgba(255,255,255,0.95) ${value}%, rgba(255,255,255,0.25) ${value}%)`;
-      }
-    });
-
     buttons.forEach(btn => {
       const icon = btn?.querySelector('i');
       if (icon) {
-        if (value === 0) {
-          icon.className = 'ph-bold ph-speaker-x';
-        } else if (value < 50) {
-          icon.className = 'ph-bold ph-speaker-low';
-        } else {
-          icon.className = 'ph-bold ph-speaker-high';
-        }
+        icon.className = isMuted ? 'ph-bold ph-speaker-x' : 'ph-bold ph-speaker-high';
       }
     });
   }
