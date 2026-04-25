@@ -811,126 +811,26 @@
 .player-bar .volume-control {
   display: flex;
   align-items: center;
-  gap: 8px;
   position: relative;
 }
 
-.player-bar .volume-slider-container {
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  height: 44px;
-  padding: 0 12px 0 16px;
-  background-color: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-radius: 22px;
-  border: none;
-  box-shadow: none;
-  outline: none;
-  touch-action: none;
-  -webkit-touch-callout: none;
-}
-
-.player-bar .volume-slider-container.visible {
-  background-color: rgba(30, 30, 30, 0.5);
-}
-
-.player-bar .volume-slider-container .volume-slider {
-  width: 0;
-  opacity: 0;
-  transition: width 0.25s ease, opacity 0.25s ease, margin 0.25s ease;
-  margin-right: 0;
-}
-
-.player-bar .volume-slider-container.visible .volume-slider {
-  width: 40px;
-  opacity: 1;
-  margin-right: 8px;
-}
-
-@media (max-width: 480px) {
-  .player-bar .volume-slider-container.visible .volume-slider {
-    width: 35px;
-    margin-right: 6px;
-  }
-}
-
-.player-bar .volume-slider-container button {
-  background: none;
-  border: none;
-  cursor: pointer;
+.player-bar .volume-control button {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 20px;
-  height: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
   color: rgba(255, 255, 255, 0.35);
   font-size: 16px;
   padding: 0;
-  transition: transform 0.15s ease, color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.player-bar .volume-slider-container button:hover {
-  transform: scale(1.1);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.player-bar .volume-slider-container button:active {
-  transform: scale(0.95);
-}
-
-.player-bar .volume-slider-container button i {
-  pointer-events: none;
-}
-
-.player-bar .volume-slider {
-  height: 10px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 5px;
-  cursor: pointer;
-  position: relative;
-  touch-action: none;
-  -webkit-touch-callout: none;
-}
-
-.player-bar .volume-slider::-webkit-slider-runnable-track {
-  height: 10px;
-  border-radius: 5px;
-  background: transparent;
-}
-
-.player-bar .volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 0;
-  height: 0;
-  background: transparent;
-  border: none;
-}
-
-.player-bar .volume-slider::-moz-range-thumb {
-  width: 0;
-  height: 0;
-  background: transparent;
-  border: none;
-}
-
-.player-bar .volume-slider::-moz-range-track {
-  height: 10px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.player-bar .volume-slider::-moz-range-progress {
-  height: 10px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.95);
-}
+/* Volume slider styles removed — mute button only */
 
 /* Player Controls Bar */
 #player-controls-bar {
