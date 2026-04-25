@@ -6294,10 +6294,28 @@ const MUSIC_PLAYER = (() => {
     if (!playerScreen || !ui.tracksContainer || !ui.playlistsContainer) return;
     
     // Wheel event no playerScreen redireciona para o tracks-container
-    // (necessário quando o carrossel está por cima interceptando eventos)
     playerScreen.addEventListener('wheel', function(e) {
       if (e.deltaY !== 0 && ui.tracksContainer.style.pointerEvents === 'none') {
         ui.tracksContainer.scrollTop += e.deltaY;
+      }
+    }, { passive: true });
+    
+    // Touch vertical no carrossel redireciona scroll para o tracks-container
+    let touchStartY = 0;
+    let touchStartScrollTop = 0;
+    
+    ui.playlistsContainer.addEventListener('touchstart', function(e) {
+      if (!e.touches.length) return;
+      touchStartY = e.touches[0].clientY;
+      touchStartScrollTop = ui.tracksContainer.scrollTop;
+    }, { passive: true });
+    
+    ui.playlistsContainer.addEventListener('touchmove', function(e) {
+      if (!e.touches.length) return;
+      const deltaY = touchStartY - e.touches[0].clientY;
+      // Só redireciona scroll vertical para baixo (para revelar tracks)
+      if (deltaY > 0) {
+        ui.tracksContainer.scrollTop = touchStartScrollTop + deltaY;
       }
     }, { passive: true });
   }
@@ -6319,11 +6337,15 @@ const MUSIC_PLAYER = (() => {
     ui.playlistsContainer.style.transform = `scale(${scale}) translateY(${translateY}px)`;
     ui.playlistsContainer.style.filter = `blur(${blur}px)`;
     
-    // tracks-container sempre scrollável; carrossel clicável só no topo
+    // Controle de interação: carrossel por cima no topo, tracks por cima ao scrollar
     const threshold = 50;
     if (scrollTop < threshold) {
+      ui.playlistsContainer.style.zIndex = '25';
       ui.playlistsContainer.style.pointerEvents = 'auto';
+      ui.tracksContainer.style.pointerEvents = 'none';
     } else {
+      ui.tracksContainer.style.pointerEvents = 'auto';
+      ui.playlistsContainer.style.zIndex = '5';
       ui.playlistsContainer.style.pointerEvents = 'none';
     }
   }
