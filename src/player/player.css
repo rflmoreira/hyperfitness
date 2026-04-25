@@ -937,7 +937,7 @@
   bottom: 20px;
   left: 20px;
   right: 20px;
-  z-index: 51;
+  z-index: 54;
   pointer-events: none !important;
   overflow: visible;
 }
@@ -958,8 +958,61 @@
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+/* Expanded Cover Blur - fundo blur atrás da capa expandida */
+#expanded-cover-blur {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 53;
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
 #player-controls-bar .controls-inner {
   pointer-events: auto;
+}
+
+/* ====== Player Controls Bar — Expanded Cover ====== */
+
+/* Capa flutuante acima da barra */
+#player-controls-bar .expanded-cover-wrapper {
+  position: absolute;
+  bottom: calc(100% + 40px);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.35s ease;
+  transform: scale(0.9);
+  cursor: pointer;
+}
+
+#player-controls-bar .expanded-cover-wrapper img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+#player-controls-bar .expanded-cover-wrapper.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+@media (max-width: 480px) {
+  #player-controls-bar .expanded-cover-wrapper img {
+    border-radius: 12px;
+  }
 }
 
 /* YouTube Search Bar */

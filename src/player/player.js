@@ -1027,6 +1027,8 @@ const MUSIC_PLAYER = (() => {
     ui.ctrlArtist = document.getElementById('ctrl-artist');
     ui.ctrlCover = document.getElementById('ctrl-cover');
     ui.volumeContainer = document.getElementById('volume-slider-container');
+    ui.ctrlExpandedCover = document.getElementById('ctrl-expanded-cover');
+    ui.expandedCoverWrapper = document.getElementById('expanded-cover-wrapper');
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -2258,8 +2260,47 @@ const MUSIC_PLAYER = (() => {
       }
     });
 
+    // Clique no controls-center mostra/esconde a capa flutuante
+    const ctrlBar = document.getElementById('player-controls-bar');
+    const ctrlCenter = ctrlBar?.querySelector('.controls-center');
+    ctrlCenter?.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      toggleExpandedCover();
+    });
+
+    // Clique na capa expandida fecha
+    ui.expandedCoverWrapper?.addEventListener('click', () => {
+      toggleExpandedCover(false);
+    });
+
+    // Clique no blur de fundo fecha a capa
+    document.getElementById('expanded-cover-blur')?.addEventListener('click', () => {
+      toggleExpandedCover(false);
+    });
+
     // Inicializa o visual dos sliders
     updateAllVolumeSliders(100);
+  }
+
+  // Toggle da capa flutuante
+  function toggleExpandedCover(forceState) {
+    if (!ui.expandedCoverWrapper) return;
+    const show = forceState !== undefined ? forceState : !ui.expandedCoverWrapper.classList.contains('visible');
+    if (show) syncExpandedCover();
+    ui.expandedCoverWrapper.classList.toggle('visible', show);
+    const coverBlur = document.getElementById('expanded-cover-blur');
+    if (coverBlur) {
+      coverBlur.classList.toggle('opacity-0', !show);
+      coverBlur.classList.toggle('invisible', !show);
+      coverBlur.style.pointerEvents = show ? 'auto' : 'none';
+    }
+  }
+
+  function syncExpandedCover() {
+    const coverImg = ui.ctrlCover?.querySelector('img');
+    if (coverImg && ui.ctrlExpandedCover) {
+      ui.ctrlExpandedCover.src = coverImg.src;
+    }
   }
 
   // Estado de shuffle e repeat
@@ -2585,6 +2626,7 @@ const MUSIC_PLAYER = (() => {
       artistEl: ui.ctrlArtist,
       coverEl: ui.ctrlCover
     }, track);
+    syncExpandedCover();
     updateMiniPlayerBar();
   }
 
@@ -2964,6 +3006,8 @@ const MUSIC_PLAYER = (() => {
       unlockBodyScroll();
       // Esconde o feedback ao fechar o modal
       hideVisibleElement(feedbackBar);
+      // Colapsa a capa expandida
+      toggleExpandedCover(false);
     }
 
     toggleElementVisibility(modal, show);
@@ -6351,94 +6395,13 @@ const MUSIC_PLAYER = (() => {
     const playerScreen = document.getElementById('player-screen-playlist');
     if (!playerScreen || !ui.tracksContainer || !ui.playlistsContainer) return;
     
-    // Desabilita carrossel quando tracks estão scrolladas por cima
-    ui.tracksContainer.addEventListener('scroll', function() {
-      const scrolled = ui.tracksContainer.scrollTop > 20;
-      ui.playlistsContainer.style.pointerEvents = scrolled ? 'none' : '';
-      ui.playlistsContainer.style.opacity = scrolled ? '0.3' : '';
-    }, { passive: true });
-    
-    // Wheel event para scroll vertical
+    // Wheel event no playerScreen redireciona para o tracks-container
+    // (necessário quando o carrossel está por cima interceptando eventos)
     playerScreen.addEventListener('wheel', function(e) {
-      if (e.deltaY !== 0) {
+      if (e.deltaY !== 0 && ui.tracksContainer.style.pointerEvents === 'none') {
         ui.tracksContainer.scrollTop += e.deltaY;
       }
     }, { passive: true });
-    
-    // Touch handlers com momentum para scroll suave
-    let touchStartY = 0;
-    let touchStartScrollTop = 0;
-    let lastY = 0;
-    let lastTime = 0;
-    let velocityY = 0;
-    let isTracking = false;
-    let momentumRAF = null;
-    
-    playerScreen.addEventListener('touchstart', function(e) {
-      if (!e.touches.length) return;
-      
-      // Para qualquer momentum em andamento
-      if (momentumRAF) {
-        cancelAnimationFrame(momentumRAF);
-        momentumRAF = null;
-      }
-      
-      isTracking = true;
-      touchStartY = e.touches[0].clientY;
-      lastY = touchStartY;
-      touchStartScrollTop = ui.tracksContainer.scrollTop;
-      lastTime = performance.now();
-      velocityY = 0;
-    }, { passive: true });
-    
-    playerScreen.addEventListener('touchmove', function(e) {
-      if (!isTracking || !e.touches.length) return;
-      
-      const now = performance.now();
-      const currentY = e.touches[0].clientY;
-      const deltaTime = now - lastTime;
-      
-      // Calcula velocidade
-      if (deltaTime > 0) {
-        velocityY = (lastY - currentY) / deltaTime;
-      }
-      
-      // Aplica scroll
-      const deltaY = touchStartY - currentY;
-      ui.tracksContainer.scrollTop = touchStartScrollTop + deltaY;
-      
-      lastY = currentY;
-      lastTime = now;
-    }, { passive: true });
-    
-    playerScreen.addEventListener('touchend', function() {
-      if (!isTracking) return;
-      isTracking = false;
-      
-      // Aplica momentum se tiver velocidade
-      if (Math.abs(velocityY) > 0.5) {
-        applyMomentum();
-      }
-    }, { passive: true });
-    
-    function applyMomentum() {
-      const friction = 0.95;
-      const minVelocity = 0.01;
-      
-      function step() {
-        velocityY *= friction;
-        
-        if (Math.abs(velocityY) < minVelocity) {
-          momentumRAF = null;
-          return;
-        }
-        
-        ui.tracksContainer.scrollTop += velocityY * 16;
-        momentumRAF = requestAnimationFrame(step);
-      }
-      
-      momentumRAF = requestAnimationFrame(step);
-    }
   }
 
   function handleTracksScroll() {
@@ -6458,20 +6421,11 @@ const MUSIC_PLAYER = (() => {
     ui.playlistsContainer.style.transform = `scale(${scale}) translateY(${translateY}px)`;
     ui.playlistsContainer.style.filter = `blur(${blur}px)`;
     
-    // Controle de interação
+    // tracks-container sempre scrollável; carrossel clicável só no topo
     const threshold = 50;
-
     if (scrollTop < threshold) {
-      // No topo - grid interativa (playlists acima para receber cliques)
-      ui.playlistsContainer.style.zIndex = '20';
       ui.playlistsContainer.style.pointerEvents = 'auto';
-      ui.tracksContainer.style.zIndex = '10';
-      ui.tracksContainer.style.pointerEvents = 'none';
     } else {
-      // Scrollado - tracks em foco
-      ui.tracksContainer.style.zIndex = '20';
-      ui.tracksContainer.style.pointerEvents = 'auto';
-      ui.playlistsContainer.style.zIndex = '5';
       ui.playlistsContainer.style.pointerEvents = 'none';
     }
   }

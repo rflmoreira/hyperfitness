@@ -351,8 +351,15 @@
 <!-- Player Controls Blur (camada de blur dissolvido abaixo da bar) -->
 <div id="player-controls-blur" class="fixed opacity-0 invisible" style="pointer-events: none;"></div>
 
+<!-- Expanded Cover Blur (fundo blur atrás da capa expandida) -->
+<div id="expanded-cover-blur" class="fixed opacity-0 invisible" style="pointer-events: none;"></div>
+
 <!-- Player Controls Bar (fora do modal para blur funcionar) -->
 <div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
+  <!-- Capa expandida (flutuante acima da barra) -->
+  <div id="expanded-cover-wrapper" class="expanded-cover-wrapper">
+    <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">
+  </div>
   <div class="controls-inner">
     <div class="controls-group">
       <button id="ctrl-shuffle" aria-label="Aleatório"><i class="ph-bold ph-shuffle"></i></button>
