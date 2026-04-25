@@ -2201,6 +2201,11 @@ const MUSIC_PLAYER = (() => {
     ui.ctrlShuffle?.addEventListener('click', toggleShuffle);
     ui.ctrlRepeat?.addEventListener('click', toggleRepeat);
     ui.ctrlVolumeBtn?.addEventListener('click', toggleMute);
+    // Fallback: listener no container volume-control para mobile
+    document.querySelector('#player-controls-bar .volume-control')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMute();
+    });
 
     // === Mini Player Bar ===
     ui.miniPlay?.addEventListener('click', togglePlayback);
@@ -2209,6 +2214,11 @@ const MUSIC_PLAYER = (() => {
     ui.miniShuffle?.addEventListener('click', toggleShuffle);
     ui.miniRepeat?.addEventListener('click', toggleRepeat);
     ui.miniVolumeBtn?.addEventListener('click', toggleMute);
+    // Fallback: listener no container volume-control para mobile
+    document.querySelector('#mini-player-bar .volume-control')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMute();
+    });
 
     // Clique no mini-player abre o modal do player
     ui.miniPlayerBar?.addEventListener('click', (e) => {
@@ -2315,17 +2325,17 @@ const MUSIC_PLAYER = (() => {
   // Mute/Unmute toggle
   let isMuted = false;
   let volumeBeforeMute = 1;
+  let muteToggleDebounce = false;
 
   function toggleMute() {
-    const audio = document.getElementById('audio-player');
-    const radioAudio = document.getElementById('radio-audio-player');
-    
+    if (muteToggleDebounce) return;
+    muteToggleDebounce = true;
+    setTimeout(() => { muteToggleDebounce = false; }, 200);
+
     if (isMuted) {
-      // Unmute
       isMuted = false;
       setUserVolume(volumeBeforeMute);
     } else {
-      // Mute
       volumeBeforeMute = userVolume || 1;
       isMuted = true;
       setUserVolume(0);
