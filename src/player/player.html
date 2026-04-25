@@ -352,7 +352,13 @@
 <div id="player-controls-blur" class="fixed opacity-0 invisible" style="pointer-events: none;"></div>
 
 <!-- Expanded Cover Blur (fundo blur atrás da capa expandida) -->
-<div id="expanded-cover-blur" class="fixed opacity-0 invisible" style="pointer-events: none;"></div>
+<div id="expanded-cover-blur" class="fixed opacity-0 invisible" style="pointer-events: none;">
+  <button id="expanded-cover-close" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:rotate-90"
+    style="z-index: 1; background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
+    aria-label="Fechar capa">
+    <i class="ph-bold ph-x text-base" aria-hidden="true"></i>
+  </button>
+</div>
 
 <!-- Player Controls Bar (fora do modal para blur funcionar) -->
 <div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
