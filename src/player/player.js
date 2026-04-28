@@ -2928,6 +2928,16 @@ const MUSIC_PLAYER = (() => {
     }
 
     goTo(0);
+
+    // Ajusta spacer dinamicamente à altura real do carrossel
+    function updateDiscoverSpacer() {
+      const spacer = document.getElementById('discover-top-spacer');
+      if (!spacer || !carouselWrapper) return;
+      const h = carouselWrapper.offsetHeight;
+      spacer.style.height = (h + 55) + 'px';
+    }
+    updateDiscoverSpacer();
+    window.addEventListener('resize', updateDiscoverSpacer, { passive: true });
   }
 
   // Renderiza as playlists especiais na tela Descobrir

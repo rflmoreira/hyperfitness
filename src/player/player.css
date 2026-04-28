@@ -1336,8 +1336,7 @@
 /* ====== Discover Banner Carousel ====== */
 .discover-carousel-wrapper {
   position: relative;
-  padding: 10px 16px 0;
-  margin-top: 8px;
+  padding: 30px 16px 0;
   transition: opacity 0.15s ease, transform 0.15s ease, filter 0.15s ease;
   transform-origin: center top;
 }
@@ -1485,6 +1484,10 @@
 
 /* Desktop */
 @media (min-width: 640px) {
+  .discover-carousel-wrapper {
+    padding-top: 40px;
+  }
+
   .discover-carousel-slide {
     flex: 0 0 70%;
     margin-right: 16px;
