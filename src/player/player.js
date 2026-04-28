@@ -2428,32 +2428,114 @@ const MUSIC_PLAYER = (() => {
     let startX = 0;
     let startY = 0;
     let tracking = false;
+    let directionLocked = false;
+    let isHorizontal = false;
+    let currentScreen = null;
+
+    const getActiveScreen = () => {
+      const screens = [ui.screenDiscover, ui.screenPlaylist, ui.screenYoutube, ui.screenRadio];
+      return screens[currentTabIndex];
+    };
+
+    // Resistência elástica — quanto mais arrasta, mais resiste
+    const elastic = (dx) => {
+      const maxDrag = window.innerWidth * 0.6;
+      const sign = dx > 0 ? 1 : -1;
+      const abs = Math.min(Math.abs(dx), maxDrag);
+      return sign * maxDrag * (1 - Math.pow(1 - abs / maxDrag, 2.5));
+    };
 
     modal.addEventListener('touchstart', (e) => {
       if (!e.touches.length) return;
-      // Ignora se o toque começa no carrossel ou em track items (seek horizontal)
-      if (e.target.closest('#playlists-container') || e.target.closest('.track-item') || e.target.closest('.manual-search-item')) {
+      if (e.target.closest('#playlists-container') || e.target.closest('.track-item') || e.target.closest('.manual-search-item') || e.target.closest('#discover-top-spacer') || e.target.closest('.discover-carousel')) {
         tracking = false;
         return;
       }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       tracking = true;
+      directionLocked = false;
+      isHorizontal = false;
+      currentScreen = getActiveScreen();
+      if (currentScreen) {
+        currentScreen.style.transition = 'none';
+      }
+    }, { passive: true });
+
+    modal.addEventListener('touchmove', (e) => {
+      if (!tracking || !e.touches.length || !currentScreen) return;
+
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+
+      if (!directionLocked) {
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          directionLocked = true;
+          isHorizontal = Math.abs(dx) > Math.abs(dy);
+        }
+        return;
+      }
+
+      if (!isHorizontal) return;
+
+      // Bloqueia se não há aba nessa direção (resistência total nas bordas)
+      const atStart = currentTabIndex === 0 && dx > 0;
+      const atEnd = currentTabIndex === TAB_ORDER.length - 1 && dx < 0;
+      const dampedDx = (atStart || atEnd) ? elastic(dx) * 0.3 : elastic(dx);
+
+      currentScreen.style.transform = `translateX(${dampedDx}px)`;
+      currentScreen.style.opacity = 1 - Math.abs(dampedDx) / window.innerWidth * 0.4;
     }, { passive: true });
 
     modal.addEventListener('touchend', (e) => {
-      if (!tracking || !e.changedTouches.length) return;
+      if (!tracking || !currentScreen) return;
       tracking = false;
 
+      if (!directionLocked || !isHorizontal) {
+        if (currentScreen) {
+          currentScreen.style.transition = '';
+          currentScreen.style.transform = '';
+          currentScreen.style.opacity = '';
+        }
+        return;
+      }
+
       const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
+      const threshold = window.innerWidth * 0.2;
+      const atStart = currentTabIndex === 0 && dx > 0;
+      const atEnd = currentTabIndex === TAB_ORDER.length - 1 && dx < 0;
 
-      if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+      if (Math.abs(dx) > threshold && !atStart && !atEnd) {
+        // Completa a transição
+        const direction = dx < 0 ? 1 : -1;
+        const newIndex = currentTabIndex + direction;
+        
+        // Anima saída da tela atual
+        currentScreen.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.35s ease';
+        currentScreen.style.transform = `translateX(${-direction * window.innerWidth * 0.4}px)`;
+        currentScreen.style.opacity = '0';
 
-      if (dx < 0 && currentTabIndex < TAB_ORDER.length - 1) {
-        switchPlayerTab(TAB_ORDER[currentTabIndex + 1]);
-      } else if (dx > 0 && currentTabIndex > 0) {
-        switchPlayerTab(TAB_ORDER[currentTabIndex - 1]);
+        setTimeout(() => {
+          currentScreen.style.transition = '';
+          currentScreen.style.transform = '';
+          currentScreen.style.opacity = '';
+          switchPlayerTab(TAB_ORDER[newIndex]);
+        }, 350);
+      } else {
+        // Volta com bounce elástico
+        currentScreen.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
+        currentScreen.style.transform = 'translateX(0)';
+        currentScreen.style.opacity = '1';
+
+        const cleanup = () => {
+          currentScreen.style.transition = '';
+          currentScreen.style.transform = '';
+          currentScreen.style.opacity = '';
+          currentScreen.removeEventListener('transitionend', cleanup);
+        };
+        currentScreen.addEventListener('transitionend', cleanup, { once: true });
+        // Fallback cleanup
+        setTimeout(cleanup, 500);
       }
     }, { passive: true });
   }
@@ -2685,6 +2767,169 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
+  // ====== Discover Banner Carousel ======
+  function renderDiscoverCarousel() {
+    const track = document.getElementById('discover-carousel-track');
+    const dotsContainer = document.getElementById('discover-carousel-dots');
+    if (!track || !dotsContainer || typeof SPECIAL_PLAYLISTS === 'undefined') return;
+
+    const playlists = SPECIAL_PLAYLISTS.slice(0, 8);
+    if (!playlists.length) return;
+
+    track.innerHTML = playlists.map((pl, i) => {
+      const count = getPlaylistTrackCount(pl);
+      return `
+        <div class="discover-carousel-slide${i === 0 ? ' active' : ''}" data-carousel-id="${pl.id}" data-index="${i}">
+          <img src="${pl.cover}" alt="${pl.name}" onerror="this.src='src/imagens/genericCover.png'" loading="lazy">
+          <div class="carousel-slide-overlay"></div>
+          <div class="carousel-slide-content">
+            <div class="carousel-slide-info">
+              <p class="carousel-slide-title">${pl.name}</p>
+              <p class="carousel-slide-subtitle">${count} músicas</p>
+            </div>
+            <button class="carousel-slide-btn" data-play-id="${pl.id}">Ouvir agora</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    dotsContainer.innerHTML = playlists.map((_, i) =>
+      `<div class="dot${i === 0 ? ' active' : ''}" data-dot="${i}"></div>`
+    ).join('');
+
+    let current = 0;
+    const slides = track.querySelectorAll('.discover-carousel-slide');
+    const dots = dotsContainer.querySelectorAll('.dot');
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      const slide = slides[current];
+      const trackRect = track.parentElement.getBoundingClientRect();
+      const slideRect = slide.getBoundingClientRect();
+      const offset = slide.offsetLeft - (trackRect.width - slideRect.width) / 2;
+      track.style.transform = `translateX(${-offset}px)`;
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    // Dot clicks
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => goTo(parseInt(dot.dataset.dot)));
+    });
+
+    // Slide clicks
+    slides.forEach(slide => {
+      const idx = parseInt(slide.dataset.index);
+      const playBtn = slide.querySelector('.carousel-slide-btn');
+      const playlistId = slide.dataset.carouselId;
+      const playlist = playlists.find(p => p.id === playlistId);
+
+      slide.addEventListener('click', (e) => {
+        if (e.target.closest('.carousel-slide-btn')) return;
+        if (idx !== current) { goTo(idx); return; }
+        if (playlist) selectFeaturedPlaylist(playlist, false);
+      });
+
+      playBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (playlist) selectFeaturedPlaylist(playlist, true);
+      });
+    });
+
+    // Touch swipe
+    let startX = 0, isDragging = false, dragOffset = 0, baseOffset = 0;
+
+    track.addEventListener('touchstart', (e) => {
+      if (!e.touches.length) return;
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      track.classList.add('dragging');
+      const transform = getComputedStyle(track).transform;
+      const matrix = new DOMMatrix(transform);
+      baseOffset = matrix.m41;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+      if (!isDragging || !e.touches.length) return;
+      dragOffset = e.touches[0].clientX - startX;
+      track.style.transform = `translateX(${baseOffset + dragOffset}px)`;
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      track.classList.remove('dragging');
+      if (Math.abs(dragOffset) > 40) {
+        goTo(current + (dragOffset < 0 ? 1 : -1));
+      } else {
+        goTo(current);
+      }
+      dragOffset = 0;
+    }, { passive: true });
+
+    // Auto-play
+    let autoTimer = setInterval(() => goTo((current + 1) % slides.length), 5000);
+    track.parentElement.addEventListener('touchstart', () => { clearInterval(autoTimer); }, { passive: true });
+    track.parentElement.addEventListener('touchend', () => {
+      autoTimer = setInterval(() => goTo((current + 1) % slides.length), 5000);
+    }, { passive: true });
+
+    // Efeito progressivo ao scrollar (igual ao playlists-container)
+    const discoverContainer = document.getElementById('discover-container');
+    const carouselWrapper = document.getElementById('discover-carousel-wrapper');
+    if (discoverContainer && carouselWrapper) {
+      function handleDiscoverScroll() {
+        const scrollTop = discoverContainer.scrollTop;
+        const maxScroll = 150;
+        const progress = Math.min(scrollTop / maxScroll, 1);
+
+        const opacity = 1 - (progress * 0.85);
+        const scale = 1 - (progress * 0.08);
+        const blur = progress * 4;
+        const translateY = -(progress * 15);
+
+        carouselWrapper.style.opacity = Math.max(opacity, 0.1);
+        carouselWrapper.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+        carouselWrapper.style.filter = `blur(${blur}px)`;
+
+        // Controle de interação: carrossel por cima no topo, conteúdo por cima ao scrollar
+        const threshold = 50;
+        if (scrollTop < threshold) {
+          carouselWrapper.style.zIndex = '25';
+          carouselWrapper.style.pointerEvents = 'auto';
+          discoverContainer.style.pointerEvents = 'none';
+        } else {
+          discoverContainer.style.pointerEvents = 'auto';
+          carouselWrapper.style.zIndex = '5';
+          carouselWrapper.style.pointerEvents = 'none';
+        }
+      }
+
+      discoverContainer.addEventListener('scroll', handleDiscoverScroll, { passive: true });
+
+      // Estado inicial: carrossel por cima
+      handleDiscoverScroll();
+
+      // Touch vertical no carrossel redireciona scroll para o container
+      let cTouchStartY = 0;
+      let cTouchStartScroll = 0;
+      carouselWrapper.addEventListener('touchstart', function(e) {
+        if (!e.touches.length) return;
+        cTouchStartY = e.touches[0].clientY;
+        cTouchStartScroll = discoverContainer.scrollTop;
+      }, { passive: true });
+
+      carouselWrapper.addEventListener('touchmove', function(e) {
+        if (!e.touches.length) return;
+        const deltaY = cTouchStartY - e.touches[0].clientY;
+        if (deltaY > 0) {
+          discoverContainer.scrollTop = cTouchStartScroll + deltaY;
+        }
+      }, { passive: true });
+    }
+
+    goTo(0);
+  }
+
   // Renderiza as playlists especiais na tela Descobrir
   function renderSpecialPlaylists() {
     if (!ui.specialPlaylistsGrid || typeof SPECIAL_PLAYLISTS === 'undefined') return;
@@ -2884,6 +3129,7 @@ const MUSIC_PLAYER = (() => {
         renderPlaylists();
 
         // Renderiza playlists especiais e em destaque
+        renderDiscoverCarousel();
         renderSpecialPlaylists();
         renderFeaturedPlaylists();
 
