@@ -2912,18 +2912,33 @@ const MUSIC_PLAYER = (() => {
       // Touch vertical no carrossel redireciona scroll para o container
       let cTouchStartY = 0;
       let cTouchStartScroll = 0;
+      let cIsVertical = null;
       carouselWrapper.addEventListener('touchstart', function(e) {
         if (!e.touches.length) return;
         cTouchStartY = e.touches[0].clientY;
         cTouchStartScroll = discoverContainer.scrollTop;
+        cIsVertical = null;
       }, { passive: true });
 
       carouselWrapper.addEventListener('touchmove', function(e) {
         if (!e.touches.length) return;
-        const deltaY = cTouchStartY - e.touches[0].clientY;
-        if (deltaY > 0) {
-          discoverContainer.scrollTop = cTouchStartScroll + deltaY;
+        const dy = cTouchStartY - e.touches[0].clientY;
+        const dx = e.touches[0].clientX - (carouselWrapper._touchStartX || 0);
+        
+        // Detecta direção no primeiro movimento
+        if (cIsVertical === null && (Math.abs(dy) > 5 || Math.abs(dx) > 5)) {
+          cIsVertical = Math.abs(dy) > Math.abs(dx);
+          carouselWrapper._touchStartX = e.touches[0].clientX;
         }
+        
+        if (cIsVertical) {
+          discoverContainer.scrollTop = cTouchStartScroll + dy;
+        }
+      }, { passive: true });
+
+      // Guarda X inicial para detecção de direção
+      carouselWrapper.addEventListener('touchstart', function(e) {
+        if (e.touches.length) carouselWrapper._touchStartX = e.touches[0].clientX;
       }, { passive: true });
     }
 
