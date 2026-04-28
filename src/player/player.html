@@ -48,7 +48,7 @@
   <!-- TELA 0: Descobrir -->
   <div id="player-screen-discover" class="player-screen flex-1 flex flex-col overflow-hidden relative">
     <!-- Banner Carousel (fixo atrás) -->
-    <div id="discover-carousel-wrapper" class="discover-carousel-wrapper" style="z-index: 10;">
+    <div id="discover-carousel-wrapper" class="discover-carousel-wrapper" style="z-index: 25;">
       <div id="discover-carousel" class="discover-carousel">
         <div id="discover-carousel-track" class="discover-carousel-track">
           <!-- Slides renderizados via JS -->
@@ -56,10 +56,10 @@
         <div id="discover-carousel-dots" class="discover-carousel-dots"></div>
       </div>
     </div>
-    <!-- Conteúdo scrollável (por cima do carrossel) -->
+    <!-- Conteúdo scrollável (por cima do carrossel quando scrollado) -->
     <div id="discover-container" class="absolute inset-0 overflow-y-auto px-4 sm:px-6 pb-24 scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
       <!-- Spacer para o carrossel -->
-      <div id="discover-top-spacer"></div>
+      <div id="discover-top-spacer" style="pointer-events: none;"></div>
 
       <!-- Playlists em Destaque -->
       <div class="py-4">

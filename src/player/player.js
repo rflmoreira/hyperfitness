@@ -2890,55 +2890,46 @@ const MUSIC_PLAYER = (() => {
         carouselWrapper.style.opacity = Math.max(opacity, 0.1);
         carouselWrapper.style.transform = `scale(${scale}) translateY(${translateY}px)`;
         carouselWrapper.style.filter = `blur(${blur}px)`;
-
-        // Controle de interação: carrossel por cima no topo, conteúdo por cima ao scrollar
-        const threshold = 50;
-        if (scrollTop < threshold) {
-          carouselWrapper.style.zIndex = '25';
-          carouselWrapper.style.pointerEvents = 'auto';
-          discoverContainer.style.pointerEvents = 'none';
-        } else {
-          discoverContainer.style.pointerEvents = 'auto';
+        
+        // Carrossel interativo no topo, escondido ao scrollar
+        if (scrollTop > 50) {
           carouselWrapper.style.zIndex = '5';
           carouselWrapper.style.pointerEvents = 'none';
+        } else {
+          carouselWrapper.style.zIndex = '25';
+          carouselWrapper.style.pointerEvents = 'auto';
         }
       }
 
       discoverContainer.addEventListener('scroll', handleDiscoverScroll, { passive: true });
-
-      // Estado inicial: carrossel por cima
       handleDiscoverScroll();
 
-      // Touch vertical no carrossel redireciona scroll para o container
-      let cTouchStartY = 0;
-      let cTouchStartScroll = 0;
-      let cIsVertical = null;
+      // Touch no carrossel: vertical redireciona scroll, horizontal é pro slide
+      let dTouchStartY = 0;
+      let dTouchStartX = 0;
+      let dTouchStartScroll = 0;
+      let dDirection = null;
+
       carouselWrapper.addEventListener('touchstart', function(e) {
         if (!e.touches.length) return;
-        cTouchStartY = e.touches[0].clientY;
-        cTouchStartScroll = discoverContainer.scrollTop;
-        cIsVertical = null;
+        dTouchStartY = e.touches[0].clientY;
+        dTouchStartX = e.touches[0].clientX;
+        dTouchStartScroll = discoverContainer.scrollTop;
+        dDirection = null;
       }, { passive: true });
 
       carouselWrapper.addEventListener('touchmove', function(e) {
         if (!e.touches.length) return;
-        const dy = cTouchStartY - e.touches[0].clientY;
-        const dx = e.touches[0].clientX - (carouselWrapper._touchStartX || 0);
-        
-        // Detecta direção no primeiro movimento
-        if (cIsVertical === null && (Math.abs(dy) > 5 || Math.abs(dx) > 5)) {
-          cIsVertical = Math.abs(dy) > Math.abs(dx);
-          carouselWrapper._touchStartX = e.touches[0].clientX;
-        }
-        
-        if (cIsVertical) {
-          discoverContainer.scrollTop = cTouchStartScroll + dy;
-        }
-      }, { passive: true });
+        const dy = dTouchStartY - e.touches[0].clientY;
+        const dx = e.touches[0].clientX - dTouchStartX;
 
-      // Guarda X inicial para detecção de direção
-      carouselWrapper.addEventListener('touchstart', function(e) {
-        if (e.touches.length) carouselWrapper._touchStartX = e.touches[0].clientX;
+        if (dDirection === null && (Math.abs(dy) > 8 || Math.abs(dx) > 8)) {
+          dDirection = Math.abs(dy) > Math.abs(dx) ? 'vertical' : 'horizontal';
+        }
+
+        if (dDirection === 'vertical') {
+          discoverContainer.scrollTop = dTouchStartScroll + dy;
+        }
       }, { passive: true });
     }
 
