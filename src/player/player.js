@@ -2787,7 +2787,7 @@ const MUSIC_PLAYER = (() => {
               <p class="carousel-slide-title">${pl.name}</p>
               <p class="carousel-slide-subtitle">${count} músicas</p>
             </div>
-            <button class="carousel-slide-btn" data-play-id="${pl.id}"><i class="ph-fill ph-play" style="font-size:11px;"></i> Ouvir agora</button>
+            <button class="carousel-slide-btn" data-play-id="${pl.id}"><i class="ph-fill ph-play" style="font-size:10px; line-height:1;"></i> Ouvir agora</button>
           </div>
         </div>`;
     }).join('');
@@ -2803,9 +2803,9 @@ const MUSIC_PLAYER = (() => {
     function goTo(index) {
       current = Math.max(0, Math.min(index, slides.length - 1));
       const slide = slides[current];
-      const trackRect = track.parentElement.getBoundingClientRect();
-      const slideRect = slide.getBoundingClientRect();
-      const offset = slide.offsetLeft - (trackRect.width - slideRect.width) / 2;
+      const containerWidth = track.parentElement.offsetWidth;
+      const slideWidth = slide.offsetWidth;
+      const offset = slide.offsetLeft - (containerWidth - slideWidth) / 2;
       track.style.transform = `translateX(${-offset}px)`;
       slides.forEach((s, i) => s.classList.toggle('active', i === current));
       // Reset animation on dots by removing/re-adding active class
@@ -2947,7 +2947,7 @@ const MUSIC_PLAYER = (() => {
       const spacer = document.getElementById('discover-top-spacer');
       if (!spacer || !carouselWrapper) return;
       const h = carouselWrapper.offsetHeight;
-      spacer.style.height = (h + 55) + 'px';
+      spacer.style.height = (h + 80) + 'px';
     }
     updateDiscoverSpacer();
     window.addEventListener('resize', updateDiscoverSpacer, { passive: true });

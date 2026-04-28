@@ -1371,12 +1371,12 @@
 }
 
 .discover-carousel-slide:first-child {
-  margin-left: calc(10% - 5px);
+  margin-left: 0;
 }
 
 .discover-carousel-slide:not(.active) {
   opacity: 0.5;
-  transform: scale(0.96);
+  transform: scale(0.92);
 }
 
 .discover-carousel-slide.active {
@@ -1521,7 +1521,7 @@
   }
 
   .discover-carousel-slide:first-child {
-    margin-left: calc(17.5% - 7px);
+    margin-left: 0;
   }
 
   .discover-carousel-slide .carousel-slide-title {
