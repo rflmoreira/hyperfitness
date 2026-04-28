@@ -2149,6 +2149,9 @@ const MUSIC_PLAYER = (() => {
     ui.tabYoutube?.addEventListener('click', () => switchPlayerTab('youtube'));
     ui.tabRadio?.addEventListener('click', () => switchPlayerTab('radio'));
 
+    // Swipe lateral para trocar abas
+    setupTabSwipeGesture();
+
     // Botão de busca do YouTube (abre a barra de busca)
     ui.youtubeSearchTrigger?.addEventListener('click', openYoutubeSearchBar);
     ui.youtubeSearchCancel?.addEventListener('click', closeYoutubeSearchBar);
@@ -2415,10 +2418,52 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Helper para toggle de visibilidade de tela
+  const TAB_ORDER = ['discover', 'playlist', 'youtube', 'radio'];
+  let currentTabIndex = 0;
+
+  function setupTabSwipeGesture() {
+    const modal = ui.playerModal;
+    if (!modal) return;
+
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    modal.addEventListener('touchstart', (e) => {
+      if (!e.touches.length) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }, { passive: true });
+
+    modal.addEventListener('touchend', (e) => {
+      if (!tracking || !e.changedTouches.length) return;
+      tracking = false;
+
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+
+      // Só aceita swipe horizontal (dx > dy) com distância mínima
+      if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+
+      if (dx < 0 && currentTabIndex < TAB_ORDER.length - 1) {
+        switchPlayerTab(TAB_ORDER[currentTabIndex + 1]);
+      } else if (dx > 0 && currentTabIndex > 0) {
+        switchPlayerTab(TAB_ORDER[currentTabIndex - 1]);
+      }
+    }, { passive: true });
+  }
+
   function toggleScreen(screen, isVisible) {
     if (!screen) return;
-    screen.classList.toggle('hidden', !isVisible);
-    screen.style.display = isVisible ? 'flex' : 'none';
+    if (isVisible) {
+      screen.classList.remove('hidden', 'slide-out-left', 'slide-out-right');
+      screen.style.display = 'flex';
+    } else {
+      screen.classList.add('hidden');
+      screen.style.display = 'none';
+      screen.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right');
+    }
   }
 
   // Helper para toggle de visibilidade (invisible + opacity-0)
@@ -2576,17 +2621,38 @@ const MUSIC_PLAYER = (() => {
     const isYoutube = tab === 'youtube';
     const isRadio = tab === 'radio';
 
-    // Atualiza tabs - apenas toggle da classe active
+    const newIndex = TAB_ORDER.indexOf(tab);
+    const direction = newIndex > currentTabIndex ? 'right' : 'left';
+    const screens = [ui.screenDiscover, ui.screenPlaylist, ui.screenYoutube, ui.screenRadio];
+    const targetScreen = screens[newIndex];
+    const prevScreen = screens[currentTabIndex];
+
+    // Atualiza tabs
     ui.tabDiscover?.classList.toggle('active', isDiscover);
     ui.tabPlaylist?.classList.toggle('active', isPlaylist);
     ui.tabYoutube?.classList.toggle('active', isYoutube);
     ui.tabRadio?.classList.toggle('active', isRadio);
 
-    // Atualiza telas
-    toggleScreen(ui.screenDiscover, isDiscover);
-    toggleScreen(ui.screenPlaylist, isPlaylist);
-    toggleScreen(ui.screenYoutube, isYoutube);
-    toggleScreen(ui.screenRadio, isRadio);
+    // Animação lateral
+    if (newIndex !== currentTabIndex && prevScreen && targetScreen) {
+      // Esconde todas as outras
+      screens.forEach((s, i) => {
+        if (i !== currentTabIndex && i !== newIndex) toggleScreen(s, false);
+      });
+
+      // Mostra a nova tela com slide
+      targetScreen.classList.remove('hidden', 'slide-in-left', 'slide-in-right');
+      targetScreen.style.display = 'flex';
+      void targetScreen.offsetWidth;
+      targetScreen.classList.add(direction === 'right' ? 'slide-in-right' : 'slide-in-left');
+
+      // Esconde a tela anterior
+      toggleScreen(prevScreen, false);
+    } else {
+      screens.forEach((s, i) => toggleScreen(s, i === newIndex));
+    }
+
+    currentTabIndex = newIndex;
     
     // Sempre esconde a barra de busca ao trocar de aba
     hideElementWithFade(ui.youtubeSearchBarWrapper);

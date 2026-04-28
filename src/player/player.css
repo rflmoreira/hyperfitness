@@ -695,6 +695,39 @@
   padding-top: 55px;
 }
 
+/* Animação de transição lateral para as telas do player */
+.player-screen {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.35s ease;
+}
+
+.player-screen.slide-out-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.player-screen.slide-out-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.player-screen.slide-in-left {
+  animation: slide-from-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.player-screen.slide-in-right {
+  animation: slide-from-right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes slide-from-left {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-from-right {
+  from { transform: translateX(60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 
 /* Player Bar - Estilos compartilhados */
 .player-bar {
