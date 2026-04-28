@@ -2431,6 +2431,11 @@ const MUSIC_PLAYER = (() => {
 
     modal.addEventListener('touchstart', (e) => {
       if (!e.touches.length) return;
+      // Ignora se o toque começa no carrossel ou em track items (seek horizontal)
+      if (e.target.closest('#playlists-container') || e.target.closest('.track-item') || e.target.closest('.manual-search-item')) {
+        tracking = false;
+        return;
+      }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       tracking = true;
@@ -2443,7 +2448,6 @@ const MUSIC_PLAYER = (() => {
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
 
-      // Só aceita swipe horizontal (dx > dy) com distância mínima
       if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
 
       if (dx < 0 && currentTabIndex < TAB_ORDER.length - 1) {
