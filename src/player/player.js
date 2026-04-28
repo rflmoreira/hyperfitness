@@ -2787,7 +2787,7 @@ const MUSIC_PLAYER = (() => {
               <p class="carousel-slide-title">${pl.name}</p>
               <p class="carousel-slide-subtitle">${count} músicas</p>
             </div>
-            <button class="carousel-slide-btn" data-play-id="${pl.id}">Ouvir agora</button>
+            <button class="carousel-slide-btn" data-play-id="${pl.id}"><i class="ph-fill ph-play" style="font-size:11px;"></i> Ouvir agora</button>
           </div>
         </div>`;
     }).join('');
@@ -2808,7 +2808,14 @@ const MUSIC_PLAYER = (() => {
       const offset = slide.offsetLeft - (trackRect.width - slideRect.width) / 2;
       track.style.transform = `translateX(${-offset}px)`;
       slides.forEach((s, i) => s.classList.toggle('active', i === current));
-      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+      // Reset animation on dots by removing/re-adding active class
+      dots.forEach((d, i) => {
+        d.classList.remove('active');
+        if (i === current) {
+          void d.offsetWidth; // force reflow to restart animation
+          d.classList.add('active');
+        }
+      });
     }
 
     // Dot clicks

@@ -1360,18 +1360,18 @@
 }
 
 .discover-carousel-slide {
-  flex: 0 0 85%;
-  margin-right: 12px;
+  flex: 0 0 80%;
+  margin-right: 10px;
   position: relative;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2.2 / 1;
   cursor: pointer;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .discover-carousel-slide:first-child {
-  margin-left: calc(7.5% - 6px);
+  margin-left: calc(10% - 5px);
 }
 
 .discover-carousel-slide:not(.active) {
@@ -1403,11 +1403,11 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 18px;
+  padding: 12px 14px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .discover-carousel-slide .carousel-slide-info {
@@ -1416,7 +1416,7 @@
 }
 
 .discover-carousel-slide .carousel-slide-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: white;
   line-height: 1.2;
@@ -1428,7 +1428,7 @@
 }
 
 .discover-carousel-slide .carousel-slide-subtitle {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 2px 0 0;
   text-transform: uppercase;
@@ -1438,25 +1438,31 @@
 
 .discover-carousel-slide .carousel-slide-btn {
   flex-shrink: 0;
-  padding: 7px 16px;
+  padding: 6px 14px 6px 11px;
   border-radius: 9999px;
   border: none;
-  background: rgba(255, 122, 31, 0.85);
+  background: rgba(255, 122, 31, 0.9);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(255, 122, 31, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .discover-carousel-slide .carousel-slide-btn:hover {
   background: rgba(255, 122, 31, 1);
   transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 122, 31, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .discover-carousel-slide .carousel-slide-btn:active {
   transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(255, 122, 31, 0.3);
 }
 
 /* Dots */
@@ -1464,22 +1470,43 @@
   display: flex;
   justify-content: center;
   gap: 6px;
-  padding: 12px 0 4px;
+  padding: 8px 0 2px;
 }
 
 .discover-carousel-dots .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: background 0.3s ease, width 0.3s ease, border-radius 0.3s ease;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.3s ease, width 0.3s ease, border-radius 0.3s ease, height 0.3s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .discover-carousel-dots .dot.active {
-  width: 18px;
+  width: 24px;
+  height: 6px;
   border-radius: 3px;
-  background: rgba(255, 122, 31, 0.85);
+  background: rgba(255, 122, 31, 0.25);
+}
+
+.discover-carousel-dots .dot.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: rgba(255, 122, 31, 1);
+  animation: dot-progress 5s linear forwards;
+}
+
+@keyframes dot-progress {
+  from { width: 0%; }
+  to { width: 100%; }
 }
 
 /* Desktop */
@@ -1489,16 +1516,16 @@
   }
 
   .discover-carousel-slide {
-    flex: 0 0 70%;
-    margin-right: 16px;
+    flex: 0 0 65%;
+    margin-right: 14px;
   }
 
   .discover-carousel-slide:first-child {
-    margin-left: calc(15% - 8px);
+    margin-left: calc(17.5% - 7px);
   }
 
   .discover-carousel-slide .carousel-slide-title {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
   }
 }
 
