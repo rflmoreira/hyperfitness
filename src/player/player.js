@@ -2805,14 +2805,17 @@ const MUSIC_PLAYER = (() => {
       const slide = slides[current];
       const containerWidth = track.parentElement.offsetWidth;
       const slideWidth = slide.offsetWidth;
-      const offset = slide.offsetLeft - (containerWidth - slideWidth) / 2;
+      const slideLeft = slide.offsetLeft;
+      // Centraliza o slide, mas não permite offset negativo (primeiro slide) nem exceder o final
+      const maxOffset = track.scrollWidth - containerWidth;
+      const idealOffset = slideLeft - (containerWidth - slideWidth) / 2;
+      const offset = Math.max(0, Math.min(idealOffset, maxOffset));
       track.style.transform = `translateX(${-offset}px)`;
       slides.forEach((s, i) => s.classList.toggle('active', i === current));
-      // Reset animation on dots by removing/re-adding active class
       dots.forEach((d, i) => {
         d.classList.remove('active');
         if (i === current) {
-          void d.offsetWidth; // force reflow to restart animation
+          void d.offsetWidth;
           d.classList.add('active');
         }
       });
@@ -2850,9 +2853,10 @@ const MUSIC_PLAYER = (() => {
       startX = e.touches[0].clientX;
       isDragging = true;
       track.classList.add('dragging');
-      const transform = getComputedStyle(track).transform;
-      const matrix = new DOMMatrix(transform);
-      baseOffset = matrix.m41;
+      // Lê o offset atual do transform de forma segura
+      const style = getComputedStyle(track);
+      const matrix = style.transform && style.transform !== 'none' ? new DOMMatrix(style.transform) : { m41: 0 };
+      baseOffset = matrix.m41 || 0;
     }, { passive: true });
 
     track.addEventListener('touchmove', (e) => {
@@ -2873,8 +2877,13 @@ const MUSIC_PLAYER = (() => {
       dragOffset = 0;
     }, { passive: true });
 
-    // Auto-play
-    let autoTimer = setInterval(() => goTo((current + 1) % slides.length), 5000);
+    // Auto-play (vai e volta, sem loop abrupto)
+    let autoDirection = 1;
+    let autoTimer = setInterval(() => {
+      if (current >= slides.length - 1) autoDirection = -1;
+      if (current <= 0) autoDirection = 1;
+      goTo(current + autoDirection);
+    }, 5000);
     track.parentElement.addEventListener('touchstart', () => { clearInterval(autoTimer); }, { passive: true });
     track.parentElement.addEventListener('touchend', () => {
       autoTimer = setInterval(() => goTo((current + 1) % slides.length), 5000);
