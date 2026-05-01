@@ -2783,10 +2783,213 @@
       right: 12px;
       z-index: 3;
     }
+
+    /* ====== Login Screen ====== */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--background-dark);
+      overflow: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #login-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #login-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('src/imagens/capa de fundo.jpg') center/cover no-repeat;
+      opacity: 0.15;
+      filter: blur(20px) saturate(150%);
+      transform: scale(1.1);
+      pointer-events: none;
+    }
+
+    #login-screen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 80%, rgba(255, 122, 31, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .login-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 380px;
+      padding: 0 24px;
+    }
+
+    .login-logo {
+      height: 100px;
+      width: auto;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.15));
+    }
+
+    .login-subtitle {
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+      font-weight: 400;
+      margin-bottom: 40px;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    .login-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 32px;
+    }
+
+    .login-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-btn:active {
+      transform: scale(0.97);
+    }
+
+    .login-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .login-btn-google {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .login-btn-google:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .login-btn-microsoft {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .login-btn-microsoft:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 32px;
+      color: var(--text-subtle);
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .login-btn-guest {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.85rem;
+    }
+
+    .login-btn-guest:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .login-footer {
+      position: absolute;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.1);
+      font-size: 0.65rem;
+      letter-spacing: 0.03em;
+      z-index: 1;
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-content">
+      <img src="src/imagens/HyperFitness.png" alt="HyperFitness" class="login-logo">
+
+      <div class="login-buttons">
+        <button class="login-btn login-btn-google" id="login-google">
+          <svg viewBox="0 0 48 48" width="20" height="20"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.9 7.35 2.56 10.52l7.97-5.93z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.93C6.51 42.62 14.62 48 24 48z"/></svg>
+          Entrar com o Google
+        </button>
+
+        <button class="login-btn login-btn-microsoft" id="login-microsoft">
+          <svg viewBox="0 0 21 21" width="20" height="20"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+          Entrar com a Microsoft
+        </button>
+      </div>
+
+      <div class="login-divider"><span>ou</span></div>
+
+      <button class="login-btn login-btn-guest" id="login-guest">
+        <i class="ph-bold ph-user" style="font-size: 18px;"></i>
+        Entrar como visitante
+      </button>
+    </div>
+
+    <p class="login-footer">HyperFitness © 2026</p>
+  </div>
 
   <!-- Safari Liquid Glass (iOS 26): divs reais com background-color sólido
        posicionados atrás do #top-bar e #footer-container para que o algoritmo
@@ -2807,11 +3010,16 @@
   </div>
 
   <div id="user-dropdown" class="fixed z-40 hidden opacity-0 transition-all duration-200 origin-top-right scale-95" style="min-width: 180px;">
-    <div class="rounded-xl overflow-hidden py-1">
+    <div class="rounded-xl overflow-hidden py-1 flex flex-col gap-2">
       <button id="open-program-screen-btn" class="w-full px-4 py-3 flex items-center gap-3 text-white/70 hover:text-white transition-all duration-300 text-sm"
         style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 9999px;">
         <i class="ph-bold ph-arrows-left-right"></i>
         Trocar programa
+      </button>
+      <button id="logout-btn" class="w-full px-4 py-3 flex items-center gap-3 text-red-400/70 hover:text-red-400 transition-all duration-300 text-sm"
+        style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 9999px;">
+        <i class="ph-bold ph-sign-out"></i>
+        Sair
       </button>
     </div>
   </div>
@@ -7691,6 +7899,40 @@
     } else {
       initializeApp();
     }
+
+    // ====== Login Screen ======
+    function initLoginScreen() {
+      const loginScreen = document.getElementById('login-screen');
+      if (!loginScreen) return;
+
+      // Se já logou antes, pula a tela de login
+      if (localStorage.getItem('hf-logged-in')) {
+        loginScreen.remove();
+        return;
+      }
+
+      function dismissLogin(method) {
+        localStorage.setItem('hf-logged-in', method);
+        loginScreen.classList.add('hidden');
+        setTimeout(() => loginScreen.remove(), 600);
+      }
+
+      document.getElementById('login-google')?.addEventListener('click', () => dismissLogin('google'));
+      document.getElementById('login-microsoft')?.addEventListener('click', () => dismissLogin('microsoft'));
+      document.getElementById('login-guest')?.addEventListener('click', () => dismissLogin('guest'));
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLoginScreen, { once: true });
+    } else {
+      initLoginScreen();
+    }
+
+    // Logout
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      localStorage.removeItem('hf-logged-in');
+      location.reload();
+    });
   </script>
 </body>
 
