@@ -3649,7 +3649,7 @@ const MUSIC_PLAYER = (() => {
           <p class="text-sm text-white font-medium line-clamp-2">${escapeHTML(playlist.title)}</p>
           <p class="text-xs text-white/50 truncate mt-0.5">${escapeHTML(cleanPlaylistAuthor(playlist.author))}</p>
         </div>
-        <button class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-purple-400 hover:text-purple-300 transition-all duration-300 hover:scale-110 active:scale-95" 
+        <button class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
           style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
           title="Importar playlist">
           <i class="ph-bold ph-plus text-base"></i>
