@@ -211,6 +211,20 @@
   user-select: none;
 }
 
+.manual-search-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.85rem;
+  right: 0.85rem;
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.1) 0px, rgba(255, 255, 255, 0.1) 3px, transparent 3px, transparent 9px);
+}
+
+.manual-search-item:last-child::after {
+  display: none;
+}
+
 .manual-search-item.seeking {
   cursor: ew-resize;
 }
@@ -218,9 +232,12 @@
 .manual-search-item::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(255, 122, 31, 0.15) var(--progress), transparent var(--progress));
-  border-radius: 0.75rem;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(255, 122, 31, 0.12);
+  width: var(--progress);
+  border-radius: 8px;
   pointer-events: none;
   z-index: 0;
   opacity: 0;
