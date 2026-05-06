@@ -278,6 +278,25 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* YouTube Playlist Search Results */
+.youtube-playlist-item {
+  position: relative;
+}
+
+.youtube-playlist-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.85rem;
+  right: 0.85rem;
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.1) 0px, rgba(255, 255, 255, 0.1) 3px, transparent 3px, transparent 9px);
+}
+
+.youtube-playlist-item:last-child::after {
+  display: none;
+}
+
 /* Wave animation para ctrl-cover */
 .ctrl-wave-overlay {
   position: absolute;
