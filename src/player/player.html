@@ -418,8 +418,15 @@
     </button>
 
     <!-- Header -->
-    <h3 id="playlist-picker-title" class="text-sm font-semibold text-white/80 text-center mb-1">Adicionar à playlist</h3>
-    <p id="playlist-picker-track" class="text-xs text-white/50 truncate text-center mb-4 max-w-[250px] mx-auto"></p>
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-11 h-11 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+        <i class="ph-bold ph-music-notes text-orange-400 text-lg"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 id="playlist-picker-title" class="text-sm font-semibold text-white/90">Adicionar à playlist</h3>
+        <p id="playlist-picker-track" class="text-xs text-white/50 truncate mt-0.5 max-w-[220px]"></p>
+      </div>
+    </div>
 
     <!-- Lista de playlists -->
     <div id="playlist-picker-list" class="max-h-64 overflow-y-auto scrollbar-hide space-y-1"></div>
