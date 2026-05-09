@@ -4523,8 +4523,8 @@ const MUSIC_PLAYER = (() => {
             <p class="text-sm text-white font-medium truncate">${escapeHTML(playlist.name)}</p>
             <p class="text-xs text-white/40">${trackCount} ${trackCount === 1 ? 'música' : 'músicas'}</p>
           </div>
-          <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/90" style="background: rgba(255, 122, 31, 0.45); backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 122, 31, 0.3);">
-            <i class="ph-bold ph-plus text-sm"></i>
+          <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" style="background: rgba(255, 122, 31, 0.45); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 122, 31, 0.3);">
+            <i class="ph-bold ph-plus text-base"></i>
           </div>
         </div>
       `;
