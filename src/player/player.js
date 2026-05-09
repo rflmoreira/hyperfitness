@@ -4032,13 +4032,15 @@ const MUSIC_PLAYER = (() => {
             <i class="ph-bold ph-x text-sm"></i>
           </button>
 
-          <div class="flex flex-col items-center text-center mb-4">
-            <div class="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center mb-3">
-              <i class="ph-bold ph-playlist text-purple-400 text-xl"></i>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+              <i class="ph-bold ph-playlist text-purple-400 text-lg"></i>
             </div>
-            <h3 class="text-sm font-semibold text-white/90 line-clamp-2">${escapeHTML(title)}</h3>
-            <p class="text-xs text-white/50 mt-1">${escapeHTML(author)}</p>
-            <p class="text-[11px] text-white/40 mt-0.5">${videos.length} músicas • ${formattedDuration}</p>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold text-white/90 line-clamp-2">${escapeHTML(title)}</h3>
+              <p class="text-xs text-white/50 mt-0.5">${escapeHTML(author)}</p>
+              <p class="text-[11px] text-white/40 mt-0.5">${videos.length} músicas • ${formattedDuration}</p>
+            </div>
           </div>
           
           <div class="max-h-[240px] overflow-y-auto scrollbar-hide">
