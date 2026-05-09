@@ -4026,42 +4026,39 @@ const MUSIC_PLAYER = (() => {
     if (existingModal) existingModal.remove();
 
     const modalHtml = `
-      <div id="youtube-playlist-import-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
-        <div class="bg-[#1e1e2e] rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl border border-white/10">
-          <div class="p-5 border-b border-white/10">
-            <div class="flex items-start gap-4">
-              <div class="w-16 h-16 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                <i class="ph-bold ph-playlist text-purple-400 text-2xl"></i>
-              </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-bold text-white line-clamp-2">${escapeHTML(title)}</h3>
-                <p class="text-sm text-white/50 mt-1">${escapeHTML(author)}</p>
-                <p class="text-xs text-white/40 mt-1">${videos.length} músicas • ${formattedDuration}</p>
-              </div>
+      <div id="youtube-playlist-import-modal" class="fixed inset-0 overlay-blur z-[70] flex items-center justify-center p-4" style="pointer-events: auto;">
+        <div class="relative w-full max-w-sm glass-effect rounded-3xl p-5 pt-7 overflow-hidden">
+          <button id="cancel-playlist-import" class="absolute top-3 right-3 glass-effect text-white/90 w-9 h-9 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90 shadow-lg" aria-label="Fechar">
+            <i class="ph-bold ph-x text-sm"></i>
+          </button>
+
+          <div class="flex flex-col items-center text-center mb-4">
+            <div class="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center mb-3">
+              <i class="ph-bold ph-playlist text-purple-400 text-xl"></i>
             </div>
+            <h3 class="text-sm font-semibold text-white/90 line-clamp-2">${escapeHTML(title)}</h3>
+            <p class="text-xs text-white/50 mt-1">${escapeHTML(author)}</p>
+            <p class="text-[11px] text-white/40 mt-0.5">${videos.length} músicas • ${formattedDuration}</p>
           </div>
           
-          <div class="p-4 max-h-[300px] overflow-y-auto scrollbar-hide">
-            <p class="text-xs text-white/50 mb-3">Prévia das músicas:</p>
-            <div class="space-y-2">
+          <div class="max-h-[240px] overflow-y-auto scrollbar-hide">
+            <p class="text-[11px] text-white/40 mb-2 uppercase tracking-wider font-medium">Prévia</p>
+            <div class="space-y-1.5">
               ${videos.slice(0, 10).map((v, i) => `
-                <div class="flex items-center gap-2 text-sm">
-                  <span class="text-white/30 w-5 text-right">${i + 1}</span>
-                  <span class="text-white/80 truncate flex-1">${escapeHTML(v.title)}</span>
-                  <span class="text-white/40 text-xs">${formatDuration(v.lengthSeconds * 1000)}</span>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-white/25 w-4 text-right font-medium">${i + 1}</span>
+                  <span class="text-white/70 truncate flex-1">${escapeHTML(v.title)}</span>
+                  <span class="text-white/35 text-[11px]">${formatDuration(v.lengthSeconds * 1000)}</span>
                 </div>
               `).join('')}
-              ${videos.length > 10 ? `<p class="text-xs text-white/40 text-center mt-2">+ ${videos.length - 10} músicas</p>` : ''}
+              ${videos.length > 10 ? `<p class="text-[11px] text-white/35 text-center mt-2">+ ${videos.length - 10} músicas</p>` : ''}
             </div>
           </div>
           
-          <div class="p-4 border-t border-white/10 flex gap-3">
-            <button id="cancel-playlist-import" class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-medium transition-colors">
-              Cancelar
-            </button>
-            <button id="confirm-playlist-import" class="flex-1 py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold transition-colors flex items-center justify-center gap-2">
+          <div class="mt-4 pt-3" style="border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+            <button id="confirm-playlist-import" class="w-full py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-lg">
               <i class="ph-bold ph-download-simple"></i>
-              Importar
+              Importar playlist
             </button>
           </div>
         </div>
