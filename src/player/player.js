@@ -4058,7 +4058,7 @@ const MUSIC_PLAYER = (() => {
           </div>
           
           <div class="mt-4 pt-3" style="border-top: 1px dashed rgba(255, 255, 255, 0.1);">
-            <button id="confirm-playlist-import" class="w-full py-3 rounded-xl text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2" style="background: rgba(147, 51, 234, 0.5); border: none;">
+            <button id="confirm-playlist-import" class="w-full py-3 rounded-xl text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2" style="background: rgba(147, 51, 234, 0.5); border: none; box-shadow: 0 0 20px rgba(147, 51, 234, 0.3), 0 4px 12px rgba(147, 51, 234, 0.2);">
               <i class="ph-bold ph-download-simple"></i>
               Importar playlist
             </button>
