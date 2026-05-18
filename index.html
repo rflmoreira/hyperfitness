@@ -346,6 +346,7 @@
       font-weight: 700;
       text-align: center;
       -moz-appearance: textfield;
+      appearance: textfield;
     }
     .builder-weeks-input::-webkit-inner-spin-button,
     .builder-weeks-input::-webkit-outer-spin-button {
@@ -4044,6 +4045,7 @@
       overflow-wrap: anywhere;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
     }
     #builder-screen .builder-slot .builder-slot-summary {
@@ -11710,6 +11712,7 @@
       line-height: 1.2;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -16620,11 +16623,11 @@
         list.innerHTML = `
           <li class="builder-empty" role="button" tabindex="0" data-empty-add aria-label="Abrir banco de exercícios para escolher exercícios">
             <div class="builder-empty-guidance" aria-hidden="true">
-              <span class="builder-empty-hint"><i class="ph-bold ph-cursor-click"></i>Abrir banco</span>
-              <span class="builder-empty-hint"><i class="ph-bold ph-plus-circle"></i>Clique no card</span>
+              <span class="builder-empty-hint"><i class="ph-bold ph-magnifying-glass"></i>Buscar</span>
+              <span class="builder-empty-hint"><i class="ph-bold ph-plus-circle"></i>Adicionar</span>
             </div>
-            <p>Escolha exercícios no banco</p>
-            <span class="builder-empty-copy">Use a busca e os filtros para encontrar um exercício. Clique no card para adicioná-lo à sequência.</span>
+            <p>Adicione exercícios ao treino</p>
+            <span class="builder-empty-copy">Clique em um exercício no painel ao lado ou use a busca para encontrar e adicionar à sequência.</span>
             <div class="builder-empty-skeleton" aria-hidden="true">
               <div class="skeleton-row"><span class="skeleton-thumb"></span><span class="skeleton-lines"><span></span><span></span></span></div>
               <div class="skeleton-row"><span class="skeleton-thumb"></span><span class="skeleton-lines"><span></span><span></span></span></div>
