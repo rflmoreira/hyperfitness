@@ -1,0 +1,16 @@
+{
+  "name": "hyperfitness-tests",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Test harness for the HyperFitness single-file app. Never bundled with index.html in production.",
+  "scripts": {
+    "test": "vitest --run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "fast-check": "^4.8.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.6"
+  }
+}
