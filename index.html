@@ -1665,11 +1665,15 @@
 
     .program-card-custom-actions {
       position: absolute;
-      top: 12px;
+      bottom: 12px;
       right: 12px;
       z-index: 4;
       display: flex;
       gap: 0.4rem;
+    }
+
+    .program-card-premium:has(.program-card-custom-actions) .card-content {
+      padding-bottom: 2.8rem;
     }
     .program-card-action-btn {
       width: 2.15rem;
@@ -4855,6 +4859,47 @@
     </div>
   </section>
 
+  <div id="program-delete-modal"
+    class="fixed inset-0 overlay-blur z-[180] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
+    role="dialog" aria-labelledby="program-delete-modal-title" aria-describedby="program-delete-modal-description"
+    aria-hidden="true" style="display:none">
+    <div id="program-delete-card"
+      class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-6 transform scale-95 transition-all duration-300"
+      tabindex="-1">
+      <button id="close-program-delete-btn"
+        class="absolute top-4 right-4 glass-effect text-white/90 w-11 h-11 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90 shadow-lg"
+        aria-label="Fechar confirmação" type="button">
+        <i class="ph-bold ph-x text-lg" aria-hidden="true"></i>
+      </button>
+
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+          <i class="ph-bold ph-trash text-3xl text-red-400" aria-hidden="true"></i>
+        </div>
+        <h2 id="program-delete-modal-title" class="text-xl font-bold uppercase tracking-wider mb-2">Excluir Treino</h2>
+        <p id="program-delete-modal-description" class="text-sm" style="color:var(--subtext-1);">
+          Tem certeza que deseja excluir este treino personalizado?
+        </p>
+        <p class="text-base font-semibold text-white mt-2" id="program-delete-title"></p>
+        <p class="text-xs mt-3" style="color:var(--subtext-0);">Esta ação não pode ser desfeita.</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="program-delete-cancel-btn"
+          class="flex-1 px-4 py-3 text-white font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95"
+          style="background:var(--surface-1);" onmouseover="this.style.background='var(--surface-2)'"
+          onmouseout="this.style.background='var(--surface-1)'" type="button">
+          Cancelar
+        </button>
+        <button id="program-delete-confirm-btn"
+          class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95"
+          type="button">
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Builder de Treino "Monte Seu Treino" -->
   <section id="builder-screen" class="hidden" data-picker-open="false">
     <header class="builder-header">
@@ -5758,6 +5803,7 @@
     let repsOutsideClickBound = false;
     const METHOD_TOOLTIP_TIMEOUTS = new Map();
     let methodOutsideClickBound = false;
+    let pendingProgramDeleteId = null;
     const METHOD_DESCRIPTION_MAP = Object.freeze({
       'convencional': 'execução tradicional com foco total na técnica',
       'conv isometria': 'combine repetições tradicionais com uma pausa isométrica no pico da contração',
@@ -6447,6 +6493,59 @@
       `;
     }
 
+    function isProgramDeleteModalOpen() {
+      return DOM_ELEMENTS.programDeleteModal?.getAttribute("aria-hidden") === "false";
+    }
+
+    function openProgramDeleteModal(programId, trigger = null) {
+      const program = TRAINING_PROGRAMS[programId];
+      if (!program?.custom || !DOM_ELEMENTS.programDeleteModal) return;
+
+      pendingProgramDeleteId = programId;
+      try {
+        DOM_ELEMENTS.lastFocus = trigger instanceof HTMLElement
+          ? trigger
+          : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+      } catch (_) {
+        DOM_ELEMENTS.lastFocus = null;
+      }
+
+      if (DOM_ELEMENTS.programDeleteTitle) {
+        DOM_ELEMENTS.programDeleteTitle.textContent = `"${program.name || "Treino personalizado"}"`;
+      }
+
+      openScaledModal(DOM_ELEMENTS.programDeleteModal, DOM_ELEMENTS.programDeleteCard);
+      setTimeout(() => DOM_ELEMENTS.programDeleteConfirmBtn?.focus({ preventScroll: true }), 120);
+    }
+
+    function closeProgramDeleteModal() {
+      if (!isProgramDeleteModalOpen()) return;
+      closeScaledModal(DOM_ELEMENTS.programDeleteModal, DOM_ELEMENTS.programDeleteCard, () => {
+        pendingProgramDeleteId = null;
+        if (DOM_ELEMENTS.programDeleteTitle) {
+          DOM_ELEMENTS.programDeleteTitle.textContent = "";
+        }
+      });
+    }
+
+    function confirmProgramDelete() {
+      const programId = pendingProgramDeleteId;
+      if (!programId) return;
+
+      const program = TRAINING_PROGRAMS[programId];
+      pendingProgramDeleteId = null;
+      if (!program?.custom) {
+        closeProgramDeleteModal();
+        return;
+      }
+
+      deleteCustomProgram(programId);
+      renderAllComponents();
+      DOM_ELEMENTS.lastFocus = DOM_ELEMENTS.backToTrainingBtn || DOM_ELEMENTS.mainContent || null;
+      closeProgramDeleteModal();
+      showNotification("Treino excluído", "success");
+    }
+
     function renderProgramScreen() {
       const container = DOM_ELEMENTS.programScreenList;
       if (!container) return;
@@ -6504,13 +6603,7 @@
           const deleteBtn = e.target.closest("[data-program-delete]");
           if (deleteBtn) {
             stopEvent(e);
-            const id = deleteBtn.dataset.programDelete;
-            const prog = TRAINING_PROGRAMS[id];
-            if (prog && confirm(`Excluir o treino "${prog.name}"? Esta ação não pode ser desfeita.`)) {
-              deleteCustomProgram(id);
-              renderAllComponents();
-              showNotification("Treino excluído", "success");
-            }
+            openProgramDeleteModal(deleteBtn.dataset.programDelete, deleteBtn);
             return;
           }
 
@@ -11849,6 +11942,12 @@
         programScreenList: document.getElementById("program-screen-list"),
         openProgramScreenBtn: document.getElementById("open-program-screen-btn"),
         backToTrainingBtn: document.getElementById("back-to-training-btn"),
+        programDeleteModal: document.getElementById("program-delete-modal"),
+        programDeleteCard: document.getElementById("program-delete-card"),
+        programDeleteTitle: document.getElementById("program-delete-title"),
+        programDeleteConfirmBtn: document.getElementById("program-delete-confirm-btn"),
+        programDeleteCancelBtn: document.getElementById("program-delete-cancel-btn"),
+        closeProgramDeleteBtn: document.getElementById("close-program-delete-btn"),
         stepperNav: document.getElementById("stepper-nav"),
         daySelector: document.getElementById("day-selector"),
         workoutDetails: document.getElementById("workout-details"),
@@ -11982,6 +12081,9 @@
         [DOM_ELEMENTS.workoutDetails, 'click', handleExerciseToggle],
         [DOM_ELEMENTS.openProgramScreenBtn, 'click', () => openProgramScreen(false)],
         [DOM_ELEMENTS.backToTrainingBtn, 'click', closeProgramScreen],
+        [DOM_ELEMENTS.programDeleteConfirmBtn, 'click', confirmProgramDelete],
+        [DOM_ELEMENTS.programDeleteCancelBtn, 'click', closeProgramDeleteModal],
+        [DOM_ELEMENTS.closeProgramDeleteBtn, 'click', closeProgramDeleteModal],
         [DOM_ELEMENTS.editScheduleModal, 'click', (e) => {
           if (e.target === DOM_ELEMENTS.editScheduleModal) closeEditModal();
         }]
@@ -11989,6 +12091,14 @@
 
       eventBindings.forEach(([element, event, handler]) => {
         element?.addEventListener(event, handler);
+      });
+
+      addBackdropCloseListener(DOM_ELEMENTS.programDeleteModal, closeProgramDeleteModal);
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isProgramDeleteModalOpen()) {
+          event.preventDefault();
+          closeProgramDeleteModal();
+        }
       });
     }
 
