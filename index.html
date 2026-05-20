@@ -61,21 +61,6 @@
       backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
     }
-    #builder-screen::after {
-      content: "";
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 6;
-      height: calc(var(--bld-save-height) + var(--bld-save-bottom) + 44px);
-      background: linear-gradient(to top, rgba(8, 9, 13, 0.9) 0%, rgba(8, 9, 13, 0.62) 58%, transparent 100%);
-      backdrop-filter: blur(6px) saturate(150%);
-      -webkit-backdrop-filter: blur(6px) saturate(150%);
-      -webkit-mask-image: linear-gradient(to top, black 58%, transparent 100%);
-      mask-image: linear-gradient(to top, black 58%, transparent 100%);
-      pointer-events: none;
-    }
     #builder-screen.hidden {
       display: none;
     }
@@ -268,26 +253,25 @@
     }
     #builder-screen[data-picker-open="true"] .builder-content {
       z-index: 10;
+      overflow: hidden;
     }
 
     #builder-screen .builder-config-panel,
     #builder-screen #builder-workout-tabs,
-    #builder-screen .builder-slots-column {
+    #builder-screen .builder-workspace {
       width: 100%;
       min-width: 0;
-      border-radius: 22px;
-      border: 1px solid var(--bld-line);
-      background:
-        radial-gradient(420px 150px at 12% 0%, rgba(240, 120, 31, 0.05), transparent 70%),
-        linear-gradient(180deg, rgba(18, 20, 27, 0.78), rgba(11, 12, 17, 0.66));
-      box-shadow: 0 18px 50px -42px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(22px) saturate(150%);
-      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      border-radius: 0.75rem;
+      border: 1px solid var(--glass-border);
+      background: rgba(40, 40, 55, 0.7);
+      box-shadow: none;
+      backdrop-filter: blur(20px) saturate(130%);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
     }
     #builder-screen .builder-config-panel,
     #builder-screen #builder-workout-tabs {
       flex: 0 0 auto;
-      padding: 12px;
+      padding: 0.5rem;
     }
     #builder-screen .builder-config-summary {
       display: none;
@@ -309,10 +293,10 @@
       min-width: 0;
       min-height: 92px;
       padding: 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(238, 242, 255, 0.065);
-      background: rgba(255, 255, 255, 0.026);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.028);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(205, 214, 244, 0.08);
+      background: rgba(30, 30, 46, 0.42);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -342,9 +326,9 @@
       width: 100%;
       min-width: 0;
       height: 46px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.032);
-      border: 1px solid rgba(238, 242, 255, 0.065);
+      border-radius: 0.5rem;
+      background: var(--surface-1);
+      border: 0;
     }
     #builder-screen .builder-name-input,
     #builder-screen .builder-workout-meta-title,
@@ -392,26 +376,32 @@
       width: 100%;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 4px;
-      padding: 3px;
-      border-radius: 13px;
-      border: 1px solid rgba(238, 242, 255, 0.07);
-      background: rgba(0, 0, 0, 0.16);
+      gap: 0.25rem;
+      padding: 0;
+      border-radius: 0.5rem;
+      border: 0;
+      background: transparent;
     }
     #builder-screen .builder-weeks-seg-btn {
       min-width: 0;
       height: 34px;
-      border-radius: 10px;
-      color: var(--bld-muted);
-      background: transparent;
+      border-radius: 0.5rem;
+      color: var(--subtext-1);
+      background: var(--surface-1);
       font-size: 0.78rem;
       font-weight: 740;
-      transition: background 180ms var(--bld-ease), color 180ms var(--bld-ease), transform 180ms var(--bld-spring);
+      box-shadow: none;
+      transition: transform 300ms ease, background 300ms ease, color 300ms ease, box-shadow 300ms ease;
     }
-    #builder-screen .builder-weeks-seg-btn:hover,
+    #builder-screen .builder-weeks-seg-btn:hover {
+      transform: translateY(-1px);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
+    }
     #builder-screen .builder-weeks-seg-btn.is-active {
       color: #fff;
-      background: rgba(240, 120, 31, 0.18);
+      background: var(--primary-color);
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.75);
     }
     #builder-screen .builder-weeks-seg-btn:active {
       transform: scale(0.97);
@@ -434,25 +424,26 @@
       min-width: 0;
       height: 42px;
       padding: 4px 2px;
-      border-radius: 12px;
+      border-radius: 0.5rem;
       display: inline-flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 3px;
       color: var(--bld-muted);
-      background: rgba(255, 255, 255, 0.032);
-      border: 1px solid rgba(238, 242, 255, 0.07);
-      transition: transform 180ms var(--bld-spring), background 180ms var(--bld-ease), border-color 180ms var(--bld-ease), color 180ms var(--bld-ease);
+      background: var(--surface-1);
+      border: 0;
+      transition: transform 300ms ease, background 300ms ease, color 300ms ease, box-shadow 300ms ease;
     }
     #builder-screen .schedule-pill:hover {
       transform: translateY(-1px);
-      border-color: rgba(240, 120, 31, 0.25);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
     }
     #builder-screen .schedule-pill[data-state="active"] {
-      color: rgba(255, 218, 188, 0.96);
-      background: rgba(240, 120, 31, 0.12);
-      border-color: rgba(240, 120, 31, 0.28);
+      color: #fff;
+      background: var(--primary-color);
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.75);
     }
     #builder-screen .schedule-pill[data-state="off"] {
       opacity: 0.56;
@@ -522,7 +513,7 @@
       min-width: 0;
       min-height: 42px;
       margin: 0;
-      padding: 2px 2px 8px;
+      padding: 0;
       overflow-x: auto;
       overflow-y: hidden;
       scrollbar-width: none;
@@ -541,23 +532,22 @@
       max-width: min(220px, 72vw);
       height: 38px;
       padding: 6px 12px 6px 7px;
-      border-radius: 12px;
-      color: var(--bld-muted);
-      background: rgba(255, 255, 255, 0.034);
-      border: 1px solid rgba(238, 242, 255, 0.07);
-      transition: transform 220ms var(--bld-spring), background 180ms var(--bld-ease), border-color 180ms var(--bld-ease), color 180ms var(--bld-ease), box-shadow 180ms var(--bld-ease);
+      border-radius: 0.5rem;
+      color: var(--subtext-1);
+      background: var(--surface-1);
+      border: 0;
+      box-shadow: none;
+      transition: transform 300ms ease, background 300ms ease, color 300ms ease, box-shadow 300ms ease;
     }
     #builder-screen .builder-tab:hover {
       transform: translateY(-1px);
-      color: var(--bld-text);
-      background: rgba(255, 255, 255, 0.07);
-      border-color: var(--bld-line-strong);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
     }
     #builder-screen .builder-tab.is-active {
-      color: rgba(255, 238, 222, 0.99);
-      background: rgba(240, 120, 31, 0.15);
-      border-color: rgba(240, 120, 31, 0.36);
-      box-shadow: inset 0 0 24px rgba(240, 120, 31, 0.07), 0 12px 28px -18px rgba(240, 120, 31, 0.68);
+      color: #fff;
+      background: var(--primary-color);
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.75);
     }
     #builder-screen .builder-tab-letter {
       flex: 0 0 22px;
@@ -568,12 +558,12 @@
       justify-content: center;
       border-radius: 7px;
       color: var(--bld-text);
-      background: rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.14);
       font-size: 0.66rem;
       font-weight: 820;
     }
     #builder-screen .builder-tab.is-active .builder-tab-letter {
-      background: var(--bld-accent);
+      background: rgba(255, 255, 255, 0.18);
       color: #fff;
     }
     #builder-screen .builder-tab-name {
@@ -610,12 +600,24 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 14px;
       min-width: 0;
+      padding: 0.5rem;
+    }
+    #builder-screen[data-picker-open="true"] .builder-workspace {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
     #builder-screen .builder-slots-column {
+      width: 100%;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 14px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
     #builder-screen .builder-workout-meta {
       display: flex;
@@ -1035,21 +1037,20 @@
     #builder-screen .builder-picker-panel {
       position: fixed;
       inset: 0;
-      z-index: 170;
+      z-index: 220;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: clamp(16px, 3vw, 34px);
-      background:
-        radial-gradient(circle at 50% 18%, rgba(240, 120, 31, 0.12), transparent 34%),
-        rgba(3, 4, 8, 0.72);
+      background: rgba(0, 0, 0, 0.45);
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
       overflow: hidden;
       isolation: isolate;
-      backdrop-filter: blur(20px) saturate(142%);
-      -webkit-backdrop-filter: blur(20px) saturate(142%);
+      overscroll-behavior: contain;
+      backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       transition: opacity 240ms var(--bld-ease), visibility 0s linear 0s;
     }
     #builder-screen .builder-workspace[data-picker-open="false"] > .builder-picker-panel {
@@ -1070,14 +1071,15 @@
       flex-direction: column;
       gap: 12px;
       padding: clamp(14px, 2vw, 20px);
-      border-radius: 22px;
-      border: 1px solid rgba(238, 242, 255, 0.1);
-      background:
-        radial-gradient(720px 260px at 16% 0%, rgba(240, 120, 31, 0.09), transparent 68%),
-        linear-gradient(180deg, rgba(20, 22, 29, 0.94), rgba(8, 9, 14, 0.92));
-      box-shadow: 0 34px 96px -30px rgba(0, 0, 0, 0.92), 0 0 0 1px rgba(240, 120, 31, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.055);
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      background: rgba(40, 40, 55, 0.7);
+      box-shadow: none;
+      backdrop-filter: blur(20px) saturate(130%);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
       overflow-x: hidden;
       overflow-y: auto;
+      overscroll-behavior: contain;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
       position: relative;
@@ -1097,15 +1099,40 @@
       border-radius: 999px;
     }
     #builder-screen .builder-picker-close {
-      flex: 0 0 42px;
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
+      flex: 0 0 46px;
+      width: 46px;
+      height: 46px;
+      border-radius: 9999px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(25, 25, 25, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;
+      backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+      -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+      transition: transform 300ms ease, background 300ms ease, border-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+    }
+    #builder-screen .builder-picker-close:hover {
+      transform: translateY(-1px) rotate(90deg);
+      color: #fff;
+      background: rgba(25, 25, 25, 0.68);
+      border-color: rgba(255, 255, 255, 0.26);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.48), 0 0 2px rgba(255, 255, 255, 0.34) inset;
+    }
+    #builder-screen .builder-picker-close:active {
+      transform: scale(0.94) rotate(90deg);
+    }
+    #builder-screen .builder-picker-close:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.18);
+      outline-offset: 3px;
+    }
+    #builder-screen .builder-picker-close i {
+      font-size: 16px;
+      line-height: 1;
     }
     #builder-screen .builder-picker-header {
       flex: 0 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 42px;
+      grid-template-columns: minmax(0, 1fr) 46px;
       align-items: center;
       gap: 10px;
       position: sticky;
@@ -1121,36 +1148,47 @@
       flex: 1 1 auto;
       min-width: 0;
       position: relative;
-      min-height: 42px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.055);
-      border: 1px solid rgba(238, 242, 255, 0.09);
-      transition: transform 220ms var(--bld-spring), background 180ms var(--bld-ease), border-color 180ms var(--bld-ease), box-shadow 180ms var(--bld-ease);
+      display: flex;
+      align-items: center;
+      height: 46px;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      background: rgba(25, 25, 25, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;
+      backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+      -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+      transition: background 250ms ease, border-color 250ms ease, box-shadow 250ms ease, filter 250ms ease;
     }
     #builder-screen .ex-picker-search-wrapper:focus-within {
-      transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.075);
-      border-color: rgba(240, 120, 31, 0.42);
-      box-shadow: 0 0 0 4px rgba(240, 120, 31, 0.075);
+      background: rgba(25, 25, 25, 0.68);
+      border-color: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.46), 0 0 2px rgba(255, 255, 255, 0.32) inset, 0 0 0 3px rgba(255, 255, 255, 0.08);
     }
     #builder-screen .ex-picker-search-wrapper > i {
       position: absolute;
-      left: 14px;
+      left: 18px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--bld-faint);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 16px;
       pointer-events: none;
     }
     #builder-screen .ex-picker-search {
       width: 100%;
-      height: 42px;
-      padding: 0 14px 0 40px;
+      height: 26px;
+      padding: 0 0 0 30px;
       border: 0;
       outline: 0;
       background: transparent;
-      color: var(--bld-text);
-      font-size: 0.82rem;
-      font-weight: 600;
+      color: #fff;
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+    #builder-screen .ex-picker-search::placeholder {
+      color: rgba(255, 255, 255, 0.35);
     }
     #builder-screen .picker-context-section {
       flex: 0 0 auto;
@@ -1481,13 +1519,13 @@
       }
       #builder-screen .builder-config-panel,
       #builder-screen #builder-workout-tabs,
-      #builder-screen .builder-slots-column {
-        border-radius: 20px;
+      #builder-screen .builder-workspace {
+        border-radius: 0.75rem;
       }
       #builder-screen .builder-config-panel,
       #builder-screen #builder-workout-tabs,
-      #builder-screen .builder-slots-column {
-        padding: 10px;
+      #builder-screen .builder-workspace {
+        padding: 0.5rem;
       }
       #builder-screen .builder-config-details {
         display: flex;
@@ -1530,16 +1568,17 @@
       }
       #builder-screen .builder-picker-panel {
         padding: 10px;
-        align-items: stretch;
+        align-items: center;
+        justify-content: center;
       }
       #builder-screen .builder-picker-dialog {
-        width: calc(100vw - 20px);
+        width: min(420px, calc(100vw - 20px));
         max-width: calc(100vw - 20px);
         min-width: 0;
-        min-height: calc(100vh - 20px);
-        min-height: calc(100dvh - 20px);
-        max-height: calc(100vh - 20px);
-        max-height: calc(100dvh - 20px);
+        min-height: min(610px, 86vh);
+        min-height: min(610px, 86dvh);
+        max-height: min(86vh, 780px);
+        max-height: min(86dvh, 780px);
         border-radius: 18px;
         padding: 12px;
       }
@@ -1563,8 +1602,11 @@
       #builder-screen .builder-schedule-card,
       #builder-screen .builder-config-panel,
       #builder-screen #builder-workout-tabs,
-      #builder-screen .builder-slots-column {
+      #builder-screen .builder-workspace {
         padding: 8px;
+      }
+      #builder-screen .builder-slots-column {
+        padding: 0;
       }
       #builder-screen .builder-slot-body-inner {
         grid-template-columns: 1fr;
