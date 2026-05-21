@@ -1192,9 +1192,14 @@
     }
     #builder-screen .picker-context-section {
       flex: 0 0 auto;
-      padding: 8px 2px;
-      border-bottom: 1px solid var(--bld-line);
       min-width: 0;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--glass-border);
+      background: rgba(40, 40, 55, 0.7);
+      box-shadow: none;
+      backdrop-filter: blur(20px) saturate(130%);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
     }
     #builder-screen .picker-section-header,
     #builder-screen .ex-picker-section-title {
@@ -1207,6 +1212,7 @@
       font-weight: 760;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      padding: 0 2px;
     }
     #builder-screen .picker-section-header .section-icon,
     #builder-screen .ex-picker-section-title > i {
@@ -1221,11 +1227,27 @@
       letter-spacing: 0;
       text-transform: none;
     }
+    #builder-screen .section-action {
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 0.5rem;
+      color: var(--subtext-1);
+      background: transparent;
+      transition: transform 300ms ease, background 300ms ease, color 300ms ease, box-shadow 300ms ease;
+    }
+    #builder-screen .section-action:hover {
+      transform: translateY(-1px);
+      color: #fff;
+      background: var(--surface-1);
+    }
+    #builder-screen .section-action:active {
+      transform: scale(0.97);
+    }
     #builder-screen .picker-chips-row,
     #builder-screen .ex-picker-filters {
       display: flex;
       flex-wrap: nowrap;
-      gap: 5px;
+      gap: 0.25rem;
       min-width: 0;
       width: 100%;
       overflow-x: auto;
@@ -1247,27 +1269,39 @@
       min-height: 28px;
       max-width: 160px;
       padding: 0 9px;
-      border-radius: 9px;
-      color: var(--bld-muted);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--bld-line);
+      border-radius: 0.5rem;
+      color: var(--subtext-1);
+      background: var(--surface-1);
+      border: 1px solid transparent;
+      box-shadow: none;
       font-size: 0.66rem;
       font-weight: 620;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: transform 300ms ease, background 300ms ease, border-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
     }
     #builder-screen .picker-chip:hover,
-    #builder-screen .ex-picker-filter-chip:hover,
+    #builder-screen .ex-picker-filter-chip:hover {
+      transform: translateY(-1px);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
+      border-color: transparent;
+    }
     #builder-screen .ex-picker-filter-chip.is-active {
-      color: rgba(255, 218, 188, 0.96);
-      background: rgba(240, 120, 31, 0.1);
-      border-color: rgba(240, 120, 31, 0.28);
+      color: #fff;
+      background: var(--primary-color);
+      border-color: transparent;
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.75);
+    }
+    #builder-screen .picker-chip:active,
+    #builder-screen .ex-picker-filter-chip:active {
+      transform: scale(0.97);
     }
     #builder-screen .picker-chip .chip-thumb {
       width: 20px;
       height: 20px;
-      border-radius: 5px;
+      border-radius: 0.375rem;
       object-fit: cover;
       flex: 0 0 auto;
     }
@@ -1285,10 +1319,10 @@
     }
     #builder-screen .picker-suggestions {
       display: flex;
-      gap: 7px;
+      gap: 0.5rem;
       overflow-x: auto;
       overflow-y: hidden;
-      padding: 3px 0 4px;
+      padding: 2px 0 3px;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
     }
@@ -1298,23 +1332,26 @@
       flex-direction: column;
       gap: 5px;
       padding: 7px;
-      border-radius: 11px;
+      border-radius: 0.75rem;
       color: var(--bld-text);
-      background: rgba(255, 255, 255, 0.028);
-      border: 1px solid var(--bld-line);
+      background: var(--surface-1);
+      border: 1px solid rgba(205, 214, 244, 0.08);
+      box-shadow: none;
       text-align: left;
-      transition: transform 220ms var(--bld-spring), background 180ms var(--bld-ease), border-color 180ms var(--bld-ease);
+      transition: transform 300ms ease, background 300ms ease, border-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
     }
     #builder-screen .picker-suggestion-card:hover {
-      transform: translateY(-2px);
-      background: rgba(240, 120, 31, 0.08);
-      border-color: rgba(240, 120, 31, 0.28);
+      transform: translateY(-1px);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
+      border-color: rgba(205, 214, 244, 0.12);
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.42);
     }
     #builder-screen .suggestion-thumb {
       width: 100%;
       aspect-ratio: 1.15;
       object-fit: cover;
-      border-radius: 8px;
+      border-radius: 0.5rem;
       background: rgba(255, 255, 255, 0.04);
     }
     #builder-screen .suggestion-name {
@@ -1337,6 +1374,13 @@
     #builder-screen .ex-picker-filters-wrap {
       min-width: 0;
       width: 100%;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--glass-border);
+      background: rgba(40, 40, 55, 0.7);
+      box-shadow: none;
+      backdrop-filter: blur(20px) saturate(130%);
+      -webkit-backdrop-filter: blur(20px) saturate(130%);
     }
     #builder-screen .ex-picker-section-title {
       flex: 0 0 auto;
@@ -1365,21 +1409,27 @@
       align-items: center;
       gap: 4px 10px;
       padding: 8px;
-      border-radius: 12px;
+      border-radius: 0.75rem;
       color: var(--bld-text);
-      background: rgba(255, 255, 255, 0.028);
-      border: 1px solid rgba(238, 242, 255, 0.07);
-      transition: transform 220ms var(--bld-spring), background 180ms var(--bld-ease), border-color 180ms var(--bld-ease), box-shadow 180ms var(--bld-ease);
+      background: var(--surface-1);
+      border: 1px solid rgba(205, 214, 244, 0.08);
+      box-shadow: none;
+      transition: transform 300ms ease, background 300ms ease, border-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
       cursor: pointer;
     }
     #builder-screen .ex-picker-item:hover,
     #builder-screen .ex-picker-item:focus-visible,
     #builder-screen .ex-picker-custom-card:hover {
       transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(240, 120, 31, 0.26);
-      box-shadow: 0 14px 28px -22px rgba(240, 120, 31, 0.55);
+      color: #fff;
+      background: rgba(82, 82, 91, 0.7);
+      border-color: rgba(205, 214, 244, 0.12);
+      box-shadow: 0 10px 18px -12px rgba(255, 122, 31, 0.42);
       outline: none;
+    }
+    #builder-screen .ex-picker-item:active,
+    #builder-screen .ex-picker-custom-card:active {
+      transform: scale(0.98);
     }
     #builder-screen .ex-picker-item.is-flash {
       animation: pickerFlash 520ms var(--bld-ease);
@@ -1393,7 +1443,7 @@
       grid-row: 1 / span 2;
       width: 42px;
       height: 42px;
-      border-radius: 10px;
+      border-radius: 0.5rem;
       object-fit: cover;
       background: rgba(255, 255, 255, 0.05);
     }
@@ -1425,17 +1475,20 @@
       align-items: center;
       justify-content: center;
       color: var(--bld-muted);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid transparent;
+      background: rgba(40, 40, 55, 0.7);
+      border: 1px solid var(--glass-border);
+      box-shadow: none;
     }
     #builder-screen .ex-picker-item[data-added="true"] {
-      background: rgba(166, 227, 161, 0.045);
-      border-color: rgba(166, 227, 161, 0.18);
+      color: #fff;
+      background: rgba(46, 204, 113, 0.18);
+      border-color: rgba(166, 227, 161, 0.28);
+      box-shadow: 0 10px 18px -12px rgba(166, 227, 161, 0.5);
     }
     #builder-screen .ex-picker-item[data-added="true"] .ex-picker-item-action {
       color: var(--bld-green);
       background: rgba(166, 227, 161, 0.16);
-      border-color: rgba(166, 227, 161, 0.24);
+      border-color: rgba(166, 227, 161, 0.28);
     }
     #builder-screen .ex-picker-item-added {
       display: none;
@@ -1446,12 +1499,118 @@
     #builder-screen .ex-picker-empty {
       grid-column: 1 / -1;
       padding: 26px 14px;
-      border-radius: 12px;
+      border-radius: 0.75rem;
       color: var(--bld-muted);
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px dashed var(--bld-line);
+      background: var(--surface-1);
+      border: 1px dashed rgba(205, 214, 244, 0.14);
       font-size: 0.78rem;
       text-align: center;
+    }
+
+    .builder-slot-drag-preview {
+      --bld-preview-text: rgba(248, 250, 255, 0.94);
+      --bld-preview-muted: rgba(196, 205, 220, 0.62);
+      --bld-preview-faint: rgba(196, 205, 220, 0.42);
+      box-sizing: border-box;
+      min-width: 0;
+      max-width: calc(100vw - 24px);
+      height: auto !important;
+      max-height: 58px;
+      border-radius: 13px;
+      border: 1px solid rgba(240, 120, 31, 0.26);
+      background: rgba(24, 25, 34, 0.94);
+      box-shadow: 0 24px 70px -28px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(240, 120, 31, 0.18);
+      color: var(--bld-preview-text);
+      list-style: none;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 10000;
+    }
+    .builder-slot-drag-preview,
+    .builder-slot-drag-preview * {
+      box-sizing: border-box;
+    }
+    .builder-slot-drag-preview .builder-slot-header {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: 24px 40px minmax(0, 1fr) auto 20px;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 9px;
+    }
+    .builder-slot-drag-preview .builder-slot-handle,
+    .builder-slot-drag-preview .builder-slot-actions button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bld-preview-faint);
+      background: transparent;
+      border: 0;
+      border-radius: 8px;
+    }
+    .builder-slot-drag-preview .builder-slot-handle {
+      width: 24px;
+      height: 34px;
+    }
+    .builder-slot-drag-preview .builder-slot-thumb,
+    .builder-slot-drag-preview .builder-slot-thumb img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .builder-slot-drag-preview .builder-slot-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .builder-slot-drag-preview .builder-slot-name {
+      margin: 0;
+      color: var(--bld-preview-text);
+      font-size: 0.84rem;
+      font-weight: 690;
+      line-height: 1.16;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .builder-slot-drag-preview .builder-slot-summary {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--bld-preview-muted);
+      font-size: 0.66rem;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .builder-slot-drag-preview .builder-slot-summary .accent {
+      color: rgba(255, 196, 150, 0.96);
+      font-weight: 760;
+    }
+    .builder-slot-drag-preview .builder-slot-summary .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--bld-preview-faint);
+      flex: 0 0 auto;
+    }
+    .builder-slot-drag-preview .builder-slot-actions button {
+      width: 30px;
+      height: 30px;
+    }
+    .builder-slot-drag-preview .builder-slot-toggle {
+      color: var(--bld-preview-faint);
+      transform: none;
+    }
+    .builder-slot-drag-preview .builder-slot-body {
+      display: none !important;
+    }
+    .builder-slot-drag-preview img {
+      display: block;
     }
 
     body.is-builder-dragging,
@@ -9006,8 +9165,17 @@
         ghostClass: "sortable-ghost",
         chosenClass: "sortable-chosen",
         dragClass: "sortable-drag",
+        fallbackClass: "builder-slot-drag-preview",
         // Reorder only — no external drops accepted.
         group: { name: "builder-slots", pull: false, put: false },
+        onClone: (evt) => {
+          const itemRect = evt.item?.getBoundingClientRect();
+          if (!evt.clone || !itemRect) return;
+          evt.clone.style.width = `${itemRect.width}px`;
+          evt.clone.style.height = `${evt.item.querySelector('.builder-slot-header')?.getBoundingClientRect().height || itemRect.height}px`;
+          evt.clone.classList.remove('is-open');
+          evt.clone.querySelector('[data-slot-toggle]')?.setAttribute('aria-expanded', 'false');
+        },
         onStart: () => { document.body.classList.add("is-builder-dragging"); },
         onEnd: (evt) => {
           document.body.classList.remove("is-builder-dragging");
