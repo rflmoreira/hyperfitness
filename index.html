@@ -9577,6 +9577,24 @@
       setPickerOpen(false);
     }
 
+    function handleBuilderPickerDialogWheel(event) {
+      if (!BUILDER_STATE.pickerOpen || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+      const panel = document.getElementById("builder-picker-panel");
+      const dialog = panel?.querySelector(".builder-picker-dialog");
+      if (!panel || !dialog || (!dialog.contains(event.target) && event.target !== panel)) return;
+
+      const maxScroll = Math.max(0, dialog.scrollHeight - dialog.clientHeight);
+      if (maxScroll <= 0) return;
+
+      const deltaMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? dialog.clientHeight : 1;
+      const nextScroll = Math.max(0, Math.min(maxScroll, dialog.scrollTop + event.deltaY * deltaMultiplier));
+
+      dialog.scrollTop = nextScroll;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     function renderPickerFilters() {
       const container = document.getElementById("exercise-picker-filters");
       if (!container) return;
@@ -9765,6 +9783,7 @@
       document.getElementById("builder-picker-panel")?.addEventListener("click", (e) => {
         if (e.target === e.currentTarget) closeExercisePickerModal();
       });
+      document.getElementById("builder-picker-panel")?.addEventListener("wheel", handleBuilderPickerDialogWheel, { capture: true, passive: false });
       document.getElementById("exercise-picker-search")?.addEventListener("input", (e) => {
         BUILDER_STATE.pickerSearch = e.target.value;
         renderPickerList();
@@ -9896,25 +9915,6 @@
           }, i * 60);
         });
       });
-
-      // Scroll lock: block panel vertical scroll when hovering picker-suggestions
-      const suggestions = document.querySelector("#builder-screen .picker-suggestions");
-      const panel = document.getElementById("builder-picker-panel");
-      if (suggestions && panel) {
-        suggestions.addEventListener("mouseenter", () => {
-          panel.style.overflowY = "hidden";
-        });
-        suggestions.addEventListener("mouseleave", () => {
-          panel.style.overflowY = "auto";
-        });
-        // Also handle wheel: convert vertical scroll to horizontal inside suggestions
-        suggestions.addEventListener("wheel", (e) => {
-          if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
-            e.preventDefault();
-            suggestions.scrollLeft += e.deltaY;
-          }
-        }, { passive: false });
-      }
 
     }
 
@@ -12223,7 +12223,7 @@
     // Função unificada para scroll horizontal via wheel
     function enableHorizontalWheelScroll(element, options = {}) {
       if (!element) return;
-      const { capture = false, parentElement = null } = options;
+      const { capture = false, parentElement = null, convertVertical = true } = options;
       const target = parentElement || element;
       const boundKey = capture ? '__horizontalWheelCaptureBound' : '__horizontalWheelBound';
       if (target[boundKey]) return;
@@ -12241,6 +12241,7 @@
         
         // Se já é scroll horizontal nativo, deixa passar
         if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        if (!convertVertical) return;
         
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         if (delta !== 0) {
@@ -12255,8 +12256,11 @@
 
     function setupHorizontalScrollForTabs() {
       enableHorizontalWheelScroll(document.getElementById('notepad-pages-list'));
-      document.querySelectorAll('#builder-screen .builder-tabs-row, #builder-screen .builder-picker-panel .ex-picker-filters').forEach((row) => {
+      document.querySelectorAll('#builder-screen .builder-tabs-row').forEach((row) => {
         enableHorizontalWheelScroll(row);
+      });
+      document.querySelectorAll('#builder-screen .builder-picker-panel .ex-picker-filters').forEach((row) => {
+        enableHorizontalWheelScroll(row, { convertVertical: false });
       });
     }
 
