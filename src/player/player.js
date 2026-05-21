@@ -2764,8 +2764,15 @@ const MUSIC_PLAYER = (() => {
         setupTracksScrollEffect();
         setTimeout(updateCarouselPositions, 100);
       });
+    } else if (isDiscover) {
+      requestAnimationFrame(() => {
+        updateDiscoverSpacerLayout?.();
+        setTimeout(() => updateDiscoverSpacerLayout?.(), 120);
+      });
     }
   }
+
+  let updateDiscoverSpacerLayout = null;
 
   // ====== Discover Banner Carousel ======
   function renderDiscoverCarousel() {
@@ -2951,14 +2958,29 @@ const MUSIC_PLAYER = (() => {
 
     goTo(0);
 
-    // Ajusta spacer dinamicamente à altura real do carrossel
+    // Ajusta o spacer ao fundo real do carrossel dentro da área scrollável.
+    // Usar apenas offsetHeight quebrava em viewports mobile, porque ignorava o
+    // deslocamento vertical criado pelo header/tabs do player.
     function updateDiscoverSpacer() {
       const spacer = document.getElementById('discover-top-spacer');
-      if (!spacer || !carouselWrapper) return;
-      const h = carouselWrapper.offsetHeight;
-      spacer.style.height = (h + 80) + 'px';
+      if (!spacer || !carouselWrapper || !discoverContainer) return;
+      const reserveGap = 30;
+      const layoutBottom = carouselWrapper.offsetTop + carouselWrapper.offsetHeight;
+      const containerRect = discoverContainer.getBoundingClientRect();
+      const wrapperRect = carouselWrapper.getBoundingClientRect();
+      const visualBottom = wrapperRect.bottom - containerRect.top;
+      const reservedHeight = Math.ceil(Math.max(layoutBottom, visualBottom) + reserveGap);
+      spacer.style.height = `${reservedHeight}px`;
     }
+
+    updateDiscoverSpacerLayout = updateDiscoverSpacer;
     updateDiscoverSpacer();
+    requestAnimationFrame(updateDiscoverSpacer);
+    setTimeout(updateDiscoverSpacer, 120);
+    setTimeout(updateDiscoverSpacer, 420);
+    track.querySelectorAll('img').forEach(img => {
+      if (!img.complete) img.addEventListener('load', updateDiscoverSpacer, { once: true });
+    });
     window.addEventListener('resize', updateDiscoverSpacer, { passive: true });
   }
 
@@ -3291,6 +3313,13 @@ const MUSIC_PLAYER = (() => {
 
     // Atualiza o mini-player (esconde quando modal abre, mostra quando fecha)
     updateMiniPlayerBar();
+
+    if (show && currentTabIndex === 0) {
+      requestAnimationFrame(() => {
+        updateDiscoverSpacerLayout?.();
+        setTimeout(() => updateDiscoverSpacerLayout?.(), 120);
+      });
+    }
   }
 
   function updatePlaylistEmptyState() {
