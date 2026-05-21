@@ -1995,6 +1995,21 @@
       overscroll-behavior: none;
     }
 
+    html.login-screen-active,
+    body.login-screen-active {
+      height: 100%;
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
+    }
+
+    body.login-screen-active {
+      position: fixed;
+      width: 100%;
+      left: 0;
+      right: 0;
+      padding-bottom: 0;
+    }
+
 
     @keyframes fadeIn {
       from {
@@ -4605,8 +4620,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
       background: var(--background-dark);
       overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
       transition: opacity 0.5s ease, visibility 0.5s ease;
     }
 
@@ -12113,8 +12133,29 @@
       const loginScreen = document.getElementById('login-screen');
       if (!loginScreen) return;
 
+      let loginScrollLocked = false;
+
+      function lockLoginScreenScroll() {
+        if (loginScrollLocked) return;
+        loginScrollLocked = true;
+        document.documentElement.classList.add('login-screen-active');
+        document.body.classList.add('login-screen-active');
+        lockBodyScroll();
+      }
+
+      function unlockLoginScreenScroll() {
+        if (!loginScrollLocked) return;
+        loginScrollLocked = false;
+        document.documentElement.classList.remove('login-screen-active');
+        document.body.classList.remove('login-screen-active');
+        unlockBodyScroll();
+      }
+
+      lockLoginScreenScroll();
+
       // Se já logou antes, pula a tela de login
       if (localStorage.getItem('hf-logged-in')) {
+        unlockLoginScreenScroll();
         loginScreen.remove();
         return;
       }
@@ -12122,7 +12163,10 @@
       function dismissLogin(method) {
         localStorage.setItem('hf-logged-in', method);
         loginScreen.classList.add('hidden');
-        setTimeout(() => loginScreen.remove(), 600);
+        setTimeout(() => {
+          loginScreen.remove();
+          unlockLoginScreenScroll();
+        }, 600);
       }
 
       document.getElementById('login-google')?.addEventListener('click', () => dismissLogin('google'));
