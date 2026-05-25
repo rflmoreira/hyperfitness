@@ -21,6 +21,9 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <!-- Lottie (Bodymovin) - Renderizador SVG, leve e estável -->
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js"></script>
+  <!-- GSAP + ScrollTrigger - animacao ambiental do fundo global -->
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
   <script src="src/player/playlists.js"></script>
   <script>
     // Configuração de ambiente (app)
@@ -2102,7 +2105,7 @@
       font-family: "Poppins", sans-serif;
       margin: 0;
       padding: 0 0 120px 0;
-      background-color: var(--background-dark);
+      background-color: transparent;
       color: var(--text);
       user-select: none;
       -webkit-user-select: none;
@@ -2112,6 +2115,7 @@
       width: 100%;
       max-width: 100%;
       position: relative;
+      isolation: isolate;
     }
 
 
@@ -3272,6 +3276,311 @@
       overflow-x: hidden
     }
 
+    #page-background {
+      --energy-orange: 255, 122, 31;
+      --energy-amber: 249, 192, 108;
+      --energy-steel: 137, 180, 250;
+      --energy-violet: 180, 166, 247;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      contain: paint;
+      background:
+        radial-gradient(92% 35% at 50% 3%, rgba(255, 122, 31, 0.05), transparent 66%),
+        linear-gradient(180deg, rgba(8, 8, 14, 0.22), transparent 18%, transparent 80%, rgba(8, 8, 14, 0.2));
+    }
+
+    #page-background::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(74% 38% at 100% 20%, rgba(255, 122, 31, 0.045), transparent 68%),
+        radial-gradient(68% 34% at 0% 65%, rgba(137, 180, 250, 0.036), transparent 72%),
+        linear-gradient(90deg, rgba(7, 8, 13, 0.2), transparent 18%, transparent 82%, rgba(7, 8, 13, 0.22));
+    }
+
+    #page-background::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.22;
+      background: repeating-linear-gradient(116deg, transparent 0 92px, rgba(255, 255, 255, 0.025) 93px, transparent 94px);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 12%, rgba(0, 0, 0, 0.55) 48%, transparent 77%);
+      mask-image: radial-gradient(ellipse at center, black 12%, rgba(0, 0, 0, 0.55) 48%, transparent 77%);
+    }
+
+    #page-background .animated-shapes,
+    #page-background .energy-atmosphere,
+    #page-background .energy-geometry {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #page-background [data-scroll-layer] {
+      transform: translate3d(0, 0, 0);
+      will-change: transform, opacity;
+    }
+
+    #page-background .energy-halo {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+    }
+
+    #page-background .energy-halo--ignition {
+      top: clamp(-11rem, -14vh, -5rem);
+      right: clamp(-19rem, -17vw, -7rem);
+      width: clamp(28rem, 67vw, 58rem);
+      aspect-ratio: 1;
+      background: radial-gradient(ellipse, rgba(var(--energy-orange), 0.19) 0%, rgba(var(--energy-orange), 0.075) 28%, rgba(var(--energy-orange), 0.018) 47%, transparent 70%);
+      opacity: 0.48;
+    }
+
+    #page-background .energy-halo--recovery {
+      bottom: clamp(-14rem, -18vh, -6rem);
+      left: clamp(-19rem, -18vw, -8rem);
+      width: clamp(28rem, 62vw, 54rem);
+      aspect-ratio: 1;
+      background: radial-gradient(ellipse, rgba(var(--energy-steel), 0.13) 0%, rgba(var(--energy-steel), 0.045) 32%, transparent 69%);
+      opacity: 0.46;
+    }
+
+    #page-background .energy-halo--axis {
+      top: 27%;
+      left: 29%;
+      width: clamp(18rem, 38vw, 34rem);
+      height: clamp(25rem, 56vw, 46rem);
+      background: radial-gradient(ellipse, rgba(var(--energy-amber), 0.055), rgba(var(--energy-violet), 0.025) 32%, transparent 68%);
+      opacity: 0.58;
+    }
+
+    #page-background .energy-field {
+      position: absolute;
+      top: -1%;
+      left: -7%;
+      width: 114%;
+      height: 104%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    #page-background .energy-stream {
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    #page-background .energy-stream path,
+    #page-background path.energy-stream {
+      vector-effect: non-scaling-stroke;
+    }
+
+    #page-background .energy-stream--ambient {
+      opacity: 0.52;
+      stroke-width: 1;
+      stroke-dasharray: 2 15;
+    }
+
+    #page-background .energy-stream--rails {
+      opacity: 0.4;
+      stroke-width: 1.1;
+    }
+
+    #page-background .energy-stream--glow {
+      opacity: 0.42;
+      stroke-width: 8;
+      filter: url(#main-energy-glow);
+    }
+
+    #page-background .energy-stream--signal {
+      opacity: 0.76;
+      stroke-width: 1.55;
+    }
+
+    #page-background .energy-stream--pulse {
+      opacity: 0.54;
+      stroke-width: 2.2;
+      stroke-dasharray: 86 410;
+      stroke-dashoffset: 160;
+    }
+
+    #page-background .energy-orbit {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      opacity: 0.3;
+    }
+
+    #page-background .energy-orbit--primary {
+      top: clamp(2rem, 14vh, 8rem);
+      right: clamp(-7rem, -5vw, -1.5rem);
+      width: clamp(16rem, 29vw, 25rem);
+      height: clamp(25rem, 42vw, 37rem);
+      border: 1px solid rgba(var(--energy-orange), 0.18);
+      box-shadow: inset 0 0 32px rgba(var(--energy-orange), 0.028);
+      transform: rotate(-18deg);
+    }
+
+    #page-background .energy-orbit--primary::before,
+    #page-background .energy-orbit--secondary::before {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(var(--energy-amber), 0.72);
+      box-shadow: 0 0 13px rgba(var(--energy-orange), 0.54);
+    }
+
+    #page-background .energy-orbit--primary::before {
+      top: 19%;
+      left: 5%;
+    }
+
+    #page-background .energy-orbit--secondary {
+      left: clamp(-7rem, -6vw, -2rem);
+      bottom: clamp(1rem, 12vh, 7rem);
+      width: clamp(16rem, 30vw, 27rem);
+      height: clamp(24rem, 40vw, 35rem);
+      border: 1px solid rgba(var(--energy-steel), 0.13);
+      transform: rotate(19deg);
+    }
+
+    #page-background .energy-orbit--secondary::before {
+      bottom: 22%;
+      right: 7%;
+      background: rgba(var(--energy-steel), 0.62);
+      box-shadow: 0 0 13px rgba(var(--energy-steel), 0.45);
+    }
+
+    #page-background .energy-beam {
+      position: absolute;
+      display: block;
+      width: clamp(12rem, 30vw, 26rem);
+      height: 1px;
+      opacity: 0.38;
+      background: linear-gradient(90deg, transparent, rgba(var(--energy-orange), 0.52), rgba(255, 255, 255, 0.18), transparent);
+      box-shadow: 0 0 12px rgba(var(--energy-orange), 0.18);
+    }
+
+    #page-background .energy-beam--upper {
+      top: clamp(7rem, 24vh, 14rem);
+      left: clamp(-6rem, -3vw, 0rem);
+      transform: rotate(-23deg);
+    }
+
+    #page-background .energy-beam--lower {
+      bottom: clamp(6rem, 17vh, 12rem);
+      right: clamp(-7rem, -3vw, 0rem);
+      transform: rotate(-21deg);
+      background: linear-gradient(90deg, transparent, rgba(var(--energy-steel), 0.32), rgba(var(--energy-orange), 0.44), transparent);
+    }
+
+    #page-background .energy-sweep {
+      position: absolute;
+      top: 15%;
+      right: -18%;
+      width: 90%;
+      height: clamp(5rem, 10vw, 8rem);
+      opacity: 0.18;
+      background: linear-gradient(90deg, transparent 0%, rgba(var(--energy-orange), 0.09) 33%, rgba(255, 255, 255, 0.035) 50%, transparent 76%);
+      clip-path: polygon(2% 100%, 100% 0, 92% 0, 0 79%);
+      filter: blur(3px);
+    }
+
+    [data-theme="claro"] #page-background {
+      background:
+        radial-gradient(92% 35% at 50% 3%, rgba(255, 122, 31, 0.038), transparent 66%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%, transparent 82%, rgba(80, 78, 100, 0.04));
+    }
+
+    [data-theme="claro"] #page-background .energy-halo,
+    [data-theme="claro"] #page-background .energy-field,
+    [data-theme="claro"] #page-background .energy-geometry {
+      opacity: 0.64;
+    }
+
+    @media (max-width: 767px) {
+      #page-background {
+        background:
+          radial-gradient(110% 27% at 82% 5%, rgba(255, 122, 31, 0.07), transparent 67%),
+          linear-gradient(180deg, rgba(8, 8, 14, 0.12), transparent 24%);
+      }
+
+      #page-background::after,
+      #page-background .energy-halo--axis,
+      #page-background .energy-orbit--secondary,
+      #page-background .energy-beam--lower {
+        display: none;
+      }
+
+      #page-background .energy-halo--ignition {
+        top: -7rem;
+        right: -13rem;
+        width: clamp(25rem, 122vw, 32rem);
+      }
+
+      #page-background .energy-halo--recovery {
+        left: -14rem;
+        width: clamp(25rem, 125vw, 32rem);
+      }
+
+      #page-background .energy-field {
+        left: -36%;
+        width: 172%;
+        opacity: 0.67;
+      }
+
+      #page-background .energy-stream--ambient path:nth-child(2),
+      #page-background .energy-stream--glow,
+      #page-background .energy-stream--pulse {
+        display: none;
+      }
+
+      #page-background .energy-stream--rails {
+        opacity: 0.3;
+      }
+
+      #page-background .energy-orbit--primary {
+        top: clamp(12rem, 18%, 18rem);
+        right: -10rem;
+        width: 17rem;
+        height: 27rem;
+        opacity: 0.22;
+      }
+
+      #page-background .energy-beam--upper {
+        left: -8rem;
+        width: 18rem;
+        opacity: 0.24;
+      }
+
+      #page-background .energy-sweep {
+        top: 12%;
+        right: -44%;
+        width: 130%;
+        opacity: 0.1;
+        filter: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #page-background [data-scroll-layer] {
+        will-change: auto;
+      }
+
+      #page-background .energy-stream--pulse {
+        display: none;
+      }
+    }
+
     #footer-container {
       max-width: 100%;
       position: fixed;
@@ -3297,6 +3606,19 @@
     #top-bar {
       position: fixed;
       overflow: visible;
+    }
+
+    #top-bar-logo {
+      width: auto;
+      height: 4.625rem;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+
+    @media (min-width: 640px) {
+      #top-bar-logo {
+        height: 4.75rem;
+      }
     }
 
     #top-bar::before {
@@ -5482,6 +5804,60 @@
 </head>
 
 <body>
+  <div id="page-background" class="background-layer" data-scroll-background aria-hidden="true">
+    <div class="animated-shapes">
+      <div class="energy-atmosphere">
+        <span class="energy-halo energy-halo--ignition" data-scroll-layer="halo-ignition"></span>
+        <span class="energy-halo energy-halo--recovery" data-scroll-layer="halo-recovery"></span>
+        <span class="energy-halo energy-halo--axis" data-scroll-layer="halo-axis"></span>
+      </div>
+
+      <svg class="energy-field" viewBox="0 0 1200 1800" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="main-energy-warm" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff7a1f" stop-opacity="0" />
+            <stop offset="35%" stop-color="#ff7a1f" stop-opacity="0.5" />
+            <stop offset="63%" stop-color="#f9c06c" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="main-energy-cool" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#89b4fa" stop-opacity="0" />
+            <stop offset="44%" stop-color="#89b4fa" stop-opacity="0.32" />
+            <stop offset="77%" stop-color="#ff7a1f" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
+          </linearGradient>
+          <filter id="main-energy-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" />
+          </filter>
+        </defs>
+        <g class="energy-stream energy-stream--ambient" data-scroll-layer="lines-ambient" stroke="url(#main-energy-cool)">
+          <path d="M -120 246 C 180 108, 236 434, 488 422 S 886 252, 1324 566" />
+          <path d="M -132 1260 C 246 1096, 324 1418, 646 1334 S 1004 1050, 1320 1218" />
+        </g>
+        <g class="energy-stream energy-stream--rails" data-scroll-layer="lines-rails" stroke="url(#main-energy-warm)">
+          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
+          <path d="M -42 516 C 234 604, 136 858, 402 928 S 742 1048, 648 1318 S 242 1540, -58 1692" />
+        </g>
+        <g class="energy-stream energy-stream--glow" data-scroll-layer="lines-glow" stroke="url(#main-energy-warm)">
+          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
+        </g>
+        <g class="energy-stream energy-stream--signal" data-scroll-layer="lines-signal" stroke="url(#main-energy-warm)">
+          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
+        </g>
+        <path class="energy-stream energy-stream--pulse" data-scroll-layer="line-pulse"
+          stroke="#ffb56b"
+          d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
+      </svg>
+
+      <div class="energy-geometry">
+        <span class="energy-orbit energy-orbit--primary" data-scroll-layer="orbit-primary"></span>
+        <span class="energy-orbit energy-orbit--secondary" data-scroll-layer="orbit-secondary"></span>
+        <span class="energy-beam energy-beam--upper" data-scroll-layer="beam-upper"></span>
+        <span class="energy-beam energy-beam--lower" data-scroll-layer="beam-lower"></span>
+      </div>
+      <span class="energy-sweep" data-scroll-layer="sweep"></span>
+    </div>
+  </div>
 
   <!-- Login Screen -->
   <div id="login-screen">
@@ -5520,7 +5896,7 @@
   <div id="top-bar" class="fixed top-0 left-0 right-0 z-[31] hidden transition-all duration-300" style="padding-bottom: 12px;">
     <div class="container mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
       <div class="w-10"></div>
-      <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="h-[4.5rem] w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));" />
+      <img id="top-bar-logo" src="src/imagens/HyperFitness.png" alt="HyperFitness Logo" class="w-auto opacity-0 transition-opacity duration-300" style="filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));" />
       <button id="user-avatar-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
         style="background: rgba(25, 25, 25, 0.55); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 255, 255, 0.18);"
         aria-label="Menu do usuário">
@@ -6505,6 +6881,176 @@
     let confettiInstance;
     let scrollObserver;
 
+    // ===== Background ambiental com GSAP ScrollTrigger =====
+    const gsapScrollController = {
+      media: null,
+      timelines: [],
+      resizeObserver: null,
+      refreshFrame: null,
+      root: null,
+
+      init(layer) {
+        this.destroy();
+
+        if (!layer || typeof window.gsap === 'undefined' || typeof window.ScrollTrigger === 'undefined') {
+          return;
+        }
+
+        window.gsap.registerPlugin(window.ScrollTrigger);
+        this.root = layer;
+
+        const elements = layer.querySelectorAll('[data-scroll-layer]');
+        const getLayer = (name) => layer.querySelector(`[data-scroll-layer="${name}"]`);
+        const clearScene = () => window.gsap.set(elements, {
+          clearProps: 'transform,opacity,visibility,strokeDashoffset'
+        });
+        const createTrigger = (id, scrub) => ({
+          id,
+          trigger: document.documentElement,
+          start: 0,
+          end: 'max',
+          scrub,
+          invalidateOnRefresh: true
+        });
+
+        this.media = window.gsap.matchMedia();
+        this.media.add({
+          reducedMotion: '(prefers-reduced-motion: reduce)',
+          mobile: '(max-width: 767px)'
+        }, (context) => {
+          const { reducedMotion, mobile } = context.conditions;
+
+          clearScene();
+          if (reducedMotion) {
+            return;
+          }
+
+          const atmosphere = window.gsap.timeline({
+            defaults: { ease: 'none', force3D: true },
+            scrollTrigger: createTrigger('page-background-atmosphere', mobile ? 1.7 : 2.25)
+          })
+            .fromTo(getLayer('halo-ignition'),
+              { xPercent: mobile ? 7 : 14, yPercent: -10, scale: 0.92, autoAlpha: mobile ? 0.25 : 0.32 },
+              { xPercent: mobile ? -3 : -10, yPercent: mobile ? 13 : 25, scale: mobile ? 1.03 : 1.1, autoAlpha: mobile ? 0.49 : 0.68 }, 0)
+            .fromTo(getLayer('halo-recovery'),
+              { xPercent: mobile ? -5 : -11, yPercent: mobile ? 7 : 18, scale: 1.05, autoAlpha: mobile ? 0.18 : 0.25 },
+              { xPercent: mobile ? 4 : 9, yPercent: mobile ? -8 : -18, scale: mobile ? 0.98 : 0.93, autoAlpha: mobile ? 0.34 : 0.48 }, 0)
+            .fromTo(getLayer('sweep'),
+              { xPercent: mobile ? 9 : 17, yPercent: -34, rotation: -3, autoAlpha: mobile ? 0.04 : 0.07 },
+              { xPercent: mobile ? -8 : -18, yPercent: mobile ? 44 : 62, rotation: 3, autoAlpha: mobile ? 0.11 : 0.23 }, 0);
+
+          if (!mobile) {
+            atmosphere.fromTo(getLayer('halo-axis'),
+              { xPercent: -5, yPercent: -13, scale: 0.91, autoAlpha: 0.18 },
+              { xPercent: 6, yPercent: 17, scale: 1.13, autoAlpha: 0.45 }, 0);
+          }
+
+          const geometry = window.gsap.timeline({
+            defaults: { ease: 'none', force3D: true },
+            scrollTrigger: createTrigger('page-background-geometry', mobile ? 1.48 : 1.9)
+          })
+            .fromTo(getLayer('lines-ambient'),
+              { xPercent: mobile ? -1 : -4, yPercent: mobile ? -5 : -12, autoAlpha: mobile ? 0.12 : 0.18 },
+              { xPercent: mobile ? 1 : 4, yPercent: mobile ? 7 : 17, autoAlpha: mobile ? 0.28 : 0.42 }, 0)
+            .fromTo(getLayer('lines-rails'),
+              { xPercent: mobile ? 2 : 5, yPercent: mobile ? -8 : -18, autoAlpha: mobile ? 0.17 : 0.2 },
+              { xPercent: mobile ? -2 : -6, yPercent: mobile ? 12 : 25, autoAlpha: mobile ? 0.36 : 0.5 }, 0)
+            .fromTo(getLayer('lines-signal'),
+              { xPercent: mobile ? 2 : 6, yPercent: mobile ? -9 : -21, autoAlpha: mobile ? 0.2 : 0.28 },
+              { xPercent: mobile ? -2 : -7, yPercent: mobile ? 12 : 28, autoAlpha: mobile ? 0.42 : 0.76 }, 0)
+            .fromTo(getLayer('orbit-primary'),
+              { xPercent: mobile ? 2 : 5, yPercent: -8, rotation: -24, autoAlpha: mobile ? 0.1 : 0.14 },
+              { xPercent: mobile ? -3 : -7, yPercent: mobile ? 12 : 18, rotation: mobile ? -13 : -7, autoAlpha: mobile ? 0.24 : 0.4 }, 0)
+            .fromTo(getLayer('beam-upper'),
+              { xPercent: mobile ? -5 : -12, yPercent: mobile ? -8 : -14, rotation: -23, autoAlpha: mobile ? 0.08 : 0.12 },
+              { xPercent: mobile ? 6 : 14, yPercent: mobile ? 13 : 20, rotation: -23, autoAlpha: mobile ? 0.25 : 0.44 }, 0);
+
+          if (!mobile) {
+            geometry
+              .fromTo(getLayer('lines-glow'),
+                { xPercent: 6, yPercent: -21, autoAlpha: 0.12 },
+                { xPercent: -7, yPercent: 28, autoAlpha: 0.34 }, 0)
+              .fromTo(getLayer('line-pulse'),
+                { xPercent: 6, yPercent: -21, strokeDashoffset: 320, autoAlpha: 0.14 },
+                { xPercent: -7, yPercent: 28, strokeDashoffset: -420, autoAlpha: 0.62 }, 0)
+              .fromTo(getLayer('orbit-secondary'),
+                { xPercent: -5, yPercent: 14, rotation: 27, autoAlpha: 0.08 },
+                { xPercent: 7, yPercent: -18, rotation: 10, autoAlpha: 0.3 }, 0)
+              .fromTo(getLayer('beam-lower'),
+                { xPercent: 14, yPercent: 17, rotation: -21, autoAlpha: 0.09 },
+                { xPercent: -16, yPercent: -21, rotation: -21, autoAlpha: 0.38 }, 0);
+          }
+
+          const timelines = [atmosphere, geometry];
+          this.timelines.push(...timelines);
+
+          return () => {
+            timelines.forEach((timeline) => {
+              timeline.scrollTrigger?.kill();
+              timeline.kill();
+            });
+            this.timelines = this.timelines.filter((timeline) => !timelines.includes(timeline));
+            clearScene();
+          };
+        });
+
+        if (typeof window.ResizeObserver === 'function') {
+          this.resizeObserver = new ResizeObserver(() => this.refresh());
+          this.resizeObserver.observe(document.documentElement);
+          this.resizeObserver.observe(document.body);
+        }
+
+        this.refresh();
+      },
+
+      refresh() {
+        if (!this.media || typeof window.ScrollTrigger === 'undefined') return;
+        if (this.refreshFrame !== null) return;
+
+        this.refreshFrame = window.requestAnimationFrame(() => {
+          this.refreshFrame = null;
+          if (this.media) window.ScrollTrigger.refresh();
+        });
+      },
+
+      destroy() {
+        if (this.refreshFrame !== null) {
+          window.cancelAnimationFrame(this.refreshFrame);
+          this.refreshFrame = null;
+        }
+
+        if (this.resizeObserver) {
+          this.resizeObserver.disconnect();
+          this.resizeObserver = null;
+        }
+
+        if (this.media) {
+          this.media.revert();
+          this.media = null;
+        }
+
+        this.timelines.forEach((timeline) => {
+          timeline.scrollTrigger?.kill();
+          timeline.kill();
+        });
+        this.timelines = [];
+
+        if (typeof window.ScrollTrigger !== 'undefined') {
+          window.ScrollTrigger.getById('page-background-atmosphere')?.kill();
+          window.ScrollTrigger.getById('page-background-geometry')?.kill();
+        }
+
+        this.root = null;
+      }
+    };
+
+    const handleGsapScrollPageHide = () => gsapScrollController.destroy();
+    const handleGsapScrollPageShow = (event) => {
+      if (event.persisted && appInitialized) {
+        gsapScrollController.init(DOM_ELEMENTS.pageBackground);
+      }
+    };
+
     // ===== Lottie helper (Bodymovin) =====
     const LOTTIE_PATHS = {
       trophy: 'src/lottie/trophy.json'
@@ -7382,6 +7928,7 @@
       if (workoutLetter === "OFF" || !phaseData.workouts[workoutLetter]) {
         DOM_ELEMENTS.workoutTitle.innerHTML = `<h2 class="text-2xl font-light text-slate-400">Dia de Descanso</h2>`;
         refreshCardParallax();
+        gsapScrollController.refresh();
         return;
       }
 
@@ -7414,6 +7961,7 @@
       DOM_ELEMENTS.workoutDetails.appendChild(backToTopBtn);
 
       DOM_ELEMENTS.workoutDetails.querySelectorAll('.scroll-animate').forEach(card => scrollObserver?.observe(card));
+      gsapScrollController.refresh();
     }
 
     function updateWorkoutButton(allDone) {
@@ -7629,6 +8177,7 @@
       screen.setAttribute("aria-hidden", "true");
       DOM_ELEMENTS.mainContent?.classList.remove("hidden");
       DOM_ELEMENTS.topBar?.classList.remove("hidden");
+      gsapScrollController.refresh();
       unlockBodyScroll();
       localStorage.setItem(PROGRAM_PICK_KEY, "1");
     }
@@ -9323,6 +9872,7 @@
       } else {
         DOM_ELEMENTS.mainContent?.classList.remove("hidden");
         DOM_ELEMENTS.topBar?.classList.remove("hidden");
+        gsapScrollController.refresh();
       }
     }
 
@@ -10188,6 +10738,7 @@
         } else {
           DOM_ELEMENTS.mainContent?.classList.remove("hidden");
           DOM_ELEMENTS.topBar?.classList.remove("hidden");
+          gsapScrollController.refresh();
         }
         renderAllComponents();
       } else {
@@ -10195,6 +10746,7 @@
         if (cameFromProgramScreen) unlockBodyScroll();
         DOM_ELEMENTS.mainContent?.classList.remove("hidden");
         DOM_ELEMENTS.topBar?.classList.remove("hidden");
+        gsapScrollController.refresh();
         switchProgram(program.id);
         localStorage.setItem(PROGRAM_PICK_KEY, "1");
       }
@@ -13005,6 +13557,7 @@
       appInitialized = true;
 
       Object.assign(DOM_ELEMENTS, {
+        pageBackground: document.getElementById("page-background"),
         mainContent: document.getElementById("main-content"),
         topBar: document.getElementById("top-bar"),
         programScreen: document.getElementById("program-selection-screen"),
@@ -13099,6 +13652,9 @@
       } else {
         openProgramScreen(true);
       }
+      gsapScrollController.init(DOM_ELEMENTS.pageBackground);
+      window.addEventListener('pagehide', handleGsapScrollPageHide);
+      window.addEventListener('pageshow', handleGsapScrollPageShow);
     }
 
     // Função unificada para scroll horizontal via wheel
