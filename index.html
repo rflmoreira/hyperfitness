@@ -2116,6 +2116,10 @@
       max-width: 100%;
       position: relative;
       isolation: isolate;
+      /* Altura visível do header fixo (imagem + logo) antes do conteúdo começar.
+         Usada pelo #page-background e pelo #main-content para alinhar a revelação
+         e a cobertura gradual do header durante o scroll. */
+      --hf-header-reveal: clamp(200px, 26vh, 260px);
     }
 
 
@@ -2320,6 +2324,472 @@
     .content-enter-animation {
       animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
       will-change: transform, opacity
+    }
+
+    #phase-header {
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: clamp(1.15rem, 3vw, 1.7rem) !important;
+      max-width: 1120px;
+      text-align: center !important;
+    }
+
+    .phase-header-flow {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: clamp(0.4rem, 1.05vw, 0.66rem);
+      padding-block: clamp(0.15rem, 1vw, 0.35rem);
+    }
+
+    .phase-header__topline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.48rem;
+    }
+
+    .phase-header__eyebrow {
+      min-width: 0;
+      max-width: 100%;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.46rem;
+      padding: 0.34rem 0.82rem;
+      border-radius: 999px;
+      color: rgba(255, 186, 133, 0.86);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.01)),
+        linear-gradient(90deg, rgba(255, 106, 18, 0.07), rgba(255, 122, 31, 0.04));
+      border: 1px solid rgba(255, 122, 31, 0.12);
+      font-size: clamp(0.57rem, 1.26vw, 0.64rem);
+      font-weight: 740;
+      letter-spacing: 0.205em;
+      line-height: 1.3;
+      text-align: center;
+      text-transform: uppercase;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.042),
+        inset 0 -1px 0 rgba(255, 122, 31, 0.018);
+      -webkit-backdrop-filter: blur(9px) saturate(118%);
+      backdrop-filter: blur(9px) saturate(118%);
+    }
+
+    .phase-header__eyebrow::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 0.32rem;
+      height: 0.32rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 106, 18, 0.95), rgba(255, 145, 52, 0.84));
+      opacity: 0.82;
+      box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.038);
+    }
+
+    .phase-title,
+    #phase-header h2,
+    #phase-header .phase-title {
+      display: inline-block;
+      position: relative;
+      max-width: 100%;
+      margin: 0;
+      color: #ff7a1f;
+      background: linear-gradient(105deg, #ff5f0a 0%, #ff7a1f 38%, #ff9438 72%, #f2b45b 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: clamp(1.98rem, 7vw, 3.9rem);
+      line-height: 0.94;
+      font-weight: 950;
+      letter-spacing: -0.058em;
+      text-wrap: balance;
+      text-shadow: none;
+    }
+
+    .phase-header__subtitle {
+      margin: clamp(0.28rem, 0.82vw, 0.42rem) 0 0;
+      color: rgba(205, 214, 244, 0.68);
+      font-size: clamp(0.86rem, 1.85vw, 0.98rem);
+      font-weight: 620;
+      letter-spacing: 0.015em;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .phase-activity-dashboard {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      justify-items: center;
+      align-items: start;
+      column-gap: clamp(0.5rem, 2vw, 1.1rem);
+      width: 100%;
+      max-width: 600px;
+      margin: clamp(0.02rem, 0.45vw, 0.18rem) auto 0;
+    }
+
+    .phase-activity-dashboard::before {
+      content: "";
+      position: absolute;
+      top: 0.05rem;
+      left: 50%;
+      width: clamp(8.8rem, 25vw, 12.8rem);
+      height: clamp(6.1rem, 18vw, 9rem);
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.075), rgba(255, 106, 18, 0.026) 48%, transparent 76%);
+      filter: blur(13px);
+      opacity: 0.58;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    .phase-activity-ring {
+      --ring-size: clamp(3.75rem, 9.2vw, 4.55rem);
+      --ring-offset: 25;
+      --ring-stroke: 4.05;
+      display: grid;
+      justify-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .phase-activity-ring--primary {
+      --ring-size: clamp(6.95rem, 17.6vw, 8.08rem);
+      --ring-stroke: 5.85;
+      gap: 0.48rem;
+      transform: translateY(-0.38rem);
+      z-index: 2;
+    }
+
+    .phase-activity-ring__visual {
+      position: relative;
+      width: var(--ring-size);
+      aspect-ratio: 1;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(58, 54, 65, 0.82), rgba(27, 25, 35, 0.78) 54%, rgba(14, 14, 22, 0.58) 78%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+      border: 1px solid rgba(205, 214, 244, 0.07);
+      box-shadow:
+        0 15px 34px -27px rgba(0, 0, 0, 0.88),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -18px 28px rgba(0, 0, 0, 0.12);
+      -webkit-backdrop-filter: blur(8px) saturate(125%);
+      backdrop-filter: blur(8px) saturate(125%);
+      isolation: isolate;
+    }
+
+    .phase-activity-ring__visual::before {
+      content: "";
+      position: absolute;
+      inset: 14%;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.045), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.006));
+      border: 1px solid rgba(205, 214, 244, 0.038);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .phase-activity-ring__visual::after {
+      content: "";
+      position: absolute;
+      top: 12%;
+      left: 20%;
+      right: 20%;
+      height: 24%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+      opacity: 0.46;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .phase-activity-ring--primary .phase-activity-ring__visual {
+      box-shadow:
+        0 22px 44px -30px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.065),
+        inset 0 -22px 34px rgba(0, 0, 0, 0.12);
+    }
+
+    .activity-ring {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      position: relative;
+      z-index: 2;
+    }
+
+    .activity-ring__rail,
+    .activity-ring__track,
+    .activity-ring__progress {
+      fill: none;
+      stroke-width: var(--ring-stroke);
+    }
+
+    .activity-ring__rail {
+      stroke: rgba(255, 255, 255, 0.03);
+      stroke-width: calc(var(--ring-stroke) + 2.2);
+    }
+
+    .activity-ring__track {
+      stroke: rgba(205, 214, 244, 0.088);
+    }
+
+    .activity-ring__progress {
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: var(--ring-offset);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      animation: activity-ring-draw 940ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: var(--ring-delay, 0ms);
+    }
+
+    .phase-activity-ring__center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      gap: 0.1rem;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .phase-activity-ring__value {
+      color: rgba(245, 247, 255, 0.88);
+      font-size: clamp(0.76rem, 1.9vw, 0.92rem);
+      font-weight: 780;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .phase-activity-ring--primary .phase-activity-ring__value {
+      color: rgba(255, 247, 232, 0.96);
+      font-size: clamp(1.6rem, 3.95vw, 2.06rem);
+      font-weight: 900;
+      letter-spacing: -0.055em;
+    }
+
+    .phase-activity-ring__inner-label {
+      color: rgba(255, 225, 176, 0.58);
+      font-size: clamp(0.4rem, 0.96vw, 0.48rem);
+      font-weight: 760;
+      letter-spacing: 0.26em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .phase-activity-ring__copy {
+      display: grid;
+      gap: 0.12rem;
+      min-width: 0;
+    }
+
+    .phase-activity-ring__label {
+      color: rgba(245, 247, 255, 0.72);
+      font-size: clamp(0.64rem, 1.46vw, 0.74rem);
+      font-weight: 660;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .phase-activity-ring--primary .phase-activity-ring__label {
+      color: rgba(245, 247, 255, 0.88);
+      font-weight: 780;
+      white-space: normal;
+    }
+
+    .phase-activity-ring__caption {
+      color: rgba(166, 173, 200, 0.46);
+      font-size: clamp(0.56rem, 1.28vw, 0.65rem);
+      font-weight: 520;
+      line-height: 1.25;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @keyframes activity-ring-draw {
+      from {
+        stroke-dashoffset: 100;
+      }
+
+      to {
+        stroke-dashoffset: var(--ring-offset);
+      }
+    }
+
+    @media (max-width: 640px) {
+      #phase-header {
+        margin-bottom: 1.15rem !important;
+      }
+
+      .phase-header-flow {
+        gap: 0.34rem;
+      }
+
+      .phase-activity-dashboard {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: clamp(0.3rem, 2.2vw, 0.62rem);
+        row-gap: 0;
+        max-width: 100%;
+        margin-top: clamp(0.05rem, 0.6vw, 0.18rem);
+      }
+
+      .phase-activity-ring {
+        --ring-size: clamp(3.18rem, 16.5vw, 3.7rem);
+        --ring-stroke: 3.8;
+        gap: 0.26rem;
+      }
+
+      .phase-activity-ring--primary {
+        --ring-size: clamp(6rem, 31vw, 6.95rem);
+        --ring-stroke: 5.35;
+        grid-column: auto;
+        grid-row: auto;
+        justify-self: center;
+        transform: none;
+        margin-bottom: 0;
+      }
+
+      .phase-activity-ring:nth-child(1) {
+        grid-column: auto;
+        grid-row: auto;
+        justify-self: center;
+      }
+
+      .phase-activity-ring:nth-child(3) {
+        grid-column: auto;
+        grid-row: auto;
+        justify-self: center;
+      }
+
+      .phase-activity-ring__caption {
+        white-space: normal;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      #phase-header {
+        text-align: left !important;
+      }
+
+      .phase-header-flow {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 505px);
+        grid-template-rows: auto auto;
+        align-items: center;
+        justify-items: start;
+        column-gap: clamp(2rem, 5vw, 4.75rem);
+        row-gap: clamp(0.36rem, 0.9vw, 0.62rem);
+      }
+
+      .phase-header__topline {
+        grid-column: 1;
+        grid-row: 1;
+        justify-content: flex-start;
+      }
+
+      .phase-header-flow > div:nth-child(2) {
+        grid-column: 1;
+        grid-row: 2;
+        justify-self: start;
+        max-width: 34rem;
+      }
+
+      .phase-header__subtitle {
+        text-align: left;
+      }
+
+      .phase-activity-dashboard {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+        justify-self: end;
+        margin: 0;
+      }
+    }
+
+    [data-theme="claro"] .phase-header__eyebrow,
+    [data-theme="claro"] .phase-header__subtitle {
+      color: rgba(45, 48, 66, 0.64);
+    }
+
+    [data-theme="claro"] .phase-header__eyebrow {
+      color: rgba(180, 75, 8, 0.82);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.2)),
+        linear-gradient(90deg, rgba(255, 106, 18, 0.075), rgba(255, 122, 31, 0.04));
+      border-color: rgba(255, 106, 18, 0.12);
+    }
+
+    [data-theme="claro"] .activity-ring__rail {
+      stroke: rgba(255, 255, 255, 0.48);
+    }
+
+    [data-theme="claro"] .phase-activity-dashboard::before {
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.075), rgba(255, 106, 18, 0.024) 46%, transparent 74%);
+      opacity: 0.58;
+    }
+
+    [data-theme="claro"] .activity-ring__track {
+      stroke: rgba(45, 48, 66, 0.1);
+    }
+
+    [data-theme="claro"] .phase-activity-ring__visual {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.7), rgba(245, 238, 230, 0.42) 58%, rgba(236, 228, 218, 0.18) 78%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.18));
+      border-color: rgba(45, 48, 66, 0.055);
+      box-shadow:
+        0 14px 28px -24px rgba(17, 24, 39, 0.36),
+        inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+
+    [data-theme="claro"] .phase-activity-ring__visual::after {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0));
+      opacity: 0.42;
+    }
+
+    [data-theme="claro"] .phase-activity-ring__value,
+    [data-theme="claro"] .phase-activity-ring__label {
+      color: rgba(30, 32, 46, 0.88);
+    }
+
+    [data-theme="claro"] .phase-activity-ring__inner-label {
+      color: rgba(138, 65, 12, 0.5);
+    }
+
+    [data-theme="claro"] .phase-activity-ring__caption {
+      color: rgba(74, 80, 105, 0.64);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .activity-ring__progress {
+        animation: none;
+      }
+    }
+
+    @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+      .phase-title,
+      #phase-header h2,
+      #phase-header .phase-title {
+        background: none;
+        -webkit-text-fill-color: currentColor;
+      }
     }
 
     .current-week-marker-animation {
@@ -3276,23 +3746,46 @@
       overflow-x: hidden
     }
 
+    /* Espaço no topo para revelar o header fixo (logo + imagem) atrás do
+       conteúdo. Ao rolar, o #main-content e o #page-background sobem juntos e
+       cobrem gradualmente o header. */
+    #main-content {
+      margin-top: var(--hf-header-reveal);
+      position: relative;
+      z-index: 0;
+    }
+
     #page-background {
       --energy-orange: 255, 122, 31;
-      --energy-amber: 249, 192, 108;
+      --energy-amber: 255, 145, 52;
       --energy-steel: 137, 180, 250;
       --energy-violet: 180, 166, 247;
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
+      position: absolute;
+      top: var(--hf-header-reveal);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
       z-index: -1;
       overflow: hidden;
       pointer-events: none;
-      contain: paint;
-      background:
-        linear-gradient(112deg, rgba(var(--energy-orange), 0.055), transparent 28%, rgba(var(--energy-steel), 0.035) 64%, transparent 100%),
-        linear-gradient(180deg, rgba(8, 8, 14, 0.22), transparent 18%, transparent 80%, rgba(8, 8, 14, 0.2));
+      background-color: var(--background-dark);
+      background-image:
+        linear-gradient(112deg, rgba(var(--energy-orange), 0.078), transparent 30%, rgba(var(--energy-orange), 0.035) 62%, transparent 100%),
+        linear-gradient(180deg, rgba(8, 8, 14, 0.2), transparent 18%, transparent 80%, rgba(8, 8, 14, 0.2));
+      /* Borda de transição bem definida: cantos superiores arredondados criam a
+         divisão arredondada entre o header (atrás) e o conteúdo que sobe por
+         cima. A sombra projetada para cima reforça a profundidade, destacando
+         que o #main-content está sobreposto ao header. */
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top-left-radius: clamp(20px, 4vw, 34px);
+      border-top-right-radius: clamp(20px, 4vw, 34px);
+      box-shadow: 0 -16px 38px -10px rgba(0, 0, 0, 0.55);
+    }
+
+    [data-theme="claro"] #page-background {
+      border-top-color: rgba(15, 18, 30, 0.08);
+      box-shadow: 0 -16px 36px -12px rgba(15, 18, 30, 0.28);
     }
 
     #page-background::before {
@@ -3300,7 +3793,7 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(118deg, rgba(var(--energy-orange), 0.035), transparent 30%, rgba(var(--energy-steel), 0.024) 70%, transparent 100%),
+        linear-gradient(118deg, rgba(var(--energy-orange), 0.052), transparent 32%, rgba(var(--energy-orange), 0.022) 72%, transparent 100%),
         linear-gradient(90deg, rgba(7, 8, 13, 0.2), transparent 18%, transparent 82%, rgba(7, 8, 13, 0.22));
     }
 
@@ -3348,13 +3841,13 @@
     }
 
     #page-background .energy-stream--ambient {
-      opacity: 0.52;
+      opacity: 0.58;
       stroke-width: 1;
       stroke-dasharray: 2 15;
     }
 
     #page-background .energy-stream--rails {
-      opacity: 0.4;
+      opacity: 0.48;
       stroke-width: 1.1;
     }
 
@@ -3365,7 +3858,7 @@
     }
 
     #page-background .energy-stream--signal {
-      opacity: 0.76;
+      opacity: 0.82;
       stroke-width: 1.55;
     }
 
@@ -3414,15 +3907,15 @@
       bottom: clamp(1rem, 12vh, 7rem);
       width: clamp(16rem, 30vw, 27rem);
       height: clamp(24rem, 40vw, 35rem);
-      border: 1px solid rgba(var(--energy-steel), 0.13);
+      border: 1px solid rgba(var(--energy-orange), 0.1);
       transform: rotate(19deg);
     }
 
     #page-background .energy-orbit--secondary::before {
       bottom: 22%;
       right: 7%;
-      background: rgba(var(--energy-steel), 0.62);
-      box-shadow: 0 0 13px rgba(var(--energy-steel), 0.45);
+      background: rgba(var(--energy-amber), 0.58);
+      box-shadow: 0 0 13px rgba(var(--energy-orange), 0.36);
     }
 
     #page-background .energy-beam {
@@ -3445,7 +3938,7 @@
       bottom: clamp(6rem, 17vh, 12rem);
       right: clamp(-7rem, -3vw, 0rem);
       transform: rotate(-21deg);
-      background: linear-gradient(90deg, transparent, rgba(var(--energy-steel), 0.32), rgba(var(--energy-orange), 0.44), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--energy-orange), 0.26), rgba(var(--energy-orange), 0.46), transparent);
     }
 
     #page-background .energy-sweep {
@@ -3454,15 +3947,15 @@
       right: -18%;
       width: 90%;
       height: clamp(5rem, 10vw, 8rem);
-      opacity: 0.18;
-      background: linear-gradient(90deg, transparent 0%, rgba(var(--energy-orange), 0.09) 33%, rgba(255, 255, 255, 0.035) 50%, transparent 76%);
+      opacity: 0.22;
+      background: linear-gradient(90deg, transparent 0%, rgba(var(--energy-orange), 0.12) 33%, rgba(255, 122, 31, 0.04) 50%, transparent 76%);
       clip-path: polygon(2% 100%, 100% 0, 92% 0, 0 79%);
       filter: blur(3px);
     }
 
     [data-theme="claro"] #page-background {
-      background:
-        linear-gradient(112deg, rgba(var(--energy-orange), 0.038), transparent 30%, rgba(var(--energy-steel), 0.028) 68%, transparent 100%),
+      background-image:
+        linear-gradient(112deg, rgba(var(--energy-orange), 0.05), transparent 30%, rgba(var(--energy-orange), 0.024) 68%, transparent 100%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%, transparent 82%, rgba(80, 78, 100, 0.04));
     }
 
@@ -3473,8 +3966,8 @@
 
     @media (max-width: 767px) {
       #page-background {
-        background:
-          linear-gradient(128deg, rgba(var(--energy-orange), 0.045), transparent 34%, rgba(var(--energy-steel), 0.025) 76%, transparent 100%),
+        background-image:
+          linear-gradient(128deg, rgba(var(--energy-orange), 0.058), transparent 36%, rgba(var(--energy-orange), 0.022) 76%, transparent 100%),
           linear-gradient(180deg, rgba(8, 8, 14, 0.12), transparent 24%);
       }
 
@@ -3612,29 +4105,9 @@
       }
 
       #phase-header {
-        max-width: 800px;
+        max-width: 1120px;
         margin-left: auto;
         margin-right: auto
-      }
-
-      .phase-title,
-      #phase-header h2,
-      #phase-header .phase-title {
-        color: #ff7a1f;
-        position: relative;
-        display: inline-block;
-        font-weight: 900;
-        letter-spacing: -0.02em
-      }
-
-      @supports not (background-clip:text) {
-
-        .phase-title,
-        #phase-header h2,
-        #phase-header .phase-title {
-          color: #ff7a1f;
-          background: none
-        }
       }
 
       #workout-details {
@@ -3682,7 +4155,7 @@
 
       #phase-header,
       #workout-title {
-        max-width: 900px
+        max-width: 1120px
       }
 
       #progress-bar-container {
@@ -3711,7 +4184,7 @@
 
       #phase-header,
       #workout-title {
-        max-width: 1000px
+        max-width: 1200px
       }
 
       #progress-bar-container {
@@ -5334,20 +5807,18 @@
       font-size: clamp(0.85rem, 1.8vw, 1rem)
     }
 
+    /* Apenas a imagem do header e a logo permanecem fixas no topo da viewport.
+       O #main-content e o #page-background rolam normalmente e passam por cima
+       desta camada, cobrindo-a gradualmente conforme o usuário faz scroll. */
     .header-background {
       background: transparent;
-      position: relative;
-      isolation: isolate;
-      overflow: visible;
-      margin-top: calc(-1rem - 1.5rem);
-      margin-left: -50vw;
-      margin-right: -50vw;
-      left: 50%;
-      right: 50%;
-      width: 100vw;
-      padding-left: calc(50vw - 50%);
-      padding-right: calc(50vw - 50%);
-      padding-top: 1.5rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: -2;
+      pointer-events: none;
     }
 
     .header-background::before {
@@ -5356,35 +5827,19 @@
       top: 0;
       left: 0;
       right: 0;
-      bottom: -56px;
+      height: clamp(440px, 62vh, 660px);
       pointer-events: none;
-      background:
-        linear-gradient(to bottom,
-          rgba(18, 17, 25, 0.18) 0%,
-          rgba(18, 17, 25, 0.28) 42%,
-          rgba(19, 18, 27, 0.58) 72%,
-          rgba(19, 18, 27, 0.84) 90%,
-          var(--background-dark) 100%),
-        url("src/imagens/capa de fundo.jpg");
-      background-size: auto, cover;
-      background-position: center, center center;
+      background: url("src/imagens/capa de fundo.jpg");
+      background-size: cover;
+      background-position: center top;
       background-repeat: no-repeat;
-      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 62%, rgba(0, 0, 0, 0.82) 76%, rgba(0, 0, 0, 0.34) 92%, transparent 100%);
-      mask-image: linear-gradient(to bottom, black 0%, black 62%, rgba(0, 0, 0, 0.82) 76%, rgba(0, 0, 0, 0.34) 92%, transparent 100%);
-      z-index: 1
+      z-index: 0;
     }
 
     [data-theme="claro"] .header-background::before {
-      background:
-        linear-gradient(to bottom,
-          rgba(255, 235, 210, 0.38) 0%,
-          rgba(248, 242, 255, 0.44) 42%,
-          rgba(241, 244, 250, 0.7) 74%,
-          rgba(238, 240, 246, 0.88) 92%,
-          var(--background-dark) 100%),
-        url("src/imagens/capa de fundo.jpg");
-      background-size: auto, cover;
-      background-position: center, center center;
+      background: url("src/imagens/capa de fundo.jpg");
+      background-size: cover;
+      background-position: center top;
       background-repeat: no-repeat;
     }
 
@@ -5784,14 +6239,14 @@
         <defs>
           <linearGradient id="main-energy-warm" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#ff7a1f" stop-opacity="0" />
-            <stop offset="35%" stop-color="#ff7a1f" stop-opacity="0.5" />
-            <stop offset="63%" stop-color="#f9c06c" stop-opacity="0.3" />
+            <stop offset="35%" stop-color="#ff6a12" stop-opacity="0.58" />
+            <stop offset="63%" stop-color="#ff9438" stop-opacity="0.34" />
             <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
           </linearGradient>
           <linearGradient id="main-energy-cool" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#89b4fa" stop-opacity="0" />
-            <stop offset="44%" stop-color="#89b4fa" stop-opacity="0.32" />
-            <stop offset="77%" stop-color="#ff7a1f" stop-opacity="0.25" />
+            <stop offset="0%" stop-color="#ff7a1f" stop-opacity="0" />
+            <stop offset="44%" stop-color="#ff8a2b" stop-opacity="0.24" />
+            <stop offset="77%" stop-color="#ff5f0a" stop-opacity="0.28" />
             <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
           </linearGradient>
           <filter id="main-energy-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -7764,14 +8219,104 @@
       const program = getActiveProgram();
       const totalWeeks = getTotalWeeks();
       if (phaseData) {
+        const clampProgress = value => Math.max(0, Math.min(100, Math.round(value)));
+        const phaseWeekDays = Object.keys(phaseData.schedule || {});
+        const weeklyWorkoutStats = phaseWeekDays
+          .map(day => getDayCompletionStats(APP_STATE.currentWeekNumber, day))
+          .filter(stats => stats.hasWorkout);
+        const completedWeeklyWorkouts = weeklyWorkoutStats
+          .filter(stats => stats.totalExercises > 0 && stats.completedExercises >= stats.totalExercises).length;
+        const frequencyNumbers = String(program.frequency || "").match(/\d+/g)?.map(Number) || [];
+        const weeklyTarget = frequencyNumbers.length ? Math.max(...frequencyNumbers) : 5;
+        const scheduledWorkoutTarget = weeklyWorkoutStats.length || weeklyTarget;
+        const frequencyProgress = scheduledWorkoutTarget > 0
+          ? clampProgress((completedWeeklyWorkouts / scheduledWorkoutTarget) * 100)
+          : 0;
+        const frequencyLabel = String(program.frequency || "Semanal").trim();
+        const frequencyValue = `${completedWeeklyWorkouts}/${scheduledWorkoutTarget || weeklyTarget}`;
+        const phaseProgress = clampProgress((APP_STATE.currentWeekNumber / totalWeeks) * 100);
+        const durationNumbers = /min/i.test(program.duration || "")
+          ? String(program.duration).match(/\d+/g)?.map(Number) || []
+          : [];
+        const sessionTarget = durationNumbers.length ? Math.max(...durationNumbers) : null;
+        const goalCaption = String(program.goal || "Performance").trim();
+        const goalKeyword = goalCaption.split(/\s+e\s+|[,/|-]/).map(part => part.trim()).find(Boolean) || "Performance";
+        const phaseMarker = phaseData.title.match(/fase\s*\d+/i)?.[0] || "Fase atual";
+        const phaseKicker = `Plano ativo • ${phaseMarker} • ${goalKeyword}`;
+        const performanceValue = sessionTarget ? `${sessionTarget}min` : goalKeyword;
+        const performanceCaption = sessionTarget ? program.duration : goalCaption;
+        const performanceProgress = sessionTarget ? clampProgress((sessionTarget / Math.max(sessionTarget, 90)) * 100) : 100;
+
+        const metrics = [
+          {
+            label: "Frequência",
+            value: frequencyValue || "Semanal",
+            caption: `${frequencyLabel} previsto`,
+            progress: frequencyProgress,
+            variant: "support",
+            colors: ["#ff7a1f", "#f59f35", "#f8c766"]
+          },
+          {
+            label: "Progresso da fase",
+            value: `${phaseProgress}%`,
+            innerLabel: "da fase",
+            caption: `${APP_STATE.currentWeekNumber} de ${totalWeeks} semanas`,
+            progress: phaseProgress,
+            variant: "primary",
+            colors: ["#f59f35", "#f8c766", "#d99a32"]
+          },
+          {
+            label: "Performance",
+            value: performanceValue,
+            caption: performanceCaption || goalCaption,
+            progress: performanceProgress,
+            variant: "support",
+            colors: ["#ff8a2b", "#f4b44e", "#ffd27a"]
+          }
+        ];
+
         DOM_ELEMENTS.phaseHeader.innerHTML = `
-            <p class="text-sm uppercase tracking-[0.18em] font-semibold text-[var(--text-muted)] mb-1">${program.name}</p>
-            <h2 class="phase-title text-4xl font-black tracking-tight" style="color: #ff7a1f; position: relative; display: inline-block;">${phaseData.title}</h2>
-            <p class="text-lg font-light mt-1" style="color: var(--subtext-1);">Semana ${APP_STATE.currentWeekNumber} de ${totalWeeks}</p>
-            <div class="flex flex-wrap justify-center gap-3 text-xs sm:text-sm mt-3" style="color: var(--text-muted);">
-              <span class="flex items-center gap-1"><i class="ph-bold ph-calendar-dots"></i>${program.frequency}</span>
-              <span class="flex items-center gap-1"><i class="ph-bold ph-timer"></i>${program.duration}</span>
-              <span class="flex items-center gap-1"><i class="ph-bold ph-target"></i>${program.goal}</span>
+            <div class="phase-header-flow" role="group" aria-label="${escapeHTML(phaseData.title)}">
+              <div class="phase-header__topline">
+                <p class="phase-header__eyebrow">${escapeHTML(phaseKicker)}</p>
+              </div>
+
+              <div>
+                <h2 class="phase-title">${escapeHTML(phaseData.title)}</h2>
+                <p class="phase-header__subtitle">Semana ${escapeHTML(APP_STATE.currentWeekNumber)} de ${escapeHTML(totalWeeks)}</p>
+              </div>
+
+              <div class="phase-activity-dashboard" aria-label="Dashboard da fase" role="list">
+                ${metrics.map((metric, index) => {
+                  const gradientId = `phase-activity-ring-${index}`;
+                  return `
+                  <div class="phase-activity-ring phase-activity-ring--${metric.variant}" role="listitem" aria-label="${escapeHTML(`${metric.label}: ${metric.value}. ${metric.caption}`)}" style="--ring-offset: ${100 - metric.progress}; --ring-delay: ${index * 70}ms;">
+                    <div class="phase-activity-ring__visual" aria-hidden="true">
+                      <svg class="activity-ring" viewBox="0 0 100 100" focusable="false">
+                        <defs>
+                          <linearGradient id="${gradientId}" x1="18%" y1="14%" x2="82%" y2="86%">
+                            <stop offset="0%" stop-color="${metric.colors[0]}" />
+                            <stop offset="55%" stop-color="${metric.colors[1]}" />
+                            <stop offset="100%" stop-color="${metric.colors[2]}" />
+                          </linearGradient>
+                        </defs>
+                        <circle class="activity-ring__rail" cx="50" cy="50" r="42" pathLength="100"></circle>
+                        <circle class="activity-ring__track" cx="50" cy="50" r="42" pathLength="100"></circle>
+                        <circle class="activity-ring__progress" cx="50" cy="50" r="42" pathLength="100" stroke="url(#${gradientId})"></circle>
+                      </svg>
+                      <span class="phase-activity-ring__center">
+                        <span class="phase-activity-ring__value">${escapeHTML(metric.value)}</span>
+                        ${metric.innerLabel ? `<span class="phase-activity-ring__inner-label">${escapeHTML(metric.innerLabel)}</span>` : ""}
+                      </span>
+                    </div>
+                    <span class="phase-activity-ring__copy">
+                      <span class="phase-activity-ring__label">${escapeHTML(metric.label)}</span>
+                      <span class="phase-activity-ring__caption">${escapeHTML(metric.caption)}</span>
+                    </span>
+                  </div>
+                `;
+                }).join("")}
+              </div>
             </div>
           `;
       }
