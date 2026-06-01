@@ -709,7 +709,7 @@
     #builder-screen .builder-slot-placeholder {
       position: relative;
       min-width: 0;
-      border-radius: 13px;
+      border-radius: 8px;
       border: 1px solid rgba(238, 242, 255, 0.07);
       background: rgba(255, 255, 255, 0.03);
       overflow: hidden;
@@ -1521,7 +1521,7 @@
       max-width: calc(100vw - 24px);
       height: auto !important;
       max-height: 58px;
-      border-radius: 13px;
+      border-radius: 8px;
       border: 1px solid rgba(240, 120, 31, 0.26);
       background: rgba(24, 25, 34, 0.94);
       box-shadow: 0 24px 70px -28px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(240, 120, 31, 0.18);
@@ -2329,467 +2329,2187 @@
     #phase-header {
       margin-left: auto;
       margin-right: auto;
-      margin-bottom: clamp(1.15rem, 3vw, 1.7rem) !important;
+      margin-bottom: 1.25rem !important;
       max-width: 1120px;
-      text-align: center !important;
+      text-align: left !important;
     }
 
-    .phase-header-flow {
+    .phase-dashboard {
+      --phase-progress-angle: 0deg;
       position: relative;
       display: grid;
-      justify-items: center;
-      gap: clamp(0.4rem, 1.05vw, 0.66rem);
-      padding-block: clamp(0.15rem, 1vw, 0.35rem);
-    }
-
-    .phase-header__topline {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 0.48rem;
-    }
-
-    .phase-header__eyebrow {
+      gap: 0.75rem;
+      width: 100%;
       min-width: 0;
-      max-width: 100%;
-      margin: 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.46rem;
-      padding: 0.34rem 0.82rem;
-      border-radius: 999px;
-      color: rgba(255, 186, 133, 0.86);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.01)),
-        linear-gradient(90deg, rgba(255, 106, 18, 0.07), rgba(255, 122, 31, 0.04));
-      border: 1px solid rgba(255, 122, 31, 0.12);
-      font-size: clamp(0.57rem, 1.26vw, 0.64rem);
-      font-weight: 740;
-      letter-spacing: 0.205em;
-      line-height: 1.3;
-      text-align: center;
-      text-transform: uppercase;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.042),
-        inset 0 -1px 0 rgba(255, 122, 31, 0.018);
-      -webkit-backdrop-filter: blur(9px) saturate(118%);
-      backdrop-filter: blur(9px) saturate(118%);
+      padding-block: 0.1rem 0.2rem;
+      isolation: isolate;
     }
 
-    .phase-header__eyebrow::before {
-      content: "";
-      flex: 0 0 auto;
-      width: 0.32rem;
-      height: 0.32rem;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255, 106, 18, 0.95), rgba(255, 145, 52, 0.84));
-      opacity: 0.82;
-      box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.038);
+    .phase-dashboard__identity {
+      display: grid;
+      gap: 0.34rem;
+      min-width: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
     }
 
     .phase-title,
     #phase-header h2,
     #phase-header .phase-title {
-      display: inline-block;
-      position: relative;
+      display: block;
       max-width: 100%;
       margin: 0;
       color: #ff7a1f;
-      background: linear-gradient(105deg, #ff5f0a 0%, #ff7a1f 38%, #ff9438 72%, #f2b45b 100%);
+      background: linear-gradient(112deg, #ff6a12 0%, #ff7a1f 54%, #ff9740 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-size: clamp(1.98rem, 7vw, 3.9rem);
-      line-height: 0.94;
-      font-weight: 950;
-      letter-spacing: -0.058em;
+      font-size: 2.05rem;
+      line-height: 1;
+      font-weight: 940;
+      letter-spacing: 0;
       text-wrap: balance;
+      overflow-wrap: anywhere;
       text-shadow: none;
     }
 
-    .phase-header__subtitle {
-      margin: clamp(0.28rem, 0.82vw, 0.42rem) 0 0;
-      color: rgba(205, 214, 244, 0.68);
-      font-size: clamp(0.86rem, 1.85vw, 0.98rem);
-      font-weight: 620;
-      letter-spacing: 0.015em;
-      line-height: 1.45;
-      text-align: center;
+    .phase-dashboard__context {
+      display: block;
+      min-width: 0;
+      margin: 0;
+      color: rgba(232, 236, 250, 0.64);
+      font-size: 0.77rem;
+      font-weight: 640;
+      line-height: 1.35;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
     }
 
-    .phase-activity-dashboard {
+    .phase-dashboard__hero {
       position: relative;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      justify-items: center;
-      align-items: start;
-      column-gap: clamp(0.5rem, 2vw, 1.1rem);
-      width: 100%;
-      max-width: 600px;
-      margin: clamp(0.02rem, 0.45vw, 0.18rem) auto 0;
+      gap: 0.82rem;
+      min-width: 0;
+      padding: 0.95rem;
+      border-radius: 8px;
+      overflow: hidden;
+      color: rgba(255, 248, 240, 0.96);
+      background:
+        linear-gradient(145deg, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.075) 44%, rgba(255, 255, 255, 0.03)),
+        rgba(21, 20, 29, 0.76);
+      border: 1px solid rgba(255, 122, 31, 0.2);
+      box-shadow:
+        0 20px 44px -36px rgba(0, 0, 0, 0.9),
+        0 14px 34px -32px rgba(255, 122, 31, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.065);
+      -webkit-backdrop-filter: blur(16px) saturate(122%);
+      backdrop-filter: blur(16px) saturate(122%);
     }
 
-    .phase-activity-dashboard::before {
+    .phase-dashboard__hero::before {
       content: "";
       position: absolute;
-      top: 0.05rem;
-      left: 50%;
-      width: clamp(8.8rem, 25vw, 12.8rem);
-      height: clamp(6.1rem, 18vw, 9rem);
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 122, 31, 0.075), rgba(255, 106, 18, 0.026) 48%, transparent 76%);
-      filter: blur(13px);
-      opacity: 0.58;
+      inset: 0;
+      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.16), transparent 60%);
       pointer-events: none;
-      transform: translateX(-50%);
     }
 
-    .phase-activity-ring {
-      --ring-size: clamp(3.75rem, 9.2vw, 4.55rem);
-      --ring-offset: 25;
-      --ring-stroke: 4.05;
-      display: grid;
-      justify-items: center;
-      gap: 0.4rem;
-      min-width: 0;
-      text-align: center;
+    .phase-dashboard__hero::after {
+      content: "";
+      position: absolute;
+      right: -5rem;
+      top: -5rem;
+      width: 12rem;
+      height: 12rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.065) 48%, transparent 72%);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .phase-dashboard__hero-core,
+    .phase-dashboard__evo,
+    .phase-dashboard__goal {
       position: relative;
       z-index: 1;
     }
 
-    .phase-activity-ring--primary {
-      --ring-size: clamp(6.95rem, 17.6vw, 8.08rem);
-      --ring-stroke: 5.85;
-      gap: 0.48rem;
-      transform: translateY(-0.38rem);
-      z-index: 2;
+    .phase-dashboard__hero-core {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 0.85rem;
+      min-width: 0;
     }
 
-    .phase-activity-ring__visual {
+    .phase-dashboard__hero-ring {
       position: relative;
-      width: var(--ring-size);
+      display: grid;
+      place-items: center;
+      width: clamp(4.6rem, 19vw, 5.6rem);
       aspect-ratio: 1;
       border-radius: 999px;
       background:
-        radial-gradient(circle at 50% 42%, rgba(58, 54, 65, 0.82), rgba(27, 25, 35, 0.78) 54%, rgba(14, 14, 22, 0.58) 78%),
-        linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
-      border: 1px solid rgba(205, 214, 244, 0.07);
+        conic-gradient(from -90deg, #ff9a52 0deg, #ff6a12 var(--phase-progress-angle), rgba(255, 255, 255, 0.08) 0),
+        rgba(12, 11, 19, 0.26);
       box-shadow:
-        0 15px 34px -27px rgba(0, 0, 0, 0.88),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        inset 0 -18px 28px rgba(0, 0, 0, 0.12);
-      -webkit-backdrop-filter: blur(8px) saturate(125%);
-      backdrop-filter: blur(8px) saturate(125%);
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 12px 30px -20px rgba(255, 122, 31, 0.45),
+        0 14px 30px -26px rgba(0, 0, 0, 0.9);
       isolation: isolate;
     }
 
-    .phase-activity-ring__visual::before {
+    .phase-dashboard__hero-ring::before {
       content: "";
       position: absolute;
-      inset: 14%;
+      inset: 0.42rem;
       border-radius: inherit;
       background:
-        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.045), transparent 58%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.006));
-      border: 1px solid rgba(205, 214, 244, 0.038);
-      pointer-events: none;
-      z-index: 1;
+        radial-gradient(circle at 50% 32%, rgba(255, 122, 31, 0.22), transparent 56%),
+        rgba(18, 17, 26, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      z-index: -1;
     }
 
-    .phase-activity-ring__visual::after {
+    .phase-dashboard__hero-ring::after {
       content: "";
       position: absolute;
-      top: 12%;
-      left: 20%;
-      right: 20%;
-      height: 24%;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
-      opacity: 0.46;
+      inset: -0.3rem;
+      border-radius: inherit;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.28), transparent 70%);
+      opacity: 0.55;
+      filter: blur(4px);
+      z-index: -2;
       pointer-events: none;
-      z-index: 3;
     }
 
-    .phase-activity-ring--primary .phase-activity-ring__visual {
-      box-shadow:
-        0 22px 44px -30px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.065),
-        inset 0 -22px 34px rgba(0, 0, 0, 0.12);
-    }
-
-    .activity-ring {
-      display: block;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      position: relative;
-      z-index: 2;
-    }
-
-    .activity-ring__rail,
-    .activity-ring__track,
-    .activity-ring__progress {
-      fill: none;
-      stroke-width: var(--ring-stroke);
-    }
-
-    .activity-ring__rail {
-      stroke: rgba(255, 255, 255, 0.03);
-      stroke-width: calc(var(--ring-stroke) + 2.2);
-    }
-
-    .activity-ring__track {
-      stroke: rgba(205, 214, 244, 0.088);
-    }
-
-    .activity-ring__progress {
-      stroke-linecap: round;
-      stroke-dasharray: 100;
-      stroke-dashoffset: var(--ring-offset);
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-      animation: activity-ring-draw 940ms cubic-bezier(0.22, 1, 0.36, 1) both;
-      animation-delay: var(--ring-delay, 0ms);
-    }
-
-    .phase-activity-ring__center {
-      position: absolute;
-      inset: 0;
+    .phase-dashboard__hero-copy {
       display: grid;
-      place-content: center;
-      justify-items: center;
-      gap: 0.1rem;
-      pointer-events: none;
-      z-index: 4;
+      gap: 0.3rem;
+      min-width: 0;
     }
 
-    .phase-activity-ring__value {
-      color: rgba(245, 247, 255, 0.88);
-      font-size: clamp(0.76rem, 1.9vw, 0.92rem);
-      font-weight: 780;
-      letter-spacing: -0.03em;
-      line-height: 1;
+    .phase-dashboard__hero-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+      color: rgba(255, 248, 242, 0.98);
+      font-size: clamp(1.7rem, 8vw, 2.3rem);
+      font-weight: 920;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      background: linear-gradient(108deg, #ffb066 0%, #ff7a1f 60%, #ff9a52 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .phase-dashboard__hero-label i {
+      flex: 0 0 auto;
+      font-size: 0.82em;
+      color: #ff8a33;
+      -webkit-text-fill-color: #ff8a33;
+    }
+
+    .phase-dashboard__hero-summary {
+      margin: 0;
+      color: rgba(255, 218, 190, 0.7);
+      font-size: 0.76rem;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .phase-dashboard__hero-value {
+      color: rgba(255, 250, 245, 0.98);
+      font-size: clamp(1.5rem, 6.5vw, 1.85rem);
+      font-weight: 950;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
+      text-shadow: 0 8px 24px rgba(255, 122, 31, 0.22);
+      white-space: nowrap;
     }
 
-    .phase-activity-ring--primary .phase-activity-ring__value {
-      color: rgba(255, 247, 232, 0.96);
-      font-size: clamp(1.6rem, 3.95vw, 2.06rem);
-      font-weight: 900;
-      letter-spacing: -0.055em;
-    }
-
-    .phase-activity-ring__inner-label {
-      color: rgba(255, 225, 176, 0.58);
-      font-size: clamp(0.4rem, 0.96vw, 0.48rem);
-      font-weight: 760;
-      letter-spacing: 0.26em;
+    .phase-dashboard__ring-caption {
+      color: rgba(255, 225, 202, 0.62);
+      font-size: 0.5rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
       line-height: 1;
       text-transform: uppercase;
     }
 
-    .phase-activity-ring__copy {
+    .phase-dashboard__ring-content {
       display: grid;
+      place-items: center;
+      gap: 0.15rem;
+      text-align: center;
+    }
+
+    .phase-dashboard__evo {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 80%;
+      margin-inline: auto;
+      min-width: 0;
+    }
+
+    .phase-dashboard__evo-cap {
+      flex: 0 0 auto;
+      color: rgba(255, 234, 218, 0.46);
+      font-size: 0.6rem;
+      font-weight: 760;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .phase-dashboard__evo-cap--end {
+      color: rgba(255, 188, 138, 0.7);
+    }
+
+    .phase-dashboard__evo-rail {
+      position: relative;
+      flex: 1 1 auto;
+      height: 0.75rem;
+      min-width: 0;
+    }
+
+    .phase-dashboard__evo-rail::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 0.14rem;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .phase-dashboard__evo-rail::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: var(--evo-fill, 0%);
+      height: 0.14rem;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff6a12, #ffb066);
+      box-shadow: 0 0 10px -2px rgba(255, 122, 31, 0.8);
+      transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .phase-dashboard__evo-head {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: var(--evo-fill, 0%);
+      width: 0.62rem;
+      height: 0.62rem;
+      margin-left: -0.31rem;
+      border-radius: 999px;
+      transform: translateY(-50%);
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.45), transparent 60%),
+        linear-gradient(150deg, #ffb066, #ff6a12);
+      box-shadow:
+        0 0 0 3px rgba(255, 122, 31, 0.16),
+        0 4px 10px -4px rgba(255, 122, 31, 0.9);
+      transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .phase-dashboard__goal {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.72rem;
+      min-width: 0;
+      padding: 0.78rem 0.82rem;
+      border-radius: 14px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        linear-gradient(135deg, rgba(255, 122, 31, 0.22), rgba(255, 122, 31, 0.05) 70%),
+        rgba(12, 11, 19, 0.32);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 0 0 1px rgba(255, 154, 82, 0.2);
+    }
+
+    .phase-dashboard__goal::before {
+      content: "";
+      position: absolute;
+      right: -2.5rem;
+      top: -2.5rem;
+      width: 7rem;
+      height: 7rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 154, 82, 0.32), transparent 68%);
+      opacity: 0.85;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .phase-dashboard__goal-icon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(150deg, #ffb066, #ff6a12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 12px 26px -12px rgba(255, 122, 31, 0.95);
+      font-size: 1.42rem;
+      z-index: 1;
+    }
+
+    .phase-dashboard__goal-copy {
+      position: relative;
+      display: grid;
+      gap: 0.3rem;
+      min-width: 0;
+      z-index: 1;
+    }
+
+    .phase-dashboard__goal-head {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+
+    .phase-dashboard__goal-label {
+      color: rgba(255, 210, 178, 0.82);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .phase-dashboard__goal-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.16rem 0.46rem;
+      border-radius: 999px;
+      color: #ffd9bd;
+      background: rgba(255, 122, 31, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(255, 154, 82, 0.32);
+      font-size: 0.58rem;
+      font-weight: 820;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .phase-dashboard__goal-text {
+      min-width: 0;
+      color: rgba(255, 250, 245, 0.96);
+      font-size: 0.84rem;
+      font-weight: 720;
+      line-height: 1.26;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .phase-dashboard__goal-bar {
+      display: block;
+      width: 100%;
+      height: 0.34rem;
+      margin-top: 0.08rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .phase-dashboard__goal-bar-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff6a12, #ffb066);
+      box-shadow: 0 0 12px -2px rgba(255, 122, 31, 0.8);
+      transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .phase-stats {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 0.7rem;
+      min-width: 0;
+    }
+
+    .phase-stats__rubric {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      padding-block: 0.15rem;
+      border-right: 1px solid rgba(255, 154, 82, 0.18);
+      padding-right: 0.66rem;
+      margin-right: 0.16rem;
+      user-select: none;
+    }
+
+    .phase-stats__rubric-icon {
+      font-size: 0.92rem;
+      line-height: 1;
+      color: rgba(255, 154, 82, 0.66);
+      filter: drop-shadow(0 1px 4px rgba(255, 122, 31, 0.45));
+    }
+
+    .phase-stats__rubric-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      color: rgba(255, 170, 122, 0.4);
+      font-size: 0.58rem;
+      font-weight: 820;
+      letter-spacing: 0.38em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .phase-stats__items {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      min-width: 0;
+    }
+
+    .phase-stats__items::before {
+      content: "";
+      position: absolute;
+      top: 1.7rem;
+      left: 18%;
+      right: 18%;
+      height: 1px;
+      transform: translateY(-50%);
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 122, 31, 0.22) 22%,
+        rgba(255, 154, 82, 0.32) 50%,
+        rgba(255, 122, 31, 0.22) 78%,
+        transparent);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .phase-stats__items::after {
+      content: "";
+      position: absolute;
+      top: 1.7rem;
+      left: 0;
+      right: 0;
+      height: 0.4rem;
+      transform: translateY(-50%);
+      background-image:
+        radial-gradient(circle, rgba(255, 170, 105, 0.9) 0 1.3px, transparent 2px),
+        radial-gradient(circle, rgba(255, 170, 105, 0.9) 0 1.3px, transparent 2px);
+      background-repeat: no-repeat, no-repeat;
+      background-position: 33.33% center, 66.66% center;
+      filter: drop-shadow(0 0 2px rgba(255, 122, 31, 0.6));
+      z-index: 0;
+      pointer-events: none;
+      animation: phase-flow-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes phase-flow-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.85; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .phase-stats__items::after {
+        animation: none;
+      }
+    }
+
+    .phase-stat {
+      --metric-accent: #ff7a1f;
+      --metric-progress-angle: 0deg;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+      text-align: center;
+    }
+
+    .phase-stat__ring {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 3.4rem;
+      aspect-ratio: 1;
+      border-radius: 999px;
+      background:
+        conic-gradient(from -90deg,
+          #ffc187 0deg,
+          #ff7a1f calc(var(--metric-progress-angle) * 0.5),
+          #ff6a12 var(--metric-progress-angle),
+          rgba(255, 255, 255, 0.12) var(--metric-progress-angle),
+          rgba(255, 255, 255, 0.12) 360deg);
+      box-shadow:
+        0 12px 26px -12px rgba(255, 122, 31, 0.62),
+        0 2px 6px -2px rgba(0, 0, 0, 0.7),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+        inset 0 0 0 3px rgba(10, 9, 14, 0.6);
+      isolation: isolate;
+    }
+
+    /* glow laranja externo sutil */
+    .phase-stat__ring::after {
+      content: "";
+      position: absolute;
+      inset: -0.3rem;
+      border-radius: inherit;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.32), transparent 70%);
+      opacity: 0.55;
+      filter: blur(5px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* aro de progresso recebe um leve brilho sobre o segmento ativo */
+    .phase-stat__ring::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background:
+        conic-gradient(from -90deg,
+          rgba(255, 255, 255, 0.5) 0deg,
+          rgba(255, 255, 255, 0) calc(var(--metric-progress-angle) * 0.6),
+          rgba(255, 255, 255, 0) 360deg);
+      -webkit-mask: radial-gradient(circle, transparent calc(50% - 0.3rem), #000 calc(50% - 0.3rem));
+      mask: radial-gradient(circle, transparent calc(50% - 0.3rem), #000 calc(50% - 0.3rem));
+      mix-blend-mode: screen;
+      opacity: 0.7;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* disco de vidro escuro entre o aro e o núcleo (cria a dupla borda + profundidade) */
+    .phase-stat__core {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 2.78rem;
+      height: 2.78rem;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 122, 31, 0.18), transparent 60%),
+        linear-gradient(160deg, rgba(34, 31, 44, 0.96), rgba(13, 12, 18, 0.98));
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.09),
+        inset 0 -3px 9px -3px rgba(0, 0, 0, 0.82),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 5px 12px -5px rgba(0, 0, 0, 0.85);
+    }
+
+    /* núcleo central elevado (botão premium) com o ícone */
+    .phase-stat__core::before {
+      content: "";
+      position: absolute;
+      inset: 0.46rem;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255, 138, 51, 0.32), transparent 64%),
+        linear-gradient(160deg, rgba(42, 35, 47, 0.98), rgba(16, 14, 21, 1));
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.14),
+        inset 0 -2px 6px -2px rgba(0, 0, 0, 0.85),
+        0 0 9px -2px rgba(255, 122, 31, 0.42);
+      z-index: -1;
+    }
+
+    .phase-stat__ring i {
+      position: relative;
+      z-index: 1;
+      font-size: 1.18rem;
+      color: #ff9a52;
+      filter: drop-shadow(0 1px 4px rgba(255, 122, 31, 0.6));
+    }
+
+    .phase-stat__copy {
+      display: grid;
+      justify-items: center;
       gap: 0.12rem;
       min-width: 0;
     }
 
-    .phase-activity-ring__label {
-      color: rgba(245, 247, 255, 0.72);
-      font-size: clamp(0.64rem, 1.46vw, 0.74rem);
-      font-weight: 660;
-      line-height: 1.15;
+    .phase-stat__value {
+      min-width: 0;
+      max-width: 100%;
+      color: rgba(248, 250, 255, 0.99);
+      font-size: 1.16rem;
+      font-weight: 880;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
       white-space: nowrap;
-    }
-
-    .phase-activity-ring--primary .phase-activity-ring__label {
-      color: rgba(245, 247, 255, 0.88);
-      font-weight: 780;
-      white-space: normal;
-    }
-
-    .phase-activity-ring__caption {
-      color: rgba(166, 173, 200, 0.46);
-      font-size: clamp(0.56rem, 1.28vw, 0.65rem);
-      font-weight: 520;
-      line-height: 1.25;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
-    @keyframes activity-ring-draw {
-      from {
-        stroke-dashoffset: 100;
+    .phase-stat__label {
+      color: rgba(214, 222, 248, 0.7);
+      font-size: 0.66rem;
+      font-weight: 720;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 390px) {
+      .phase-title,
+      #phase-header h2,
+      #phase-header .phase-title {
+        font-size: 1.72rem;
       }
 
-      to {
-        stroke-dashoffset: var(--ring-offset);
+      .phase-dashboard__hero {
+        padding: 0.82rem;
+      }
+
+      .phase-dashboard__hero-core {
+        gap: 0.58rem;
+      }
+
+      .phase-dashboard__hero-ring {
+        width: 4.5rem;
+      }
+
+      .phase-dashboard__hero-label {
+        font-size: 1.55rem;
+      }
+
+      .phase-dashboard__hero-summary {
+        font-size: 0.7rem;
+      }
+
+      .phase-stats {
+        gap: 0.5rem;
+      }
+
+      .phase-stats__items {
+        gap: 0.35rem;
+      }
+
+      .phase-stat__ring {
+        width: 3rem;
+      }
+
+      .phase-stats__items::before,
+      .phase-stats__items::after {
+        top: 1.5rem;
       }
     }
 
-    @media (max-width: 640px) {
+    @media (min-width: 640px) {
       #phase-header {
-        margin-bottom: 1.15rem !important;
+        margin-bottom: 1.45rem !important;
       }
 
-      .phase-header-flow {
-        gap: 0.34rem;
+      .phase-dashboard {
+        gap: 0.85rem;
       }
 
-      .phase-activity-dashboard {
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        align-items: center;
-        column-gap: clamp(0.3rem, 2.2vw, 0.62rem);
-        row-gap: 0;
-        max-width: 100%;
-        margin-top: clamp(0.05rem, 0.6vw, 0.18rem);
+      .phase-title,
+      #phase-header h2,
+      #phase-header .phase-title {
+        font-size: 2.35rem;
       }
 
-      .phase-activity-ring {
-        --ring-size: clamp(3.18rem, 16.5vw, 3.7rem);
-        --ring-stroke: 3.8;
-        gap: 0.26rem;
+      .phase-dashboard__hero {
+        padding: 1.05rem;
       }
 
-      .phase-activity-ring--primary {
-        --ring-size: clamp(6rem, 31vw, 6.95rem);
-        --ring-stroke: 5.35;
-        grid-column: auto;
-        grid-row: auto;
-        justify-self: center;
-        transform: none;
-        margin-bottom: 0;
-      }
-
-      .phase-activity-ring:nth-child(1) {
-        grid-column: auto;
-        grid-row: auto;
-        justify-self: center;
-      }
-
-      .phase-activity-ring:nth-child(3) {
-        grid-column: auto;
-        grid-row: auto;
-        justify-self: center;
-      }
-
-      .phase-activity-ring__caption {
-        white-space: normal;
+      .phase-dashboard__hero-ring {
+        width: 5.6rem;
       }
     }
 
     @media (min-width: 1024px) {
       #phase-header {
-        text-align: left !important;
+        margin-bottom: 1.62rem !important;
       }
 
-      .phase-header-flow {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 505px);
-        grid-template-rows: auto auto;
-        align-items: center;
-        justify-items: start;
-        column-gap: clamp(2rem, 5vw, 4.75rem);
-        row-gap: clamp(0.36rem, 0.9vw, 0.62rem);
+      .phase-dashboard {
+        grid-template-columns: minmax(0, 1.1fr) minmax(19rem, 0.9fr);
+        grid-template-areas:
+          "identity identity"
+          "hero metrics";
+        align-items: stretch;
+        gap: 0.9rem 1rem;
       }
 
-      .phase-header__topline {
-        grid-column: 1;
-        grid-row: 1;
-        justify-content: flex-start;
+      .phase-dashboard__identity {
+        grid-area: identity;
       }
 
-      .phase-header-flow > div:nth-child(2) {
-        grid-column: 1;
-        grid-row: 2;
-        justify-self: start;
-        max-width: 34rem;
+      .phase-title,
+      #phase-header h2,
+      #phase-header .phase-title {
+        font-size: 2.9rem;
       }
 
-      .phase-header__subtitle {
-        text-align: left;
+      .phase-dashboard__hero {
+        grid-area: hero;
+        align-content: space-between;
+        min-height: 18.2rem;
+        padding: 1.18rem;
       }
 
-      .phase-activity-dashboard {
-        grid-column: 2;
-        grid-row: 1 / span 2;
+      .phase-dashboard__hero-ring {
+        width: 6rem;
+      }
+
+      .phase-dashboard__hero-label {
+        font-size: 2.55rem;
+      }
+
+      .phase-stats {
+        grid-area: metrics;
         align-self: center;
-        justify-self: end;
-        margin: 0;
       }
     }
 
-    [data-theme="claro"] .phase-header__eyebrow,
-    [data-theme="claro"] .phase-header__subtitle {
-      color: rgba(45, 48, 66, 0.64);
+    [data-theme="claro"] .phase-dashboard__context {
+      color: rgba(45, 48, 66, 0.68);
     }
 
-    [data-theme="claro"] .phase-header__eyebrow {
-      color: rgba(180, 75, 8, 0.82);
+    [data-theme="claro"] .phase-dashboard__hero {
+      color: rgba(50, 35, 24, 0.95);
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.2)),
-        linear-gradient(90deg, rgba(255, 106, 18, 0.075), rgba(255, 122, 31, 0.04));
-      border-color: rgba(255, 106, 18, 0.12);
-    }
-
-    [data-theme="claro"] .activity-ring__rail {
-      stroke: rgba(255, 255, 255, 0.48);
-    }
-
-    [data-theme="claro"] .phase-activity-dashboard::before {
-      background: radial-gradient(circle, rgba(255, 122, 31, 0.075), rgba(255, 106, 18, 0.024) 46%, transparent 74%);
-      opacity: 0.58;
-    }
-
-    [data-theme="claro"] .activity-ring__track {
-      stroke: rgba(45, 48, 66, 0.1);
-    }
-
-    [data-theme="claro"] .phase-activity-ring__visual {
-      background:
-        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.7), rgba(245, 238, 230, 0.42) 58%, rgba(236, 228, 218, 0.18) 78%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.18));
-      border-color: rgba(45, 48, 66, 0.055);
+        linear-gradient(145deg, rgba(255, 122, 31, 0.18), rgba(255, 122, 31, 0.065) 45%, rgba(255, 255, 255, 0.62)),
+        rgba(255, 255, 255, 0.74);
+      border-color: rgba(255, 122, 31, 0.2);
       box-shadow:
-        0 14px 28px -24px rgba(17, 24, 39, 0.36),
-        inset 0 1px 0 rgba(255, 255, 255, 0.38);
+        0 20px 42px -34px rgba(17, 24, 39, 0.38),
+        0 16px 34px -32px rgba(255, 122, 31, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
     }
 
-    [data-theme="claro"] .phase-activity-ring__visual::after {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0));
-      opacity: 0.42;
+    [data-theme="claro"] .phase-dashboard__hero-label,
+    [data-theme="claro"] .phase-dashboard__hero-summary {
+      color: rgba(116, 58, 20, 0.68);
     }
 
-    [data-theme="claro"] .phase-activity-ring__value,
-    [data-theme="claro"] .phase-activity-ring__label {
-      color: rgba(30, 32, 46, 0.88);
+    [data-theme="claro"] .phase-dashboard__hero-value {
+      color: rgba(38, 31, 26, 0.92);
     }
 
-    [data-theme="claro"] .phase-activity-ring__inner-label {
-      color: rgba(138, 65, 12, 0.5);
+    [data-theme="claro"] .phase-dashboard__evo-rail::before {
+      background: rgba(45, 48, 66, 0.16);
     }
 
-    [data-theme="claro"] .phase-activity-ring__caption {
-      color: rgba(74, 80, 105, 0.64);
+    [data-theme="claro"] .phase-dashboard__evo-cap {
+      color: rgba(74, 80, 105, 0.55);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .activity-ring__progress {
-        animation: none;
-      }
+    [data-theme="claro"] .phase-dashboard__evo-cap--end {
+      color: rgba(151, 65, 12, 0.72);
+    }
+
+    [data-theme="claro"] .phase-dashboard__goal {
+      background:
+        linear-gradient(135deg, rgba(255, 122, 31, 0.18), rgba(255, 255, 255, 0.6) 70%),
+        rgba(255, 255, 255, 0.5);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(255, 122, 31, 0.18);
+    }
+
+    [data-theme="claro"] .phase-dashboard__goal-text {
+      color: rgba(50, 35, 24, 0.92);
+    }
+
+    [data-theme="claro"] .phase-dashboard__hero-label {
+      color: rgba(38, 31, 26, 0.95);
+    }
+
+    [data-theme="claro"] .phase-dashboard__goal-label {
+      color: rgba(151, 65, 12, 0.74);
+    }
+
+    [data-theme="claro"] .phase-dashboard__goal-tag {
+      color: rgba(151, 65, 12, 0.92);
+      background: rgba(255, 122, 31, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255, 122, 31, 0.26);
+    }
+
+    [data-theme="claro"] .phase-dashboard__goal-bar {
+      background: rgba(45, 48, 66, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(45, 48, 66, 0.06);
+    }
+
+    [data-theme="claro"] .phase-stat__ring {
+      background:
+        conic-gradient(from -90deg,
+          #ffc187 0deg,
+          #ff7a1f calc(var(--metric-progress-angle) * 0.5),
+          #ff6a12 var(--metric-progress-angle),
+          rgba(45, 48, 66, 0.16) var(--metric-progress-angle),
+          rgba(45, 48, 66, 0.16) 360deg);
+      box-shadow:
+        0 10px 22px -10px rgba(255, 122, 31, 0.5),
+        0 2px 6px -2px rgba(17, 24, 39, 0.25),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+        inset 0 0 0 2.5px rgba(255, 255, 255, 0.7);
+    }
+
+    [data-theme="claro"] .phase-stat__core {
+      background:
+        radial-gradient(circle at 50% 32%, rgba(255, 122, 31, 0.14), transparent 60%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(248, 245, 250, 0.98));
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        inset 0 -3px 8px -3px rgba(17, 24, 39, 0.16),
+        inset 0 0 0 1px rgba(45, 48, 66, 0.06),
+        0 4px 10px -5px rgba(17, 24, 39, 0.3);
+    }
+
+    [data-theme="claro"] .phase-stat__core::before {
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 138, 51, 0.22), transparent 65%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(245, 242, 248, 1));
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        inset 0 -2px 5px -2px rgba(17, 24, 39, 0.14),
+        0 0 8px -2px rgba(255, 122, 31, 0.35);
+    }
+
+    [data-theme="claro"] .phase-stat__ring i {
+      color: #ff6a12;
+    }
+
+    [data-theme="claro"] .phase-stat__value {
+      color: rgba(30, 32, 46, 0.9);
+    }
+
+    [data-theme="claro"] .phase-stat__label {
+      color: rgba(74, 80, 105, 0.66);
+    }
+
+    [data-theme="claro"] .phase-stats__rubric {
+      border-right-color: rgba(151, 65, 12, 0.16);
+    }
+
+    [data-theme="claro"] .phase-stats__rubric-text {
+      color: rgba(151, 65, 12, 0.34);
+    }
+
+    [data-theme="claro"] .phase-stats__rubric-icon {
+      color: rgba(151, 65, 12, 0.6);
     }
 
     @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
       .phase-title,
       #phase-header h2,
-      #phase-header .phase-title {
+      #phase-header .phase-title,
+      .hf-workout-hero__title {
         background: none;
         -webkit-text-fill-color: currentColor;
       }
+    }
+
+    nav[aria-label="Navegação por semanas"] {
+      --hf-week-nav-height: 4.5rem;
+      width: 100%;
+      margin: 0 auto 0.7rem !important;
+      padding: 0 !important;
+      border-radius: 11px !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    #stepper-nav {
+      padding-block: 0 !important;
+    }
+
+    .hf-week-stepper {
+      position: relative;
+      display: none;
+      width: 100%;
+      min-width: 0;
+      padding: 0;
+    }
+
+    /* Grade de semanas usada dentro do seletor em sheet */
+    .hf-week-markers {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(1.7rem, 1fr));
+      align-items: center;
+      gap: 0.28rem;
+      min-width: 0;
+    }
+
+    .hf-week-marker {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .hf-week-marker:active {
+      transform: scale(0.93);
+    }
+
+    .hf-week-marker__node {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.32rem;
+      width: 100%;
+      height: 2rem;
+      border-radius: 10px;
+      color: rgba(205, 214, 244, 0.6);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+        rgba(255, 255, 255, 0.018);
+      border: 1px solid rgba(205, 214, 244, 0.09);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      font-size: 0.76rem;
+      font-weight: 780;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      transition:
+        color 200ms ease,
+        background 200ms ease,
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+    }
+
+    /* hover/foco: affordance de clique */
+    .hf-week-marker:not(.is-current):hover .hf-week-marker__node {
+      color: rgba(255, 236, 222, 0.96);
+      background: rgba(255, 122, 31, 0.12);
+      border-color: rgba(255, 122, 31, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .hf-week-marker:focus-visible .hf-week-marker__node {
+      border-color: rgba(255, 154, 82, 0.7);
+      box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.26);
+    }
+
+    /* futuras: discretas mas legíveis */
+    .hf-week-marker.is-locked .hf-week-marker__node {
+      color: rgba(205, 214, 244, 0.46);
+      background: rgba(255, 255, 255, 0.015);
+      border-color: rgba(205, 214, 244, 0.06);
+    }
+
+    /* concluídas: laranja translúcido com check */
+    .hf-week-marker.is-completed .hf-week-marker__node {
+      color: #ff9740;
+      background: rgba(255, 122, 31, 0.1);
+      border-color: rgba(255, 122, 31, 0.26);
+    }
+
+    .hf-week-marker.is-completed .hf-week-marker__node i {
+      font-size: 0.86rem;
+    }
+
+    /* conclusão da fase: bandeira destacada em laranja */
+    .hf-week-marker.is-finish .hf-week-marker__node {
+      color: rgba(255, 175, 112, 0.85);
+    }
+
+    .hf-week-marker.is-finish .hf-week-marker__node i {
+      font-size: 0.92rem;
+    }
+
+    /* semana atual: destaque principal — pílula laranja sólida com rótulo */
+    .hf-week-marker.is-current {
+      grid-column: span 2;
+    }
+
+    .hf-week-marker.is-current .hf-week-marker__node {
+      color: #fff;
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.24), transparent 60%),
+        linear-gradient(150deg, #ff8a33, #ff6312);
+      border-color: rgba(255, 196, 150, 0.5);
+      box-shadow:
+        0 12px 26px -16px rgba(255, 122, 31, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .hf-week-marker__dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 0 7px rgba(255, 255, 255, 0.85);
+    }
+
+    .hf-week-marker__label {
+      font-size: 0.74rem;
+      font-weight: 850;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    /* ===== Resumo hero de semanas — layout único em todas as plataformas ===== */
+    .hf-week-summary {
+      display: block;
+    }
+
+    .hf-week-summary__main {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      height: var(--hf-week-nav-height);
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(255, 122, 31, 0.18);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-align: left;
+      color: rgba(255, 248, 240, 0.96);
+      background:
+        linear-gradient(145deg, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.075) 44%, rgba(255, 255, 255, 0.03)),
+        rgba(21, 20, 29, 0.76);
+      border-color: rgba(255, 122, 31, 0.2);
+      box-shadow:
+        0 20px 44px -36px rgba(0, 0, 0, 0.9),
+        0 14px 34px -32px rgba(255, 122, 31, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.065);
+      -webkit-backdrop-filter: blur(16px) saturate(122%);
+      backdrop-filter: blur(16px) saturate(122%);
+      transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms ease;
+    }
+
+    .hf-week-summary__main::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.16), transparent 60%);
+      pointer-events: none;
+    }
+
+    .hf-week-summary__main::after {
+      content: "";
+      position: absolute;
+      right: -5rem;
+      top: -5rem;
+      width: 12rem;
+      height: 12rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.065) 48%, transparent 72%);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .hf-week-summary__main:hover {
+      border-color: rgba(255, 122, 31, 0.3);
+    }
+
+    .hf-week-summary__main:active {
+      transform: scale(0.99);
+    }
+
+    .hf-week-summary__ring,
+    .hf-week-summary__info,
+    .hf-week-summary__action {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* anel de progresso da fase (mesma linguagem dos anéis de Desempenho) */
+    .hf-week-summary__ring {
+      flex: 0 0 auto;
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 999px;
+      background:
+        conic-gradient(from -90deg, #ffb469 0deg, #ff6a12 var(--week-progress-angle, 0deg), rgba(255, 255, 255, 0.08) 0);
+      box-shadow:
+        0 12px 24px -12px rgba(255, 122, 31, 0.78),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      isolation: isolate;
+    }
+
+    .hf-week-summary__ring::after {
+      content: "";
+      position: absolute;
+      inset: -0.3rem;
+      border-radius: inherit;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.34), transparent 70%);
+      opacity: 0.55;
+      filter: blur(5px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .hf-week-summary__ring-inner {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 2.32rem;
+      height: 2.32rem;
+      border-radius: 999px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(255, 150, 70, 0.42), transparent 58%),
+        linear-gradient(160deg, rgba(46, 38, 50, 0.98), rgba(14, 12, 19, 1));
+      box-shadow:
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.18),
+        inset 0 -3px 9px -3px rgba(0, 0, 0, 0.85),
+        0 0 11px -2px rgba(255, 122, 31, 0.6);
+      font-size: 0.92rem;
+    }
+
+    /* brilho especular superior interno — reforça a iluminação */
+    .hf-week-summary__ring-inner::before {
+      content: "";
+      position: absolute;
+      top: 0.18rem;
+      left: 50%;
+      width: 1.3rem;
+      height: 0.7rem;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.28), transparent 70%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .hf-week-summary__num {
+      position: relative;
+      font-size: 1.2rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 9px rgba(255, 122, 31, 0.45);
+    }
+
+    .hf-week-summary__info {
+      flex: 1 1 auto;
+      display: grid;
+      gap: 0.26rem;
+      min-width: 0;
+    }
+
+    .hf-week-summary__title {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      color: rgba(255, 250, 245, 0.99);
+      font-size: 1.12rem;
+      font-weight: 900;
+      letter-spacing: -0.015em;
+      line-height: 1;
+    }
+
+    .hf-week-summary__count {
+      color: rgba(255, 214, 184, 0.58);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hf-week-summary__next {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: 0.32rem;
+      color: rgba(255, 198, 158, 0.76);
+      font-size: 0.68rem;
+      font-weight: 640;
+      line-height: 1.2;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .hf-week-summary__next i {
+      flex: 0 0 auto;
+      margin-top: 0.06rem;
+      color: rgba(255, 154, 82, 0.92);
+      font-size: 0.78rem;
+    }
+
+    /* ação — apenas chevron laranja compacto (não disputa largura com a mensagem) */
+    .hf-week-summary__action {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hf-week-summary__action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(150deg, #ff8a33, #ff6a12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 6px 14px -8px rgba(255, 122, 31, 0.9);
+      font-size: 0.84rem;
+      transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease;
+    }
+
+    .hf-week-summary__main:hover .hf-week-summary__action-btn {
+      transform: translateX(2px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 8px 18px -8px rgba(255, 122, 31, 0.95);
+    }
+
+    /* ===== Bottom sheet de semanas (mobile) ===== */
+    .hf-week-sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: none;
+    }
+
+    .hf-week-sheet.is-open {
+      display: block;
+    }
+
+    body.week-sheet-open #main-content {
+      z-index: 140;
+      overflow: visible;
+    }
+
+    .hf-week-sheet__overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 8, 14, 0.62);
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      animation: hf-sheet-fade 240ms ease forwards;
+    }
+
+    .hf-week-sheet__panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 0.75rem 1rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
+      border-radius: 20px 20px 0 0;
+      background:
+        linear-gradient(180deg, rgba(36, 34, 48, 0.98), rgba(22, 21, 32, 0.99));
+      border-top: 1px solid rgba(255, 154, 82, 0.18);
+      box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, 0.85);
+      transform: translateY(100%);
+      animation: hf-sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes hf-sheet-fade {
+      to { opacity: 1; }
+    }
+
+    @keyframes hf-sheet-up {
+      to { transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hf-week-sheet__overlay,
+      .hf-week-sheet__panel {
+        animation-duration: 1ms;
+      }
+    }
+
+    .hf-week-sheet__handle {
+      width: 2.6rem;
+      height: 0.28rem;
+      margin: 0 auto 0.7rem;
+      border-radius: 999px;
+      background: rgba(205, 214, 244, 0.25);
+    }
+
+    .hf-week-sheet__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .hf-week-sheet__title {
+      color: rgba(255, 250, 245, 0.96);
+      font-size: 0.82rem;
+      font-weight: 820;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hf-week-sheet__close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border: 0;
+      border-radius: 999px;
+      color: rgba(205, 214, 244, 0.8);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+
+    .hf-week-markers--sheet {
+      grid-template-columns: repeat(auto-fit, minmax(3.2rem, 1fr));
+      gap: 0.5rem;
+    }
+
+    .hf-week-markers--sheet .hf-week-marker.is-current {
+      grid-column: auto;
+    }
+
+    .hf-week-markers--sheet .hf-week-marker__node {
+      height: 3rem;
+      border-radius: 12px;
+    }
+
+    .hf-week-markers--sheet .hf-week-marker.is-current .hf-week-marker__label,
+    .hf-week-markers--sheet .hf-week-marker.is-current .hf-week-marker__dot {
+      display: none;
+    }
+
+    .hf-week-markers--sheet .hf-week-marker.is-current .hf-week-marker__node::after {
+      content: attr(data-week);
+      font-size: 0.92rem;
+      font-weight: 860;
+    }
+
+    #day-selector {
+      --hf-week-nav-height: 4.5rem;
+      --hf-day-control-height: 3.12rem;
+      --hf-day-badge-size: 1.72rem;
+      --hf-day-badge-top: 0.34rem;
+      --hf-day-rail-y: calc(var(--hf-day-badge-top) + var(--hf-day-badge-size) / 2);
+      --hf-routine-gap: clamp(0.22rem, 1.35vw, 0.48rem);
+      position: relative;
+      align-items: center;
+      justify-content: center;
+      gap: var(--hf-routine-gap) !important;
+      width: 100%;
+      height: var(--hf-week-nav-height);
+      margin: 0 auto 0.78rem !important;
+      padding: 0.42rem 0.5rem !important;
+      border-radius: 8px !important;
+      overflow: hidden;
+      color: rgba(255, 248, 240, 0.96);
+      background:
+        linear-gradient(145deg, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.075) 44%, rgba(255, 255, 255, 0.03)),
+        rgba(21, 20, 29, 0.76) !important;
+      border: 1px solid rgba(255, 122, 31, 0.2) !important;
+      box-shadow:
+        0 20px 44px -36px rgba(0, 0, 0, 0.9),
+        0 14px 34px -32px rgba(255, 122, 31, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.065);
+      -webkit-backdrop-filter: blur(16px) saturate(122%);
+      backdrop-filter: blur(16px) saturate(122%);
+    }
+
+    #day-selector::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.16), transparent 60%);
+      pointer-events: none;
+    }
+
+    #day-selector::after {
+      content: "";
+      position: absolute;
+      right: -5rem;
+      top: -5rem;
+      width: 12rem;
+      height: 12rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.065) 48%, transparent 72%);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    #day-selector button {
+      position: relative;
+      z-index: 1;
+      flex: 1 1 0;
+      height: var(--hf-day-control-height);
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .hf-day-pill {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 8px;
+      color: rgba(205, 214, 244, 0.62);
+      background: transparent;
+      box-shadow: none;
+      font: inherit;
+      transform: translateY(0);
+      transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .hf-day-pill::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      top: var(--hf-day-rail-y);
+      left: 50%;
+      width: calc(100% + var(--hf-routine-gap));
+      height: 2px;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: rgba(255, 154, 82, 0.2);
+      pointer-events: none;
+    }
+
+    .hf-day-pill[data-edge="last"]::after {
+      display: none;
+    }
+
+    .hf-day-pill:not(:disabled):hover {
+      transform: translateY(-1px);
+      color: rgba(245, 247, 255, 0.9);
+    }
+
+    .hf-day-pill__card {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-areas:
+        "badge"
+        "meta";
+      grid-template-rows: var(--hf-day-badge-size) auto;
+      align-content: start;
+      justify-items: center;
+      gap: 0.22rem;
+      width: 100%;
+      height: var(--hf-day-control-height);
+      min-height: 0;
+      min-width: 0;
+      padding: var(--hf-day-badge-top) 0.14rem 0.22rem;
+      overflow: hidden;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      box-shadow: none;
+      transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .hf-day-pill:not(:disabled):hover .hf-day-pill__card {
+      background: rgba(255, 122, 31, 0.04);
+      border-color: rgba(255, 122, 31, 0.09);
+    }
+
+    .hf-day-pill__top {
+      grid-area: meta;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.18rem;
+      min-width: 0;
+      margin-top: 0;
+      line-height: 1;
+    }
+
+    .hf-day-pill__day {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.58rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      color: rgba(166, 173, 200, 0.5);
+    }
+
+    .hf-day-pill__badge {
+      grid-area: badge;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      justify-self: center;
+      width: var(--hf-day-badge-size);
+      height: var(--hf-day-badge-size);
+      padding: 0;
+      border-radius: 999px;
+      color: rgba(235, 238, 248, 0.82);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.014)),
+        rgba(18, 17, 26, 0.88);
+      border: 1px solid rgba(205, 214, 244, 0.105);
+      font-size: 0.82rem;
+      font-weight: 880;
+      line-height: 1;
+      letter-spacing: 0;
+      box-shadow:
+        0 0 0 4px rgba(18, 17, 26, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    }
+
+    .hf-day-pill__state {
+      position: absolute;
+      top: calc(var(--hf-day-badge-top) - 0.16rem);
+      right: calc(50% - 1rem);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 0.78rem;
+      height: 0.78rem;
+      border-radius: 999px;
+      color: rgba(255, 250, 245, 0.96);
+      background: rgba(255, 122, 31, 0.88);
+      box-shadow:
+        0 0 0 3px rgba(18, 17, 26, 0.78),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      font-size: 0.5rem;
+      line-height: 1;
+    }
+
+    .hf-day-pill__state i {
+      line-height: 1;
+    }
+
+    #day-selector .hf-day-pill[data-status="current"] {
+      flex: 1 1 0;
+      color: rgba(255, 250, 245, 0.98);
+    }
+
+    .hf-day-pill[data-status="current"]::after {
+      background: linear-gradient(90deg, rgba(255, 122, 31, 0.48), rgba(205, 214, 244, 0.14));
+    }
+
+    .hf-day-pill[data-status="current"] .hf-day-pill__card {
+      background:
+        radial-gradient(circle at 50% 26%, rgba(255, 122, 31, 0.11), rgba(255, 122, 31, 0) 66%),
+        rgba(255, 122, 31, 0.038);
+      border-color: rgba(255, 183, 126, 0.12);
+      box-shadow:
+        0 12px 24px -23px rgba(255, 122, 31, 0.68),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    }
+
+    .hf-day-pill[data-status="current"] .hf-day-pill__day {
+      color: rgba(255, 250, 245, 0.96);
+    }
+
+    .hf-day-pill[data-status="current"] .hf-day-pill__badge {
+      color: rgba(255, 250, 245, 0.98);
+      background:
+        radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 32%),
+        linear-gradient(145deg, rgba(255, 104, 18, 0.98), rgba(255, 122, 31, 0.9));
+      border-color: rgba(255, 203, 166, 0.5);
+      box-shadow:
+        0 0 0 4px rgba(255, 122, 31, 0.11),
+        0 12px 22px -18px rgba(255, 122, 31, 0.82),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      overflow: visible;
+    }
+
+    .hf-day-pill[data-status="current"] .hf-day-pill__badge::after {
+      content: "";
+      position: absolute;
+      inset: -0.32rem;
+      border-radius: 999px;
+      border: 1.5px solid rgba(255, 154, 82, 0.5);
+      opacity: 0;
+      animation: hf-day-pulse 2.6s ease-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes hf-day-pulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      70% { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hf-day-pill[data-status="current"] .hf-day-pill__badge::after {
+        animation: none;
+      }
+    }
+
+    .hf-day-pill[data-status="complete"] {
+      color: rgba(255, 223, 200, 0.94);
+    }
+
+    .hf-day-pill[data-status="complete"]::after {
+      background: linear-gradient(90deg, rgba(255, 122, 31, 0.46), rgba(255, 122, 31, 0.18));
+    }
+
+    .hf-day-pill[data-status="complete"] .hf-day-pill__card {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .hf-day-pill[data-status="complete"] .hf-day-pill__day {
+      color: rgba(255, 223, 200, 0.82);
+    }
+
+    .hf-day-pill[data-status="complete"] .hf-day-pill__badge {
+      color: rgba(255, 250, 245, 0.96);
+      background:
+        linear-gradient(145deg, rgba(255, 104, 18, 0.92), rgba(255, 122, 31, 0.78));
+      border-color: rgba(255, 190, 144, 0.42);
+      box-shadow:
+        0 0 0 4px rgba(255, 122, 31, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .hf-day-pill[data-status="complete"] .hf-day-pill__state,
+    .hf-day-pill[data-complete="true"] .hf-day-pill__state {
+      display: inline-flex;
+    }
+
+    .hf-day-pill[data-status="incomplete"] {
+      color: rgba(255, 202, 202, 0.88);
+    }
+
+    .hf-day-pill[data-status="incomplete"] .hf-day-pill__card {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .hf-day-pill[data-status="incomplete"] .hf-day-pill__badge {
+      color: rgba(255, 218, 225, 0.86);
+      background: rgba(243, 139, 168, 0.12);
+      border-color: rgba(243, 139, 168, 0.2);
+    }
+
+    .hf-day-pill[data-status="pending"] .hf-day-pill__card {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .hf-day-pill[data-status="pending"] .hf-day-pill__badge {
+      color: rgba(255, 234, 218, 0.82);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+        rgba(24, 21, 30, 0.9);
+      border-color: rgba(255, 154, 82, 0.24);
+      box-shadow:
+        0 0 0 4px rgba(18, 17, 26, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .hf-day-pill[data-status="pending"] .hf-day-pill__day {
+      color: rgba(214, 200, 188, 0.66);
+    }
+
+    .hf-day-pill[data-next="true"] .hf-day-pill__badge {
+      color: rgba(255, 244, 235, 0.95);
+      border-color: rgba(255, 154, 82, 0.5);
+      box-shadow:
+        0 0 0 4px rgba(18, 17, 26, 0.5),
+        0 8px 18px -16px rgba(255, 122, 31, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .hf-day-pill[data-next="true"] .hf-day-pill__day {
+      color: rgba(255, 196, 150, 0.82);
+    }
+
+    .hf-day-pill[data-next="true"]::after {
+      background: linear-gradient(90deg, rgba(255, 154, 82, 0.34), rgba(255, 154, 82, 0.18));
+    }
+
+    .hf-day-pill[data-status="off"] {
+      color: rgba(190, 196, 220, 0.5);
+      cursor: default;
+    }
+
+    .hf-day-pill[data-status="off"] .hf-day-pill__card {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .hf-day-pill[data-status="off"] .hf-day-pill__day {
+      color: rgba(190, 196, 220, 0.5);
+    }
+
+    .hf-day-pill[data-status="off"] .hf-day-pill__badge {
+      color: rgba(200, 206, 226, 0.7);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+        rgba(20, 22, 32, 0.85);
+      border-color: rgba(166, 173, 200, 0.18);
+      font-size: 0.78rem;
+    }
+
+    .hf-day-pill[data-status="off"] .hf-day-pill__badge i {
+      font-size: 0.86rem;
+      opacity: 0.82;
+    }
+
+    .hf-day-edit {
+      flex: 0 0 auto !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      width: 2.18rem;
+      height: var(--hf-day-control-height);
+      min-height: 0;
+      margin-left: 0.12rem;
+      border-radius: 8px;
+      color: rgba(205, 214, 244, 0.64);
+      background: rgba(18, 17, 26, 0.34);
+      border: 1px solid rgba(205, 214, 244, 0.07);
+      transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease;
+    }
+
+    .hf-day-edit:hover {
+      color: #ff7a1f;
+      background: rgba(255, 122, 31, 0.08);
+      border-color: rgba(255, 122, 31, 0.22);
+      transform: translateY(-1px);
+    }
+
+    #workout-title,
+    #progress-bar-container {
+      max-width: 1120px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #workout-title {
+      margin-bottom: 0.68rem !important;
+      min-height: 0 !important;
+    }
+
+    .hf-workout-hero {
+      display: grid;
+      gap: 0.34rem;
+      padding: 0;
+      margin-bottom: 0.2rem;
+      text-align: left;
+      background: none;
+      border: 0;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .hf-workout-hero::before {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 3px;
+      border-radius: 0 0 999px 999px;
+      background: linear-gradient(90deg, rgba(255, 122, 31, 0.9), rgba(255, 151, 64, 0.5) 60%, transparent);
+    }
+
+    .hf-workout-hero__copy {
+      min-width: 0;
+      display: grid;
+      gap: 0.34rem;
+    }
+
+    .hf-workout-hero__title {
+      margin: 0;
+      color: #ff7a1f;
+      background: linear-gradient(112deg, #ff6a12 0%, #ff7a1f 52%, #ff9740 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2.05rem;
+      font-weight: 940;
+      line-height: 1;
+      letter-spacing: 0;
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+    }
+
+    .hf-workout-hero__meta {
+      margin: 0;
+      color: rgba(232, 236, 250, 0.64);
+      font-size: 0.77rem;
+      font-weight: 640;
+      line-height: 1.35;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #progress-bar-container {
+      margin-bottom: 1rem !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .hf-workout-progress {
+      display: grid;
+      gap: 0.68rem;
+      padding: 0.82rem 0.9rem;
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.016)),
+        rgba(30, 30, 46, 0.42);
+      border: 1px solid rgba(205, 214, 244, 0.08);
+      box-shadow:
+        0 14px 30px -28px rgba(0, 0, 0, 0.82),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .hf-workout-progress__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+
+    .hf-workout-progress__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.46rem;
+      color: rgba(205, 214, 244, 0.76);
+      font-size: 0.76rem;
+      font-weight: 680;
+      line-height: 1.2;
+    }
+
+    .hf-workout-progress__label i {
+      color: #ff7a1f;
+      font-size: 1rem;
+    }
+
+    .hf-workout-progress__value {
+      color: rgba(245, 247, 255, 0.95);
+      font-size: 0.92rem;
+      font-weight: 820;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hf-workout-progress__track {
+      position: relative;
+      height: 0.72rem;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(205, 214, 244, 0.085);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.18);
+    }
+
+    .hf-workout-progress__fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff6812, #ff7a1f 58%, #ff9844);
+      box-shadow: 0 0 18px rgba(255, 122, 31, 0.18);
+      transition: width 520ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .hf-workout-progress__caption {
+      color: rgba(166, 173, 200, 0.58);
+      font-size: 0.7rem;
+      font-weight: 520;
+      line-height: 1.3;
+    }
+
+    /* ===== MOBILE: mantém o mesmo resumo + bottom sheet ===== */
+    @media (max-width: 639px) {
+      /* o resumo já é o card hero — neutraliza o glass do nav para não criar card dentro de card */
+      nav[aria-label="Navegação por semanas"] {
+        padding: 0 !important;
+        background: transparent !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+      }
+    }
+
+    @media (min-width: 640px) {
+      nav[aria-label="Navegação por semanas"],
+      #day-selector {
+        margin-bottom: 1.08rem !important;
+      }
+
+      .hf-workout-progress {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 390px) {
+      nav[aria-label="Navegação por semanas"] {
+        padding-inline: 0 !important;
+      }
+
+      .hf-week-markers {
+        grid-template-columns: repeat(auto-fit, minmax(1.55rem, 1fr));
+        gap: 0.24rem;
+      }
+
+      .hf-week-marker__node {
+        height: 1.85rem;
+        font-size: 0.72rem;
+      }
+
+      #day-selector {
+        --hf-day-control-height: 2.78rem;
+        --hf-day-badge-size: 1.52rem;
+        --hf-day-badge-top: 0.3rem;
+        --hf-routine-gap: 0.2rem;
+        gap: var(--hf-routine-gap) !important;
+        padding: 0.44rem 0.34rem !important;
+      }
+
+      .hf-day-pill {
+        min-height: 0;
+      }
+
+      .hf-day-pill__card {
+        gap: 0.16rem;
+        min-height: 0;
+        padding: var(--hf-day-badge-top) 0.08rem 0.2rem;
+      }
+
+      .hf-day-pill__day {
+        font-size: 0.54rem;
+      }
+
+      .hf-day-pill__badge {
+        width: var(--hf-day-badge-size);
+        height: var(--hf-day-badge-size);
+        font-size: 0.72rem;
+      }
+
+      #day-selector .hf-day-pill[data-status="current"] {
+        flex: 1 1 0;
+      }
+
+      .hf-day-pill[data-status="current"] .hf-day-pill__badge {
+        font-size: 0.72rem;
+      }
+
+      .hf-day-pill[data-status="off"] .hf-day-pill__badge {
+        width: var(--hf-day-badge-size);
+        height: var(--hf-day-badge-size);
+      }
+
+      .hf-day-pill[data-status="off"] .hf-day-pill__badge i {
+        font-size: 0.78rem;
+      }
+
+      .hf-day-edit {
+        width: 2rem;
+        min-height: 0;
+        margin-left: 0.08rem;
+      }
+    }
+
+    [data-theme="claro"] #day-selector {
+      color: rgba(50, 35, 24, 0.95);
+      background:
+        linear-gradient(145deg, rgba(255, 122, 31, 0.18), rgba(255, 122, 31, 0.065) 45%, rgba(255, 255, 255, 0.62)),
+        rgba(255, 255, 255, 0.74) !important;
+      border-color: rgba(255, 122, 31, 0.2) !important;
+      box-shadow:
+        0 20px 42px -34px rgba(17, 24, 39, 0.38),
+        0 16px 34px -32px rgba(255, 122, 31, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    [data-theme="claro"] .hf-workout-progress {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.34)),
+        rgba(255, 255, 255, 0.5) !important;
+      border-color: rgba(45, 48, 66, 0.08) !important;
+      box-shadow:
+        0 16px 34px -30px rgba(17, 24, 39, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.74);
+    }
+
+    [data-theme="claro"] .hf-week-marker__node {
+      color: rgba(74, 80, 105, 0.66);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4)),
+        rgba(255, 255, 255, 0.5);
+      border-color: rgba(45, 48, 66, 0.1);
+    }
+
+    [data-theme="claro"] .hf-workout-hero__meta {
+      color: rgba(45, 48, 66, 0.68);
+    }
+
+    [data-theme="claro"] .hf-week-marker:not(.is-current):hover .hf-week-marker__node {
+      color: rgba(151, 65, 12, 0.92);
+      background: rgba(255, 122, 31, 0.12);
+      border-color: rgba(255, 122, 31, 0.36);
+    }
+
+    [data-theme="claro"] .hf-week-marker.is-locked .hf-week-marker__node {
+      color: rgba(74, 80, 105, 0.5);
+      background: rgba(255, 255, 255, 0.4);
+      border-color: rgba(45, 48, 66, 0.08);
+    }
+
+    [data-theme="claro"] .hf-week-marker.is-completed .hf-week-marker__node {
+      color: #ff6a12;
+      background: rgba(255, 122, 31, 0.1);
+      border-color: rgba(255, 122, 31, 0.28);
+    }
+
+    [data-theme="claro"] .hf-week-marker.is-finish .hf-week-marker__node {
+      color: rgba(255, 106, 18, 0.85);
+    }
+
+    [data-theme="claro"] .hf-week-marker.is-current .hf-week-marker__node {
+      color: #fff;
+      border-color: rgba(255, 196, 150, 0.5);
+      box-shadow:
+        0 12px 26px -16px rgba(255, 122, 31, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    [data-theme="claro"] .hf-week-summary__main {
+      color: rgba(50, 35, 24, 0.95);
+      background:
+        linear-gradient(145deg, rgba(255, 122, 31, 0.18), rgba(255, 122, 31, 0.065) 45%, rgba(255, 255, 255, 0.62)),
+        rgba(255, 255, 255, 0.74);
+      border-color: rgba(255, 122, 31, 0.2);
+      box-shadow:
+        0 20px 42px -34px rgba(17, 24, 39, 0.38),
+        0 16px 34px -32px rgba(255, 122, 31, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    [data-theme="claro"] .hf-week-summary__ring-inner {
+      color: #ff5e0a;
+      background:
+        radial-gradient(circle at 50% 32%, rgba(255, 122, 31, 0.14), transparent 58%),
+        rgba(255, 255, 255, 0.92);
+    }
+
+    [data-theme="claro"] .hf-week-summary__title {
+      color: rgba(34, 24, 16, 0.96);
+    }
+
+    [data-theme="claro"] .hf-week-summary__count {
+      color: rgba(151, 80, 40, 0.6);
+    }
+
+    [data-theme="claro"] .hf-week-summary__next {
+      color: rgba(151, 80, 40, 0.82);
+    }
+
+    [data-theme="claro"] .hf-week-summary__action-btn {
+      color: #fff;
+      background: linear-gradient(150deg, #ff8a33, #ff6a12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 6px 14px -8px rgba(255, 122, 31, 0.7);
+    }
+
+    [data-theme="claro"] .hf-week-summary__main:hover .hf-week-summary__action-btn {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 8px 18px -8px rgba(255, 122, 31, 0.8);
+    }
+
+    [data-theme="claro"] .hf-week-sheet__panel {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 246, 250, 0.99));
+      border-top-color: rgba(255, 122, 31, 0.22);
+    }
+
+    [data-theme="claro"] .hf-week-sheet__handle {
+      background: rgba(45, 48, 66, 0.22);
+    }
+
+    [data-theme="claro"] .hf-week-sheet__title {
+      color: rgba(30, 32, 46, 0.92);
+    }
+
+    [data-theme="claro"] .hf-week-sheet__close {
+      color: rgba(74, 80, 105, 0.8);
+      background: rgba(45, 48, 66, 0.06);
+    }
+
+    [data-theme="claro"] .hf-day-pill[data-status="pending"] .hf-day-pill__badge {
+      color: rgba(120, 60, 20, 0.86);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4)),
+        rgba(255, 244, 236, 0.9);
+      border-color: rgba(255, 122, 31, 0.28);
+      box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    [data-theme="claro"] .hf-day-pill[data-status="pending"] .hf-day-pill__day {
+      color: rgba(116, 70, 40, 0.66);
+    }
+
+    [data-theme="claro"] .hf-day-pill[data-next="true"] .hf-day-pill__badge {
+      color: rgba(120, 50, 8, 0.92);
+      border-color: rgba(255, 122, 31, 0.5);
+    }
+
+    [data-theme="claro"] .hf-day-pill[data-status="off"] .hf-day-pill__badge {
+      color: rgba(74, 80, 105, 0.72);
+      background: rgba(45, 48, 66, 0.07);
+      border-color: rgba(45, 48, 66, 0.14);
+    }
+
+    [data-theme="claro"] .hf-day-pill[data-status="off"] .hf-day-pill__day,
+    [data-theme="claro"] .hf-day-pill[data-status="off"] {
+      color: rgba(74, 80, 105, 0.55);
     }
 
     .current-week-marker-animation {
@@ -4194,23 +5914,26 @@
 
     .step-tooltip {
       position: absolute;
-      bottom: calc(100% + 12px);
+      bottom: calc(100% + 10px);
       left: 50%;
       transform: translate(-50%, 4px);
-      min-width: 100px;
-      padding: 0.6rem 0.8rem;
-      border-radius: 0.75rem;
-      background: rgba(30, 30, 46, 0.96);
-      border: 1px solid var(--glass-border);
+      padding: 0.34rem 0.62rem;
+      border-radius: 8px;
+      background: rgba(20, 19, 29, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+      transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.22s ease;
       z-index: 100;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: rgba(226, 232, 240, 0.9);
-      letter-spacing: 0.04em;
+      font-size: 0.66rem;
+      font-weight: 720;
+      color: rgba(255, 236, 222, 0.92);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       white-space: nowrap
     }
 
@@ -4220,12 +5943,13 @@
       top: 100%;
       left: 50%;
       transform: translateX(-50%);
-      border-width: 7px;
+      border-width: 6px;
       border-style: solid;
-      border-color: rgba(30, 30, 46, 0.95) transparent transparent transparent
+      border-color: rgba(20, 19, 29, 0.92) transparent transparent transparent
     }
 
-    .group:hover .step-tooltip {
+    .group:hover .step-tooltip,
+    .hf-week-marker:focus-visible .step-tooltip {
       visibility: visible;
       opacity: 1;
       transform: translate(-50%, -2px);
@@ -6619,12 +8343,26 @@
       <div id="stepper-nav" class="py-2 overflow-visible"></div>
     </nav>
 
+    <div id="week-sheet" class="hf-week-sheet" aria-hidden="true">
+      <div class="hf-week-sheet__overlay" data-action="close-week-sheet"></div>
+      <div class="hf-week-sheet__panel" role="dialog" aria-modal="true" aria-label="Semanas da fase">
+        <div class="hf-week-sheet__handle" aria-hidden="true"></div>
+        <div class="hf-week-sheet__head">
+          <span class="hf-week-sheet__title">Semanas da fase</span>
+          <button type="button" class="hf-week-sheet__close" data-action="close-week-sheet" aria-label="Fechar">
+            <i class="ph-bold ph-x" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div id="week-sheet-grid" class="hf-week-markers hf-week-markers--sheet"></div>
+      </div>
+    </div>
+
     <nav id="day-selector" class="flex gap-1 mb-8 glass-effect backdrop-blur-20 p-2 rounded-xl content-enter-animation"
       aria-label="Seleção de dia de treino"></nav>
 
     <main id="current-workout-container">
       <header id="workout-title" class="text-center mb-4 min-h-[48px] content-enter-animation"></header>
-      <div id="progress-bar-container" class="mb-8 px-2 content-enter-animation"></div>
+      <div id="progress-bar-container" class="content-enter-animation"></div>
       <section id="workout-details" class="grid grid-cols-1 md:grid-cols-2 gap-6"></section>
     </main>
 
@@ -8133,24 +9871,79 @@
     function renderStepperNavigation() {
       DOM_ELEMENTS.stepperNav.innerHTML = "";
       const totalWeeks = getTotalWeeks();
+      const current = APP_STATE.currentWeekNumber;
+      const highestUnlocked = APP_STATE.highestUnlockedWeek;
+
+      // ---- Resumo compacto (layout único em todas as plataformas) ----
+      const phasePct = totalWeeks > 1
+        ? Math.max(0, Math.min(100, Math.round(((current - 1) / (totalWeeks - 1)) * 100)))
+        : 100;
+      const nextWeek = current < highestUnlocked ? current + 1 : null;
+      const isFinishCurrent = current === totalWeeks;
+
+      // Treinos restantes na semana atual (para mensagem contextual de evolução)
+      const summaryPhase = getPhaseDataByWeek(current);
+      const summaryWeekStats = Object.keys(summaryPhase?.schedule || {})
+        .map(day => getDayCompletionStats(current, day))
+        .filter(stats => stats.hasWorkout);
+      const summaryDoneWorkouts = summaryWeekStats
+        .filter(stats => stats.totalExercises > 0 && stats.completedExercises >= stats.totalExercises).length;
+      const summaryRemaining = Math.max(summaryWeekStats.length - summaryDoneWorkouts, 0);
+
+      let nextIcon;
+      let nextLabel;
+      if (isFinishCurrent && summaryRemaining === 0) {
+        nextIcon = "ph-trophy";
+        nextLabel = "Última semana — finalize sua jornada";
+      } else if (summaryRemaining > 0) {
+        nextIcon = "ph-barbell";
+        nextLabel = current === totalWeeks
+          ? `${summaryRemaining} ${summaryRemaining === 1 ? "treino" : "treinos"} para concluir a fase`
+          : `${summaryRemaining} ${summaryRemaining === 1 ? "treino" : "treinos"} para liberar a Semana ${current + 1}`;
+      } else if (nextWeek) {
+        nextIcon = "ph-arrow-right";
+        nextLabel = `Semana ${nextWeek} liberada — siga em frente`;
+      } else {
+        nextIcon = "ph-flag-checkered";
+        nextLabel = "Semana concluída";
+      }
+
+      const summary = document.createElement("div");
+      summary.className = "hf-week-summary";
+      summary.innerHTML = `
+        <button type="button" class="hf-week-summary__main" aria-label="Explorar as semanas da fase" style="--week-progress-angle: ${phasePct * 3.6}deg;">
+          <span class="hf-week-summary__ring" aria-hidden="true">
+            <span class="hf-week-summary__ring-inner">
+              ${isFinishCurrent ? '<i class="ph-fill ph-flag-checkered"></i>' : `<strong class="hf-week-summary__num">${current}</strong>`}
+            </span>
+          </span>
+          <span class="hf-week-summary__info">
+            <span class="hf-week-summary__title">Semana ${current} <span class="hf-week-summary__count">de ${totalWeeks}</span></span>
+            <span class="hf-week-summary__next">
+              <i class="ph-bold ${nextIcon}" aria-hidden="true"></i>
+              ${escapeHTML(nextLabel)}
+            </span>
+          </span>
+          <span class="hf-week-summary__action">
+            <span class="hf-week-summary__action-btn" aria-hidden="true" title="Ver cronograma da fase">
+              <i class="ph-bold ph-caret-right"></i>
+            </span>
+          </span>
+        </button>
+      `;
+      addEventListenerSafe(
+        summary.querySelector(".hf-week-summary__main"),
+        "click",
+        openWeekSheet
+      );
+      DOM_ELEMENTS.stepperNav.appendChild(summary);
+
+      // ---- Grade completa reutilizada no bottom sheet ----
       const container = document.createElement("div");
-      container.className = "relative w-full px-1 md:px-2";
-
-      const track = document.createElement("div");
-      track.className = "absolute top-1/2 -translate-y-1/2 left-0 w-full h-1 rounded-full";
-      track.style.background = "var(--surface-1)";
-
-      const progressPercentage = (APP_STATE.highestUnlockedWeek > 1 && totalWeeks > 1)
-        ? ((APP_STATE.highestUnlockedWeek - 1) / (totalWeeks - 1)) * 100
-        : 0;
-      const progressFill = document.createElement("div");
-      progressFill.className = "absolute top-1/2 -translate-y-1/2 left-0 h-1 bg-[var(--primary-color)] rounded-full transition-all duration-500";
-      progressFill.style.width = `${progressPercentage}%`;
-
-      container.append(track, progressFill);
+      container.className = "hf-week-stepper";
 
       const markersContainer = document.createElement("div");
-      markersContainer.className = "relative flex justify-between items-center px-1 md:px-0";
+      markersContainer.className = "hf-week-markers";
 
       for (let i = 1; i <= totalWeeks; i++) {
         markersContainer.appendChild(createWeekMarker(i));
@@ -8160,46 +9953,91 @@
       DOM_ELEMENTS.stepperNav.appendChild(container);
     }
 
-    function createWeekMarker(weekNumber) {
+    function openWeekSheet() {
+      const sheet = document.getElementById("week-sheet");
+      const grid = document.getElementById("week-sheet-grid");
+      if (!sheet || !grid) return;
+
+      const totalWeeks = getTotalWeeks();
+      grid.innerHTML = "";
+      for (let i = 1; i <= totalWeeks; i++) {
+        grid.appendChild(createWeekMarker(i, { fromSheet: true }));
+      }
+
+      sheet.classList.add("is-open");
+      sheet.setAttribute("aria-hidden", "false");
+      document.body.classList.add("week-sheet-open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeWeekSheet() {
+      const sheet = document.getElementById("week-sheet");
+      if (!sheet) return;
+      sheet.classList.remove("is-open");
+      sheet.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("week-sheet-open");
+      document.body.style.overflow = "";
+    }
+
+    function createWeekMarker(weekNumber, options = {}) {
       const totalWeeks = getTotalWeeks();
       const isLocked = weekNumber > APP_STATE.highestUnlockedWeek;
       const isCurrent = weekNumber === APP_STATE.currentWeekNumber;
       const isCompleted = weekNumber < APP_STATE.highestUnlockedWeek;
+      const isFinish = weekNumber === totalWeeks;
 
       const markerWrapper = document.createElement("div");
-      markerWrapper.className = `group relative flex flex-col items-center p-0.5 md:p-2 ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}`;
+      markerWrapper.className = [
+        "group",
+        "hf-week-marker",
+        isCurrent ? "is-current" : "",
+        isCompleted ? "is-completed" : "",
+        isLocked ? "is-locked" : "",
+        isFinish ? "is-finish" : ""
+      ].filter(Boolean).join(" ");
 
-      if (!isLocked) {
-        addEventListenerSafe(markerWrapper, "click", () => navigateToWeek(weekNumber));
+      markerWrapper.setAttribute("role", "button");
+      markerWrapper.setAttribute("tabindex", "0");
+      markerWrapper.setAttribute("aria-label", isCurrent
+        ? `Semana ${weekNumber}, semana atual`
+        : isCompleted
+          ? `Semana ${weekNumber}, concluída. Toque para revisar`
+          : `Semana ${weekNumber}. Toque para visualizar os treinos`);
+      if (isCurrent) {
+        markerWrapper.setAttribute("aria-current", "step");
       }
+      addEventListenerSafe(markerWrapper, "click", () => {
+        if (options.fromSheet) closeWeekSheet();
+        navigateToWeek(weekNumber);
+      });
+      addEventListenerSafe(markerWrapper, "keydown", (event) => {
+        if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+          event.preventDefault();
+          if (options.fromSheet) closeWeekSheet();
+          navigateToWeek(weekNumber);
+        }
+      });
 
       const marker = document.createElement("div");
-      let markerClasses = "rounded-full transition-all duration-300 flex items-center justify-center border-2";
-
+      marker.className = "hf-week-marker__node";
+      marker.dataset.week = weekNumber;
       if (isCurrent) {
-        markerClasses += " w-3 h-3 md:w-4 md:h-4 bg-[var(--primary-color)] border-[var(--primary-hover)] scale-150 current-week-marker-animation";
+        marker.innerHTML = `<span class="hf-week-marker__dot" aria-hidden="true"></span><span class="hf-week-marker__label">Semana ${weekNumber}</span>`;
       } else if (isCompleted) {
-        markerClasses += " w-3 h-3 md:w-4 md:h-4 border-[var(--primary-color)]";
-        marker.style.background = "var(--surface-0)";
-      } else if (isLocked) {
-        markerClasses += " w-5 h-5 md:w-6 md:h-6";
-        marker.style.background = "var(--surface-0)";
-        marker.style.borderColor = "var(--overlay-0)";
-        const icon = weekNumber === totalWeeks ? "ph-trophy text-amber-400 trophy-shine" : "ph-lock-key";
-        marker.innerHTML = `<i class='ph-fill ${icon} text-xs md:text-sm'></i>`;
+        marker.innerHTML = `<i class="ph-bold ph-check" aria-hidden="true"></i>`;
+      } else if (isFinish) {
+        marker.innerHTML = `<i class="ph-fill ph-flag-checkered" aria-hidden="true"></i>`;
       } else {
-        markerClasses += " w-3 h-3 md:w-4 md:h-4";
-        marker.style.background = "var(--overlay-0)";
-        marker.style.borderColor = "var(--surface-2)";
+        marker.textContent = weekNumber;
       }
 
-      marker.className = markerClasses;
+      markerWrapper.appendChild(marker);
 
       const tooltip = document.createElement("span");
       tooltip.className = "step-tooltip";
       tooltip.textContent = `Semana ${weekNumber}`;
+      markerWrapper.appendChild(tooltip);
 
-      markerWrapper.append(tooltip, marker);
       return markerWrapper;
     }
 
@@ -8220,10 +10058,17 @@
       const totalWeeks = getTotalWeeks();
       if (phaseData) {
         const clampProgress = value => Math.max(0, Math.min(100, Math.round(value)));
+        const formatCount = (value, singular, plural = `${singular}s`) => `${value} ${value === 1 ? singular : plural}`;
+        const formatRemaining = (value, singular, plural = `${singular}s`) => `${value === 1 ? "falta" : "faltam"} ${formatCount(value, singular, plural)}`;
         const phaseWeekDays = Object.keys(phaseData.schedule || {});
         const weeklyWorkoutStats = phaseWeekDays
           .map(day => getDayCompletionStats(APP_STATE.currentWeekNumber, day))
           .filter(stats => stats.hasWorkout);
+        const weeklyTotals = weeklyWorkoutStats.reduce((totals, stats) => {
+          totals.exercises += stats.totalExercises;
+          totals.completed += Math.min(stats.completedExercises, stats.totalExercises);
+          return totals;
+        }, { exercises: 0, completed: 0 });
         const completedWeeklyWorkouts = weeklyWorkoutStats
           .filter(stats => stats.totalExercises > 0 && stats.completedExercises >= stats.totalExercises).length;
         const frequencyNumbers = String(program.frequency || "").match(/\d+/g)?.map(Number) || [];
@@ -8232,90 +10077,195 @@
         const frequencyProgress = scheduledWorkoutTarget > 0
           ? clampProgress((completedWeeklyWorkouts / scheduledWorkoutTarget) * 100)
           : 0;
-        const frequencyLabel = String(program.frequency || "Semanal").trim();
         const frequencyValue = `${completedWeeklyWorkouts}/${scheduledWorkoutTarget || weeklyTarget}`;
-        const phaseProgress = clampProgress((APP_STATE.currentWeekNumber / totalWeeks) * 100);
-        const durationNumbers = /min/i.test(program.duration || "")
-          ? String(program.duration).match(/\d+/g)?.map(Number) || []
-          : [];
-        const sessionTarget = durationNumbers.length ? Math.max(...durationNumbers) : null;
-        const goalCaption = String(program.goal || "Performance").trim();
-        const goalKeyword = goalCaption.split(/\s+e\s+|[,/|-]/).map(part => part.trim()).find(Boolean) || "Performance";
-        const phaseMarker = phaseData.title.match(/fase\s*\d+/i)?.[0] || "Fase atual";
-        const phaseKicker = `Plano ativo • ${phaseMarker} • ${goalKeyword}`;
-        const performanceValue = sessionTarget ? `${sessionTarget}min` : goalKeyword;
-        const performanceCaption = sessionTarget ? program.duration : goalCaption;
-        const performanceProgress = sessionTarget ? clampProgress((sessionTarget / Math.max(sessionTarget, 90)) * 100) : 100;
+        const phaseKey = getPhaseKeyByWeek(APP_STATE.currentWeekNumber);
+        const phaseKeys = Object.keys(getActivePhases());
+        const phaseIndex = phaseKey ? phaseKeys.indexOf(phaseKey) + 1 : 0;
+        const phaseMarker = phaseData.title.match(/fase\s*\d+/i)?.[0] || (phaseIndex > 0 ? `Fase ${phaseIndex}` : "Fase atual");
+        const phaseWeeks = (Array.isArray(phaseData.weeks) && phaseData.weeks.length ? [...phaseData.weeks] : [APP_STATE.currentWeekNumber])
+          .sort((a, b) => a - b);
+        const phaseWeekCount = phaseWeeks.length || 1;
+        const rawPhaseWeekIndex = phaseWeeks.indexOf(APP_STATE.currentWeekNumber) + 1;
+        const phaseWeekIndex = rawPhaseWeekIndex > 0
+          ? rawPhaseWeekIndex
+          : Math.min(phaseWeeks.filter(week => week <= APP_STATE.currentWeekNumber).length + 1, phaseWeekCount);
+        const phaseWorkoutStats = phaseWeeks.flatMap(week => {
+          const weekPhase = getPhaseDataByWeek(week);
+          return Object.keys(weekPhase?.schedule || {})
+            .map(day => getDayCompletionStats(week, day))
+            .filter(stats => stats.hasWorkout);
+        });
+        const completedPhaseWorkouts = phaseWorkoutStats
+          .filter(stats => stats.totalExercises > 0 && stats.completedExercises >= stats.totalExercises).length;
+        const phaseWorkoutTarget = phaseWorkoutStats.length;
+        const phaseTimelineProgress = clampProgress((phaseWeekIndex / phaseWeekCount) * 100);
+        const phaseProgress = phaseWorkoutTarget > 0
+          ? clampProgress((completedPhaseWorkouts / phaseWorkoutTarget) * 100)
+          : phaseTimelineProgress;
+        const phaseProgressAngle = `${phaseProgress * 3.6}deg`;
+        const nextMilestonePercent = [25, 50, 75, 100].find(threshold => phaseProgress < threshold) || 100;
+        const nextMilestoneWorkout = phaseWorkoutTarget > 0
+          ? Math.min(
+            phaseWorkoutTarget,
+            Math.max(completedPhaseWorkouts + 1, Math.ceil((nextMilestonePercent / 100) * phaseWorkoutTarget))
+          )
+          : null;
+        const workoutsToMilestone = nextMilestoneWorkout
+          ? Math.max(nextMilestoneWorkout - completedPhaseWorkouts, 0)
+          : 0;
+        const levelNameByThreshold = { 25: "Consistente", 50: "Forte", 75: "Elite" };
+        const nextLevelName = levelNameByThreshold[nextMilestonePercent] || null;
+        const milestoneText = phaseProgress >= 100
+          ? "Fase concluída. Você dominou cada treino desta etapa."
+          : nextMilestoneWorkout
+            ? workoutsToMilestone <= 1
+              ? `Falta só 1 treino para desbloquear o nível ${nextLevelName || "máximo"}.`
+              : `Mais ${workoutsToMilestone} treinos para alcançar o nível ${nextLevelName || "máximo"}.`
+            : `Siga firme: você está na semana ${phaseWeekIndex} de ${phaseWeekCount} desta fase.`;
+        const milestoneLabel = phaseProgress >= 100 ? "Conquista desbloqueada" : "Próximo nível";
+        const milestoneTag = phaseProgress >= 100
+          ? "Fase dominada"
+          : nextLevelName
+            ? `${nextLevelName} • ${nextMilestonePercent}%`
+            : `Marca de ${nextMilestonePercent}%`;
+        const milestoneIcon = phaseProgress >= 100 ? "ph-trophy" : "ph-medal";
+        const prevMilestonePercent = Math.max(nextMilestonePercent - 25, 0);
+        const milestoneProgress = phaseProgress >= 100
+          ? 100
+          : clampProgress(((phaseProgress - prevMilestonePercent) / (nextMilestonePercent - prevMilestonePercent)) * 100);
+        const weeklyExerciseProgress = weeklyTotals.exercises > 0
+          ? clampProgress((weeklyTotals.completed / weeklyTotals.exercises) * 100)
+          : 0;
+        const phaseTitle = String(phaseData.title || "").trim();
+        const phaseIdentityTitle = phaseTitle.replace(/^\s*fase\s*\d+\s*[:\-–—]?\s*/i, "").trim() || phaseTitle || "Fase atual";
+        const phaseIdentityContext = `${phaseMarker} • Semana ${APP_STATE.currentWeekNumber} de ${totalWeeks} • ${phaseWeekIndex}/${phaseWeekCount} da fase`;
+        const heroHeadline = phaseProgress >= 100
+          ? "Fase dominada!"
+          : phaseProgress >= 75
+            ? "Reta final da fase"
+            : phaseProgress >= 50
+              ? "Mais da metade conquistada"
+              : phaseProgress >= 25
+                ? "Ganhando ritmo"
+                : phaseProgress > 0
+                  ? "Evolução em andamento"
+                  : "Sua jornada começa agora";
+        const phaseProgressCaption = phaseWorkoutTarget > 0
+          ? `${completedPhaseWorkouts} de ${phaseWorkoutTarget} treinos conquistados`
+          : `${phaseWeekIndex} de ${phaseWeekCount} semanas desta fase`;
+        const phaseLevels = [
+          { name: "Iniciante", threshold: 0, icon: "ph-sneaker-move" },
+          { name: "Consistente", threshold: 25, icon: "ph-flame" },
+          { name: "Forte", threshold: 50, icon: "ph-barbell" },
+          { name: "Elite", threshold: 75, icon: "ph-crown-simple" }
+        ];
+        const unlockedLevelCount = phaseLevels.filter(level => phaseProgress >= level.threshold).length;
+        const currentLevelIndex = Math.max(unlockedLevelCount - 1, 0);
+        const currentLevelName = phaseLevels[currentLevelIndex].name;
+        const currentLevelIcon = phaseLevels[currentLevelIndex].icon;
+        const firstLevelName = phaseLevels[0].name;
+        const lastLevelName = phaseLevels[phaseLevels.length - 1].name;
+        // Detalhe de evolução minimalista: uma única barra contínua de Iniciante a Elite.
+        // O preenchimento e a ponta acompanham diretamente o progresso da fase.
+        const evoFillPct = clampProgress(phaseProgress);
+
+        const currentDayStats = getDayCompletionStats(APP_STATE.currentWeekNumber, APP_STATE.currentDay);
+        const sessionTotal = currentDayStats.totalExercises;
+        const sessionDone = Math.min(currentDayStats.completedExercises, sessionTotal);
+        const sessionProgress = sessionTotal > 0 ? clampProgress((sessionDone / sessionTotal) * 100) : 0;
+        const sessionValue = currentDayStats.hasWorkout ? `${sessionDone}/${sessionTotal}` : "Descanso";
 
         const metrics = [
           {
-            label: "Frequência",
+            label: "Freq.",
+            full: "Frequência",
             value: frequencyValue || "Semanal",
-            caption: `${frequencyLabel} previsto`,
             progress: frequencyProgress,
-            variant: "support",
-            colors: ["#ff7a1f", "#f59f35", "#f8c766"]
+            icon: "ph-calendar-check"
           },
           {
-            label: "Progresso da fase",
-            value: `${phaseProgress}%`,
-            innerLabel: "da fase",
-            caption: `${APP_STATE.currentWeekNumber} de ${totalWeeks} semanas`,
-            progress: phaseProgress,
-            variant: "primary",
-            colors: ["#f59f35", "#f8c766", "#d99a32"]
+            label: "Treino",
+            full: "Treino",
+            value: sessionValue,
+            progress: sessionProgress,
+            icon: "ph-barbell"
           },
           {
-            label: "Performance",
-            value: performanceValue,
-            caption: performanceCaption || goalCaption,
-            progress: performanceProgress,
-            variant: "support",
-            colors: ["#ff8a2b", "#f4b44e", "#ffd27a"]
+            label: "Perf.",
+            full: "Performance",
+            value: `${weeklyExerciseProgress}%`,
+            progress: weeklyExerciseProgress,
+            icon: "ph-lightning"
           }
         ];
 
         DOM_ELEMENTS.phaseHeader.innerHTML = `
-            <div class="phase-header-flow" role="group" aria-label="${escapeHTML(phaseData.title)}">
-              <div class="phase-header__topline">
-                <p class="phase-header__eyebrow">${escapeHTML(phaseKicker)}</p>
+            <div class="phase-dashboard" role="group" aria-label="${escapeHTML(`${phaseIdentityTitle}. ${phaseIdentityContext}`)}" style="--phase-progress-angle: ${phaseProgressAngle}; --phase-week-count: ${phaseWeekCount};">
+              <div class="phase-dashboard__identity">
+                <h2 class="phase-title">${escapeHTML(phaseIdentityTitle)}</h2>
+                <p class="phase-dashboard__context">${escapeHTML(phaseIdentityContext)}</p>
               </div>
 
-              <div>
-                <h2 class="phase-title">${escapeHTML(phaseData.title)}</h2>
-                <p class="phase-header__subtitle">Semana ${escapeHTML(APP_STATE.currentWeekNumber)} de ${escapeHTML(totalWeeks)}</p>
-              </div>
-
-              <div class="phase-activity-dashboard" aria-label="Dashboard da fase" role="list">
-                ${metrics.map((metric, index) => {
-                  const gradientId = `phase-activity-ring-${index}`;
-                  return `
-                  <div class="phase-activity-ring phase-activity-ring--${metric.variant}" role="listitem" aria-label="${escapeHTML(`${metric.label}: ${metric.value}. ${metric.caption}`)}" style="--ring-offset: ${100 - metric.progress}; --ring-delay: ${index * 70}ms;">
-                    <div class="phase-activity-ring__visual" aria-hidden="true">
-                      <svg class="activity-ring" viewBox="0 0 100 100" focusable="false">
-                        <defs>
-                          <linearGradient id="${gradientId}" x1="18%" y1="14%" x2="82%" y2="86%">
-                            <stop offset="0%" stop-color="${metric.colors[0]}" />
-                            <stop offset="55%" stop-color="${metric.colors[1]}" />
-                            <stop offset="100%" stop-color="${metric.colors[2]}" />
-                          </linearGradient>
-                        </defs>
-                        <circle class="activity-ring__rail" cx="50" cy="50" r="42" pathLength="100"></circle>
-                        <circle class="activity-ring__track" cx="50" cy="50" r="42" pathLength="100"></circle>
-                        <circle class="activity-ring__progress" cx="50" cy="50" r="42" pathLength="100" stroke="url(#${gradientId})"></circle>
-                      </svg>
-                      <span class="phase-activity-ring__center">
-                        <span class="phase-activity-ring__value">${escapeHTML(metric.value)}</span>
-                        ${metric.innerLabel ? `<span class="phase-activity-ring__inner-label">${escapeHTML(metric.innerLabel)}</span>` : ""}
-                      </span>
-                    </div>
-                    <span class="phase-activity-ring__copy">
-                      <span class="phase-activity-ring__label">${escapeHTML(metric.label)}</span>
-                      <span class="phase-activity-ring__caption">${escapeHTML(metric.caption)}</span>
+              <div class="phase-dashboard__hero" aria-label="${escapeHTML(`Progresso da fase: ${phaseProgress}%. ${phaseProgressCaption}`)}">
+                <div class="phase-dashboard__hero-core">
+                  <div class="phase-dashboard__hero-ring" aria-hidden="true">
+                    <span class="phase-dashboard__ring-content">
+                      <strong class="phase-dashboard__hero-value">${escapeHTML(phaseProgress)}%</strong>
+                      <span class="phase-dashboard__ring-caption">fase</span>
                     </span>
                   </div>
-                `;
-                }).join("")}
+                  <div class="phase-dashboard__hero-copy">
+                    <span class="phase-dashboard__hero-label">
+                      <i class="ph-fill ${currentLevelIcon}" aria-hidden="true"></i>
+                      ${escapeHTML(currentLevelName)}
+                    </span>
+                    <p class="phase-dashboard__hero-summary">${escapeHTML(heroHeadline)} • ${escapeHTML(phaseProgressCaption)}</p>
+                  </div>
+                </div>
+                <div class="phase-dashboard__evo" aria-label="${escapeHTML(`Evolução: nível ${currentLevelName}, ${phaseProgress}% da fase`)}">
+                  <span class="phase-dashboard__evo-cap">${escapeHTML(firstLevelName)}</span>
+                  <span class="phase-dashboard__evo-rail" style="--evo-fill: ${evoFillPct.toFixed(1)}%;">
+                    <span class="phase-dashboard__evo-head" aria-hidden="true"></span>
+                  </span>
+                  <span class="phase-dashboard__evo-cap phase-dashboard__evo-cap--end">${escapeHTML(lastLevelName)}</span>
+                </div>
+                <div class="phase-dashboard__goal" aria-label="${escapeHTML(`${milestoneLabel}: ${milestoneText}`)}">
+                  <span class="phase-dashboard__goal-icon" aria-hidden="true">
+                    <i class="ph-fill ${milestoneIcon}"></i>
+                  </span>
+                  <span class="phase-dashboard__goal-copy">
+                    <span class="phase-dashboard__goal-head">
+                      <span class="phase-dashboard__goal-label">${escapeHTML(milestoneLabel)}</span>
+                      <span class="phase-dashboard__goal-tag">${escapeHTML(milestoneTag)}</span>
+                    </span>
+                    <span class="phase-dashboard__goal-text">${escapeHTML(milestoneText)}</span>
+                    <span class="phase-dashboard__goal-bar" aria-hidden="true">
+                      <span class="phase-dashboard__goal-bar-fill" style="width: ${milestoneProgress}%;"></span>
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="phase-stats" aria-label="Indicadores de performance" role="group">
+                <span class="phase-stats__rubric" aria-hidden="true">
+                  <i class="ph-fill ph-lightning phase-stats__rubric-icon"></i>
+                  <span class="phase-stats__rubric-text">Desempenho</span>
+                </span>
+                <div class="phase-stats__items" role="list">
+                  ${metrics.map(metric => `
+                    <div class="phase-stat" role="listitem" aria-label="${escapeHTML(`${metric.full}: ${metric.value}`)}" style="--metric-progress-angle: ${metric.progress * 3.6}deg;">
+                      <span class="phase-stat__ring" aria-hidden="true">
+                        <span class="phase-stat__core">
+                          <i class="ph-fill ${metric.icon}"></i>
+                        </span>
+                      </span>
+                      <span class="phase-stat__copy">
+                        <strong class="phase-stat__value">${escapeHTML(metric.value)}</strong>
+                        <span class="phase-stat__label">${escapeHTML(metric.label)}</span>
+                      </span>
+                    </div>
+                  `).join("")}
+                </div>
               </div>
             </div>
           `;
@@ -8327,18 +10277,28 @@
       const dayKeys = Object.keys(phaseData.schedule);
       DOM_ELEMENTS.daySelector.innerHTML = "";
 
+      // Identifica o próximo treino (primeiro dia de treino após o dia atual, ainda não concluído)
+      const currentIdx = dayKeys.indexOf(APP_STATE.currentDay);
+      const nextWorkoutDayIndex = dayKeys.findIndex((day, index) => {
+        if (index <= currentIdx) return false;
+        if (phaseData.schedule[day] === "OFF") return false;
+        const stats = getDayCompletionStats(APP_STATE.currentWeekNumber, day);
+        const done = stats.hasWorkout && stats.totalExercises > 0 && stats.completedExercises >= stats.totalExercises;
+        return !done;
+      });
+
       dayKeys.forEach((day, index) => {
-        DOM_ELEMENTS.daySelector.appendChild(createDayButton(day, index, phaseData));
+        DOM_ELEMENTS.daySelector.appendChild(createDayButton(day, index, phaseData, nextWorkoutDayIndex));
       });
 
       const editButton = createEditButton();
       DOM_ELEMENTS.daySelector.appendChild(editButton);
     }
 
-    function createDayButton(day, index, phaseData) {
+    function createDayButton(day, index, phaseData, nextWorkoutDayIndex = -1) {
       const workoutLetter = phaseData.schedule[day];
       const button = document.createElement("button");
-      button.textContent = day;
+      button.type = "button";
 
       const dayKeys = Object.keys(phaseData.schedule);
       const currentDayIndex = dayKeys.indexOf(APP_STATE.currentDay);
@@ -8354,41 +10314,66 @@
       const hasAnyProgress = hasWorkout && completedExercises > 0;
       const shouldFlagIncomplete = hasWorkout && !isCurrentDay && !isComplete && (isPastDay || isBeforeCurrentDay || hasAnyProgress);
 
-      let buttonClasses = "flex-1 px-1 sm:px-2 py-2 text-xs sm:text-sm rounded-lg font-bold transition-all duration-300 text-center transform hover:-translate-y-1 whitespace-nowrap ";
+      let status = "pending";
+      let title = "";
 
       if (isOffDay) {
-        buttonClasses += "bg-transparent cursor-default hover:transform-none font-light";
-        button.style.color = "var(--overlay-0)";
         button.disabled = true;
-        button.dataset.status = "off";
-        button.title = "Dia de descanso";
+        status = "off";
+        title = "Dia de descanso";
       } else if (isCurrentDay) {
-        buttonClasses += "bg-[var(--primary-color)] text-white shadow-lg shadow-[var(--primary-color)]/30";
-        button.dataset.status = "current";
+        status = "current";
+        button.setAttribute("aria-current", "date");
         if (hasWorkout) {
-          button.title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
+          title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
         }
       } else if (shouldFlagIncomplete) {
-        buttonClasses += "bg-red-600/70 text-red-100 hover:bg-red-500/70";
-        button.dataset.status = "incomplete";
+        status = "incomplete";
         if (hasWorkout) {
-          button.title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
+          title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
         }
       } else if (isComplete) {
-        buttonClasses += "bg-green-600/50 text-green-200 hover:bg-green-500/50";
-        button.dataset.status = "complete";
-        button.title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
+        status = "complete";
+        title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
       } else {
-        buttonClasses += "hover:bg-zinc-600/70";
-        button.style.background = "var(--surface-1)";
-        button.style.color = "var(--subtext-1)";
-        button.dataset.status = "pending";
+        status = "pending";
         if (hasWorkout) {
-          button.title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
+          title = `${completedExercises} de ${totalExercises} exercícios concluídos`;
         }
       }
 
-      button.className = buttonClasses;
+      const planLabel = isOffDay ? "Recuperação" : `Treino ${workoutLetter}`;
+      const badgeContent = isOffDay
+        ? '<i class="ph-fill ph-moon-stars" aria-hidden="true"></i>'
+        : escapeHTML(workoutLetter);
+      const stateIcon = isComplete ? '<span class="hf-day-pill__state" aria-hidden="true"><i class="ph-bold ph-check"></i></span>' : "";
+      const stateLabel = isCurrentDay ? (isComplete ? "dia atual concluído" : "dia atual") :
+        (isComplete ? "concluído" : (isOffDay ? "recuperação" : (status === "incomplete" ? "em andamento" : "programado")));
+
+      button.className = "hf-day-pill";
+      button.dataset.status = status;
+      if (index === nextWorkoutDayIndex && status === "pending") {
+        button.dataset.next = "true";
+      }
+      if (index === dayKeys.length - 1) {
+        button.dataset.edge = "last";
+      }
+      if (isComplete) {
+        button.dataset.complete = "true";
+      }
+      button.innerHTML = `
+        <span class="hf-day-pill__card">
+          <span class="hf-day-pill__top">
+            <span class="hf-day-pill__day">${escapeHTML(day)}</span>
+          </span>
+          <span class="hf-day-pill__badge">${badgeContent}</span>
+          ${stateIcon}
+        </span>
+      `;
+      button.setAttribute("aria-label", `${day}: ${planLabel}. ${stateLabel}${title ? `. ${title}` : ""}`);
+      if (title) {
+        button.title = title;
+      }
 
       if (!isOffDay) {
         addEventListenerSafe(button, "click", () => navigateToDay(day));
@@ -8399,11 +10384,9 @@
 
     function createEditButton() {
       const editButton = document.createElement("button");
-      editButton.className = "flex-shrink-0 flex items-center justify-center p-2 rounded-lg hover:text-[var(--primary-color)] transition-colors duration-200 whitespace-nowrap";
-      editButton.style.color = "var(--subtext-0)";
-      editButton.onmouseover = function () { this.style.background = 'var(--surface-1)'; };
-      editButton.onmouseout = function () { this.style.background = 'transparent'; };
-      editButton.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg sm:text-xl"></i>';
+      editButton.type = "button";
+      editButton.className = "hf-day-edit";
+      editButton.innerHTML = '<i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>';
       editButton.title = "Editar treinos da semana";
       addEventListenerSafe(editButton, "click", openEditModal);
       return editButton;
@@ -8427,7 +10410,15 @@
       DOM_ELEMENTS.footer.style.display = "none";
 
       if (workoutLetter === "OFF" || !phaseData.workouts[workoutLetter]) {
-        DOM_ELEMENTS.workoutTitle.innerHTML = `<h2 class="text-2xl font-light text-slate-400">Dia de Descanso</h2>`;
+        const restContext = `Recuperação ativa • ${APP_STATE.currentDay}`;
+        DOM_ELEMENTS.workoutTitle.innerHTML = `
+          <div class="hf-workout-hero" aria-label="${escapeHTML(`Dia de descanso. ${restContext}`)}">
+            <div class="hf-workout-hero__copy">
+              <h2 class="hf-workout-hero__title">Dia de Descanso</h2>
+              <p class="hf-workout-hero__meta">${escapeHTML(restContext)}</p>
+            </div>
+          </div>
+        `;
         refreshCardParallax();
         gsapScrollController.refresh();
         return;
@@ -8435,14 +10426,20 @@
 
       DOM_ELEMENTS.footer.style.display = "block";
       const workout = phaseData.workouts[workoutLetter];
-      DOM_ELEMENTS.workoutTitle.innerHTML = `<h2 class="text-3xl font-bold text-white">${workout.name}</h2>`;
 
       const totalExercises = workout.exercises.length;
       const completedExercises = Object.values(APP_STATE.completionStatus).filter(Boolean).length;
-      const progress = totalExercises > 0 ? (completedExercises / totalExercises) * 100 : 0;
+      const workoutContext = `Treino ${workoutLetter} • ${APP_STATE.currentDay} • ${completedExercises}/${totalExercises} exercícios concluídos`;
+      DOM_ELEMENTS.workoutTitle.innerHTML = `
+        <div class="hf-workout-hero" aria-label="${escapeHTML(`${workout.name}. ${workoutContext}`)}">
+          <div class="hf-workout-hero__copy">
+            <h2 class="hf-workout-hero__title">${escapeHTML(workout.name)}</h2>
+            <p class="hf-workout-hero__meta">${escapeHTML(workoutContext)}</p>
+          </div>
+        </div>
+      `;
 
       updateWorkoutButton(completedExercises >= totalExercises);
-      renderProgressBar(completedExercises, totalExercises, progress);
 
       getSeriesTrackerForCurrentWorkout();
 
@@ -8516,13 +10513,45 @@
     }
 
     function renderProgressBar(completed, total, progress) {
+      const remaining = Math.max(total - completed, 0);
+      const caption = remaining === 0
+        ? "Treino completo. Pronto para avançar."
+        : `${remaining} ${remaining === 1 ? "exercício restante" : "exercícios restantes"} para fechar o treino.`;
       DOM_ELEMENTS.progressBarContainer.innerHTML = `
-        <div class="flex justify-between items-center mb-1 text-base font-light">
-          <span style="color: var(--subtext-0);">Progresso do Treino</span>
-          <span class="font-semibold text-white">${completed} / ${total}</span>
+        <div class="hf-workout-progress" aria-label="${escapeHTML(`Progresso do treino: ${completed} de ${total}`)}">
+          <div class="hf-workout-progress__top">
+            <span class="hf-workout-progress__label">
+              <i class="ph-bold ph-pulse" aria-hidden="true"></i>
+              Progresso do treino
+            </span>
+            <span class="hf-workout-progress__value">${escapeHTML(completed)} / ${escapeHTML(total)}</span>
+          </div>
+          <div class="hf-workout-progress__track" aria-hidden="true">
+            <span class="hf-workout-progress__fill" style="width: ${progress}%"></span>
+          </div>
+          <span class="hf-workout-progress__caption">${escapeHTML(caption)}</span>
         </div>
-        <div class="w-full rounded-full h-2.5 overflow-hidden" style="background: var(--surface-1);">
-          <div class="bg-[var(--primary-color)] h-2.5 rounded-full transition-all duration-500 progress-bar-striped" style="width: ${progress}%"></div>
+      `;
+    }
+
+    function renderProgressBar(completed, total, progress) {
+      const remaining = Math.max(total - completed, 0);
+      const caption = remaining === 0
+        ? "Treino completo. Pronto para avançar."
+        : `${remaining} ${remaining === 1 ? "exercício restante" : "exercícios restantes"} para fechar o treino.`;
+      DOM_ELEMENTS.progressBarContainer.innerHTML = `
+        <div class="hf-workout-progress" aria-label="${escapeHTML(`Progresso do treino: ${completed} de ${total}`)}">
+          <div class="hf-workout-progress__top">
+            <span class="hf-workout-progress__label">
+              <i class="ph-bold ph-pulse" aria-hidden="true"></i>
+              Progresso do treino
+            </span>
+            <span class="hf-workout-progress__value">${escapeHTML(completed)} / ${escapeHTML(total)}</span>
+          </div>
+          <div class="hf-workout-progress__track" aria-hidden="true">
+            <span class="hf-workout-progress__fill" style="width: ${progress}%"></span>
+          </div>
+          <span class="hf-workout-progress__caption">${escapeHTML(caption)}</span>
         </div>
       `;
     }
@@ -14228,6 +16257,22 @@
         if (event.key === 'Escape' && isProgramDeleteModalOpen()) {
           event.preventDefault();
           closeProgramDeleteModal();
+        }
+      });
+
+      // Bottom sheet de semanas (mobile)
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-action="close-week-sheet"]')) {
+          closeWeekSheet();
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          const sheet = document.getElementById('week-sheet');
+          if (sheet && sheet.classList.contains('is-open')) {
+            event.preventDefault();
+            closeWeekSheet();
+          }
         }
       });
     }
