@@ -2638,6 +2638,7 @@
       overflow: hidden;
       isolation: isolate;
       background:
+        radial-gradient(ellipse at top right, rgba(255, 170, 70, 0.15) 0%, transparent 60%),
         linear-gradient(135deg, rgba(255, 122, 31, 0.22), rgba(255, 122, 31, 0.05) 70%),
         rgba(12, 11, 19, 0.32);
       box-shadow:
@@ -2648,15 +2649,21 @@
     .phase-dashboard__goal::before {
       content: "";
       position: absolute;
-      right: -2.5rem;
-      top: -2.5rem;
-      width: 7rem;
-      height: 7rem;
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 154, 82, 0.32), transparent 68%);
-      opacity: 0.85;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      overflow: hidden;
+      opacity: 0.9;
       pointer-events: none;
       z-index: 0;
+      background-image: url("src/assets/phase-goal-glitter.svg");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      background-origin: border-box;
+      background-clip: border-box;
+      mix-blend-mode: screen;
     }
 
     .phase-dashboard__goal-icon {
@@ -3137,6 +3144,7 @@
 
     [data-theme="claro"] .phase-dashboard__goal {
       background:
+        radial-gradient(ellipse at top right, rgba(255, 180, 80, 0.25) 0%, transparent 60%),
         linear-gradient(135deg, rgba(255, 122, 31, 0.18), rgba(255, 255, 255, 0.6) 70%),
         rgba(255, 255, 255, 0.5);
       box-shadow:
