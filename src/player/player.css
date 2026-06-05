@@ -903,7 +903,7 @@
 
 /* Player Controls Bar */
 #player-controls-bar {
-  bottom: 20px;
+  bottom: 96px;
   left: 20px;
   right: 20px;
   z-index: 54;
