@@ -57,7 +57,7 @@
       </div>
     </div>
     <!-- Conteúdo scrollável (por cima do carrossel quando scrollado) -->
-    <div id="discover-container" class="absolute inset-0 overflow-y-auto px-4 sm:px-6 pb-24 scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
+    <div id="discover-container" class="player-scroll-surface absolute inset-0 overflow-y-auto px-4 sm:px-6 scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
       <!-- Spacer para o carrossel -->
       <div id="discover-top-spacer" style="pointer-events: none;"></div>
 
@@ -89,10 +89,10 @@
     <div id="playlists-container" class="scrollbar-hide" style="z-index: 10;">
     </div>
     <!-- Tracks (scroll vertical) -->
-    <div id="tracks-container" class="absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[130px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
+    <div id="tracks-container" class="player-scroll-surface absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[130px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
       <!-- Empty state com passo a passo de importação -->
       <div id="playlist-empty-state"
-        class="absolute inset-0 flex flex-col items-center justify-center text-center px-3" style="padding-bottom: 180px;">
+        class="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
         <i class="ph-bold ph-music-notes-plus text-3xl sm:text-4xl text-white/20 mb-2 sm:mb-3"></i>
         <p class="text-white/60 text-xs sm:text-sm font-medium mb-3 sm:mb-4">Importe sua biblioteca de músicas</p>
 
@@ -135,8 +135,8 @@
   <!-- TELA 2: YouTube Search -->
   <div id="player-screen-youtube" class="player-screen flex-1 flex flex-col min-h-0 hidden relative" style="overflow: visible !important;">
     <!-- Resultados da busca -->
-    <div id="youtube-search-content" class="absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[60px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
-      <div id="youtube-empty-state" class="flex flex-col items-center justify-center min-h-full text-center px-4 sm:px-6" style="padding-bottom: 100px; padding-top: 40px;">
+    <div id="youtube-search-content" class="player-scroll-surface absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[60px] scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
+      <div id="youtube-empty-state" class="flex flex-col items-center justify-center min-h-full text-center px-4 sm:px-6" style="padding-top: 40px;">
         <i class="ph-bold ph-youtube-logo text-5xl text-white/20 mb-4"></i>
         <p class="text-white/50 text-sm">Busque músicas e playlists diretamente no YouTube</p>
         <p class="text-white/30 text-xs mt-1">Os resultados aparecerão aqui</p>
@@ -147,7 +147,7 @@
 
   <!-- TELA 3: Rádio -->
   <div id="player-screen-radio" class="player-screen flex-1 flex flex-col min-h-0 hidden relative">
-    <div id="radio-channels-container" class="absolute inset-0 overflow-y-auto px-4 sm:px-6 pt-[60px] pb-[180px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 30px, rgba(0,0,0,0.5) 80px, rgba(0,0,0,0.85) 130px, black 180px); mask-image: linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 30px, rgba(0,0,0,0.5) 80px, rgba(0,0,0,0.85) 130px, black 180px);">
+    <div id="radio-channels-container" class="player-scroll-surface absolute inset-0 overflow-y-auto px-4 sm:px-6 pt-[60px] scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
 
       <!-- Destaques do Canal -->
       <div class="py-4 pt-8">

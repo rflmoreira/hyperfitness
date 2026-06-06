@@ -6757,7 +6757,7 @@
     }
 
     #main-content {
-      padding-bottom: calc(var(--quick-actions-reserved-bottom) + 4.5rem) !important;
+      padding-bottom: clamp(1rem, 4vh, 2rem) !important;
     }
 
     .program-overlay,
@@ -6769,9 +6769,12 @@
     #exercise-edit-modal,
     #rename-modal,
     #delete-modal,
-    #builder-screen .builder-content,
-    #player-modal {
+    #builder-screen .builder-content {
       padding-bottom: max(var(--quick-actions-reserved-bottom), 1rem);
+    }
+
+    #player-modal {
+      padding-bottom: 0 !important;
     }
 
     @media (min-width:1280px) {

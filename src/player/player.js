@@ -3592,6 +3592,7 @@ const MUSIC_PLAYER = (() => {
         <p class="text-sm">Buscando ${searchTypeLabel} "${query}"...</p>
       </div>
     `;
+    resultsContainer.classList.remove('is-empty');
     resultsContainer.classList.remove('hidden');
 
     if (ui.manualSearchBtn) {
@@ -3605,8 +3606,9 @@ const MUSIC_PLAYER = (() => {
         // Busca de playlists
         if (!response || !response.playlists || !response.playlists.length) {
           youtubeSearchState.isLoading = false;
+          resultsContainer.classList.add('is-empty');
           resultsContainer.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 text-white/50">
+            <div class="manual-search-empty-state flex flex-col items-center justify-center py-12 text-white/50">
               <i class="ph-bold ph-playlist text-4xl mb-3 opacity-50"></i>
               <p class="text-sm">Nenhuma playlist encontrada para "${query}"</p>
               <p class="text-xs mt-1 opacity-70">Tente outros termos de busca</p>
@@ -3621,8 +3623,9 @@ const MUSIC_PLAYER = (() => {
         // Busca de faixas
         if (!response || !response.videos || !response.videos.length) {
           youtubeSearchState.isLoading = false;
+          resultsContainer.classList.add('is-empty');
           resultsContainer.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 text-white/50">
+            <div class="manual-search-empty-state flex flex-col items-center justify-center py-12 text-white/50">
               <i class="ph-bold ph-magnifying-glass text-4xl mb-3 opacity-50"></i>
               <p class="text-sm">Nenhum resultado para "${query}"</p>
               <p class="text-xs mt-1 opacity-70">Tente outros termos de busca</p>
@@ -3643,6 +3646,7 @@ const MUSIC_PLAYER = (() => {
       youtubeSearchState.isLoading = false;
       if (error.name === 'AbortError') return;
       console.error('[MANUAL SEARCH] Error:', error);
+      resultsContainer.classList.remove('is-empty');
       resultsContainer.innerHTML = `
         <div class="text-center py-6 text-red-400/80 text-sm">
           Erro na busca: ${error.message}
@@ -3693,6 +3697,7 @@ const MUSIC_PLAYER = (() => {
     if (!container) return;
 
     if (ui.youtubeEmptyState) ui.youtubeEmptyState.classList.add('hidden');
+    container.classList.remove('is-empty');
     container.classList.remove('hidden');
 
     if (ui.youtubeSearchContent) {
@@ -3788,6 +3793,7 @@ const MUSIC_PLAYER = (() => {
 
     // Esconde empty state e mostra resultados
     if (ui.youtubeEmptyState) ui.youtubeEmptyState.classList.add('hidden');
+    container.classList.remove('is-empty');
     container.classList.remove('hidden');
     
     // Reseta scroll na primeira renderização
@@ -6657,7 +6663,8 @@ const MUSIC_PLAYER = (() => {
     // Configura interação entre grid e tracks
     setupGridTracksInteraction();
     
-    // Configura o mask fixo baseado na posição da grid
+    // O conteúdo deve continuar visível sob as camadas fixas, sem máscara
+    // aplicada no container de scroll.
     requestAnimationFrame(() => {
       setupTracksMask();
     });
@@ -6746,33 +6753,12 @@ const MUSIC_PLAYER = (() => {
     }
   }
   
-  // Configura o mask fixo baseado na posição da grid (chamado uma vez)
+  // Garante que as faixas rolem sob o footer fixo em vez de parar antes dele.
   function setupTracksMask() {
-    if (!ui.tracksContainer || !ui.playlistsContainer) return;
-    
-    // Calcula a posição real da grid
-    const playlistsRect = ui.playlistsContainer.getBoundingClientRect();
-    const tracksRect = ui.tracksContainer.getBoundingClientRect();
-    
-    // Posição do topo da grid relativa ao viewport do container
-    const gridTop = playlistsRect.top - tracksRect.top;
-    const gridBottom = gridTop + playlistsRect.height;
-    
-    // O blur começa onde a grid começa e termina onde a grid termina
-    const fadeStart = Math.max(0, gridTop);
-    const fadeEnd = gridBottom;
-    
-    // Mask fixo - não muda com scroll
-    const maskImage = `linear-gradient(to bottom, 
-      transparent 0px, 
-      transparent ${fadeStart}px, 
-      rgba(0,0,0,0.15) ${fadeStart + 30}px, 
-      rgba(0,0,0,0.5) ${fadeStart + 80}px, 
-      rgba(0,0,0,0.85) ${fadeStart + 130}px, 
-      black ${fadeEnd}px)`;
-    
-    ui.tracksContainer.style.maskImage = maskImage;
-    ui.tracksContainer.style.webkitMaskImage = maskImage;
+    if (!ui.tracksContainer) return;
+
+    ui.tracksContainer.style.maskImage = 'none';
+    ui.tracksContainer.style.webkitMaskImage = 'none';
   }
 
   function markTrackUnavailable(index) {
