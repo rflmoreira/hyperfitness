@@ -3628,14 +3628,13 @@
 
     .hf-week-summary__main {
       position: relative;
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 0.8rem;
+      gap: 1rem;
       width: 100%;
-      min-height: var(--hf-week-nav-height);
-      padding: 0.85rem;
-      border-radius: 12px;
+      padding: 0.65rem 0.8rem;
+      border-radius: 999px;
       overflow: hidden;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
@@ -4058,16 +4057,16 @@
       padding: 0.34rem 0.16rem;
       border-radius: 1.08rem;
       background:
-        radial-gradient(120% 105% at 50% -32%, rgba(255, 255, 255, 0.09), transparent 56%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.014)),
-        rgba(16, 16, 24, 0.42);
-      border: 1px solid rgba(205, 214, 244, 0.085);
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
+        rgba(20, 19, 24, 0.15);
       box-shadow:
-        0 18px 42px -34px rgba(0, 0, 0, 0.95),
-        0 10px 24px -30px rgba(255, 122, 31, 0.58),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      -webkit-backdrop-filter: blur(12px) saturate(180%) brightness(1.14);
-      backdrop-filter: blur(12px) saturate(180%) brightness(1.14);
+        0 24px 48px -12px rgba(0, 0, 0, 0.75),
+        0 12px 24px -8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
       overflow: hidden;
     }
 
@@ -10987,41 +10986,29 @@
         <button type="button" class="hf-week-summary__main hf-gamified-compact" aria-label="${escapeHTML(`${phaseLauncherLabel}. Semana ${current} de ${totalWeeks}. ${workoutPrimary}. ${workoutFocus}. ${weeklyCompletionLabel} treinos concluídos. Abrir detalhes da semana.`)}" style="--week-progress-angle: ${phasePct * 3.6}deg; --week-completion-angle: ${weekFillPct * 3.6}deg; --week-fill: ${weekFillPct}%;">
           <span class="hf-gamified-glow" aria-hidden="true"></span>
           
-          <span class="hf-gamified-ring phase-rings" style="--phase-rings-size: 4.6rem;">
+          <span class="hf-gamified-ring phase-rings" style="--phase-rings-size: 4.0rem;">
             <span class="phase-rings__ring phase-rings__ring--phase" style="--ring-angle: ${weekFillPct * 3.6}deg;"></span>
-            <span class="phase-rings__ring phase-rings__ring--week" style="--ring-angle: ${programPct * 3.6}deg; opacity: 0.75; filter: saturate(0.85); --ring-stroke: var(--inner-ring-stroke); --ring-inset: calc(0.3rem + var(--ring-gap));"></span>
-            <span class="hf-gamified-ring-inner" style="z-index: 5; position: relative;">
+            <span class="phase-rings__ring phase-rings__ring--week" style="--ring-angle: ${programPct * 3.6}deg; opacity: 0.75; filter: saturate(0.85); --ring-stroke: 0.32rem; --ring-inset: 0.44rem;"></span>
+            <span class="hf-gamified-ring-inner" style="z-index: 5; position: relative; font-size: 1.15rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
               ${isFinishCurrent ? '<i class="ph-fill ph-flag-checkered"></i>' : `<strong class="hf-gamified-num">${current}</strong>`}
             </span>
           </span>
           
-          <span class="hf-compact-content">
-            <span class="hf-compact-header">
-              <span class="hf-compact-week">Semana ${current} <span class="hf-compact-total">de ${totalWeeks}</span></span>
-              <span class="hf-compact-action">
-                <i class="ph-bold ph-caret-right"></i>
-              </span>
+          <span class="hf-compact-content" style="transform: none; display: flex; flex-direction: column; justify-content: center; gap: 0.15rem; margin-top: -0.05rem;">
+            <span style="display: flex; align-items: baseline; gap: 0.3rem; min-width: 0; white-space: nowrap;">
+              <span style="color: rgba(255, 250, 245, 0.99); font-size: 0.9rem; font-weight: 850; line-height: 1.1;">Semana ${current}</span>
+              <span style="color: rgba(255, 154, 82, 0.5); font-size: 0.7rem;">•</span>
+              <span style="color: rgba(255, 214, 184, 0.75); font-size: 0.75rem; font-weight: 700; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em;">${escapeHTML(summaryIdentity.title)}</span>
             </span>
-            
-            <span class="hf-compact-workout">
-              <span class="hf-workout-title">${escapeHTML(workoutPrimary)}</span>
-              <span class="hf-workout-dot">•</span>
-              <span class="hf-workout-focus">${escapeHTML(workoutFocus)}</span>
+            <span style="display: flex; align-items: baseline; gap: 0.3rem; min-width: 0; white-space: nowrap;">
+              <span style="color: #ff9740; font-size: 0.88rem; font-weight: 850; line-height: 1.1;">${escapeHTML(workoutPrimary)}</span>
+              <span style="color: rgba(255, 154, 82, 0.5); font-size: 0.7rem;">•</span>
+              <span style="color: rgba(255, 255, 255, 0.65); font-size: 0.8rem; font-weight: 550; line-height: 1.1; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(workoutFocus)}</span>
             </span>
-            
-            <span class="hf-compact-progress">
-              <span class="hf-compact-progress-text">
-                <strong>${summaryDoneWorkouts}</strong> de ${summaryTotal} treinos concluídos
-              </span>
-              <span class="hf-compact-meter">
-                <span class="hf-compact-meter-fill" style="width: ${weekFillPct}%;"></span>
-                <span class="hf-compact-meter-glint"></span>
-              </span>
-            </span>
-
-            <span class="hf-compact-context">
-              ${escapeHTML(phaseLauncherLabel)}
-            </span>
+          </span>
+          
+          <span class="hf-compact-action" style="display: flex; align-items: center; justify-content: center; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: linear-gradient(135deg, rgba(255, 122, 31, 0.1), rgba(255, 122, 31, 0.01)); border: 1px solid rgba(255, 122, 31, 0.04); color: #ff9740; flex-shrink: 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04); margin-left: -0.3rem;">
+            <i class="ph-bold ph-caret-right" style="font-size: 1.05rem; margin-left: 0.15rem;"></i>
           </span>
         </button>
       `;
