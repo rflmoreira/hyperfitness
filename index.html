@@ -2666,30 +2666,32 @@
 
     .phase-dashboard__hero {
       position: relative;
-      display: grid;
-      gap: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
       min-width: 0;
-      padding: 0.95rem;
-      border-radius: 8px;
+      padding: clamp(1rem, 3.5vw, 1.25rem);
+      border-radius: 16px;
       overflow: hidden;
-      color: rgba(255, 248, 240, 0.96);
+      isolation: isolate;
       background:
-        linear-gradient(145deg, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.075) 44%, rgba(255, 255, 255, 0.03)),
-        rgba(21, 20, 29, 0.76);
-      border: 1px solid rgba(255, 122, 31, 0.2);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
+        rgba(20, 19, 24, 0.15);
       box-shadow:
-        0 20px 44px -36px rgba(0, 0, 0, 0.9),
-        0 14px 34px -32px rgba(255, 122, 31, 0.58),
-        inset 0 1px 0 rgba(255, 255, 255, 0.065);
-      -webkit-backdrop-filter: blur(16px) saturate(122%);
-      backdrop-filter: blur(16px) saturate(122%);
+        0 30px 60px -12px rgba(0, 0, 0, 0.8),
+        0 12px 24px -8px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
     }
 
     .phase-dashboard__hero::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.16), transparent 60%);
+      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.05), transparent 60%);
       pointer-events: none;
     }
 
@@ -2701,8 +2703,8 @@
       width: 12rem;
       height: 12rem;
       border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.065) 48%, transparent 72%);
-      opacity: 0.72;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.08), rgba(255, 122, 31, 0.02) 48%, transparent 72%);
+      opacity: 0.6;
       pointer-events: none;
     }
 
@@ -2875,12 +2877,16 @@
       overflow: hidden;
       isolation: isolate;
       background:
-        radial-gradient(ellipse at top right, rgba(255, 170, 70, 0.08) 0%, transparent 60%),
-        linear-gradient(135deg, rgba(255, 122, 31, 0.12), rgba(255, 122, 31, 0.03) 70%),
-        rgba(12, 11, 19, 0.4);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
+        rgba(20, 19, 24, 0.15);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        inset 0 0 0 1px rgba(255, 154, 82, 0.12);
+        0 20px 40px -12px rgba(0, 0, 0, 0.7),
+        0 8px 16px -8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
     }
 
     .phase-dashboard__goal::before {
@@ -3001,20 +3007,21 @@
       gap: 0.62rem;
       min-width: 0;
       padding: 0.58rem 0.66rem 0.58rem 0.48rem;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       isolation: isolate;
       color: rgba(255, 248, 240, 0.96);
       background:
-        linear-gradient(145deg, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.075) 44%, rgba(255, 255, 255, 0.03)),
-        rgba(21, 20, 29, 0.76);
-      border: 1px solid rgba(255, 122, 31, 0.2);
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
+        rgba(20, 19, 24, 0.15);
       box-shadow:
-        0 20px 44px -36px rgba(0, 0, 0, 0.9),
-        0 14px 34px -32px rgba(255, 122, 31, 0.58),
-        inset 0 1px 0 rgba(255, 255, 255, 0.065);
-      -webkit-backdrop-filter: blur(16px) saturate(122%);
-      backdrop-filter: blur(16px) saturate(122%);
+        0 24px 48px -12px rgba(0, 0, 0, 0.75),
+        0 12px 24px -8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
     }
 
     .phase-stats::before,
@@ -3028,7 +3035,7 @@
     }
 
     .phase-stats::before {
-      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.16), transparent 60%);
+      background: radial-gradient(120% 78% at 50% -12%, rgba(255, 122, 31, 0.04), transparent 60%);
     }
 
     .phase-stats::after {
@@ -3039,8 +3046,8 @@
       width: 12rem;
       height: 12rem;
       border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 122, 31, 0.2), rgba(255, 122, 31, 0.065) 48%, transparent 72%);
-      opacity: 0.72;
+      background: radial-gradient(circle, rgba(255, 122, 31, 0.06), rgba(255, 122, 31, 0.02) 48%, transparent 72%);
+      opacity: 0.6;
     }
 
     .phase-stats__rubric {
@@ -3628,7 +3635,6 @@
       width: 100%;
       min-height: var(--hf-week-nav-height);
       padding: 0.85rem;
-      border: 1px solid rgba(255, 122, 31, 0.22);
       border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
@@ -3636,16 +3642,17 @@
       text-align: left;
       color: rgba(255, 248, 240, 0.96);
       background:
-        radial-gradient(100% 100% at 50% 0%, rgba(255, 122, 31, 0.12), transparent 80%),
-        linear-gradient(145deg, rgba(255, 122, 31, 0.15), rgba(255, 122, 31, 0.05) 44%, rgba(255, 255, 255, 0.02)),
-        rgba(18, 17, 24, 0.85);
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
+        rgba(20, 19, 24, 0.15);
       box-shadow:
-        0 18px 36px -20px rgba(0, 0, 0, 0.9),
-        0 8px 16px -8px rgba(255, 122, 31, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      -webkit-backdrop-filter: blur(20px) saturate(130%);
-      backdrop-filter: blur(20px) saturate(130%);
-      transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1), border-color 250ms ease, box-shadow 250ms ease;
+        0 24px 48px -12px rgba(0, 0, 0, 0.75),
+        0 12px 24px -8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 250ms ease;
       isolation: isolate;
     }
 
@@ -3655,17 +3662,17 @@
       inset: 0;
       z-index: -1;
       pointer-events: none;
-      background: radial-gradient(ellipse at 50% 0%, rgba(255, 154, 82, 0.15), transparent 70%);
+      background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.04), transparent 70%);
       transition: opacity 250ms ease;
     }
 
     .hf-week-summary__main:hover {
-      border-color: rgba(255, 154, 82, 0.4);
+      border-color: rgba(255, 255, 255, 0.08);
       transform: translateY(-1px);
       box-shadow:
         0 22px 42px -20px rgba(0, 0, 0, 0.95),
-        0 12px 24px -10px rgba(255, 122, 31, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        0 12px 24px -10px rgba(255, 122, 31, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .hf-week-summary__main:hover .hf-gamified-glow {
@@ -6390,18 +6397,18 @@
       z-index: -1;
       overflow: hidden;
       pointer-events: none;
-      background-color: var(--background-dark);
+      background-color: #0c0b0e;
       background-image:
-        linear-gradient(112deg, rgba(var(--energy-orange), 0.078), transparent 30%, rgba(var(--energy-orange), 0.035) 62%, transparent 100%),
-        linear-gradient(180deg, rgba(8, 8, 14, 0.2), transparent 18%, transparent 80%, rgba(8, 8, 14, 0.2));
+        linear-gradient(112deg, rgba(255, 255, 255, 0.03), transparent 30%, rgba(255, 255, 255, 0.015) 62%, transparent 100%),
+        linear-gradient(180deg, rgba(5, 5, 8, 0.5), transparent 20%, transparent 80%, rgba(5, 5, 8, 0.5));
       /* Borda de transição bem definida: cantos superiores arredondados criam a
          divisão arredondada entre o header (atrás) e o conteúdo que sobe por
          cima. A sombra projetada para cima reforça a profundidade, destacando
          que o #main-content está sobreposto ao header. */
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
       border-top-left-radius: clamp(20px, 4vw, 34px);
       border-top-right-radius: clamp(20px, 4vw, 34px);
-      box-shadow: 0 -16px 38px -10px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 -16px 38px -10px rgba(0, 0, 0, 0.75);
     }
 
     #page-background::before {
@@ -6409,16 +6416,16 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(118deg, rgba(var(--energy-orange), 0.052), transparent 32%, rgba(var(--energy-orange), 0.022) 72%, transparent 100%),
-        linear-gradient(90deg, rgba(7, 8, 13, 0.2), transparent 18%, transparent 82%, rgba(7, 8, 13, 0.22));
+        radial-gradient(ellipse at top right, rgba(255, 122, 31, 0.05) 0%, transparent 60%),
+        linear-gradient(118deg, rgba(255, 255, 255, 0.02), transparent 32%, rgba(255, 255, 255, 0.008) 72%, transparent 100%);
     }
 
     #page-background::after {
       content: "";
       position: absolute;
       inset: 0;
-      opacity: 0.22;
-      background: repeating-linear-gradient(116deg, transparent 0 92px, rgba(255, 255, 255, 0.025) 93px, transparent 94px);
+      opacity: 0.1;
+      background: repeating-linear-gradient(116deg, transparent 0 92px, rgba(255, 255, 255, 0.02) 93px, transparent 94px);
       -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
       mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
     }
