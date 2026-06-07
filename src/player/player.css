@@ -248,7 +248,7 @@
   opacity: 1;
 }
 
-.manual-search-item > * {
+.manual-search-item>* {
   position: relative;
   z-index: 1;
 }
@@ -269,10 +269,21 @@
   animation: soundWave 0.8s ease-in-out infinite;
 }
 
-.manual-search-item.active.playing .sound-wave-bar:nth-child(1) { animation-delay: 0s; }
-.manual-search-item.active.playing .sound-wave-bar:nth-child(2) { animation-delay: 0.15s; }
-.manual-search-item.active.playing .sound-wave-bar:nth-child(3) { animation-delay: 0.3s; }
-.manual-search-item.active.playing .sound-wave-bar:nth-child(4) { animation-delay: 0.45s; }
+.manual-search-item.active.playing .sound-wave-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.manual-search-item.active.playing .sound-wave-bar:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.manual-search-item.active.playing .sound-wave-bar:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.manual-search-item.active.playing .sound-wave-bar:nth-child(4) {
+  animation-delay: 0.45s;
+}
 
 .manual-search-item .search-item-duration {
   font-variant-numeric: tabular-nums;
@@ -355,13 +366,29 @@
 /* ====== Carrossel 3D Ultra Premium ====== */
 
 @keyframes carousel-glow-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes carousel-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 #playlists-container {
@@ -465,16 +492,14 @@
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  background: linear-gradient(
-    115deg,
-    transparent 0%,
-    transparent 30%,
-    rgba(255, 255, 255, 0.06) 38%,
-    rgba(255, 255, 255, 0.12) 44%,
-    rgba(255, 255, 255, 0.06) 50%,
-    transparent 58%,
-    transparent 100%
-  );
+  background: linear-gradient(115deg,
+      transparent 0%,
+      transparent 30%,
+      rgba(255, 255, 255, 0.06) 38%,
+      rgba(255, 255, 255, 0.12) 44%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 58%,
+      transparent 100%);
   background-size: 300% 100%;
   background-position: 100% 0;
   pointer-events: none;
@@ -558,6 +583,7 @@
     opacity: 0;
     pointer-events: none;
   }
+
   .playlist-item.carousel-active:active .carousel-hover-overlay {
     opacity: 1;
     pointer-events: auto;
@@ -584,8 +610,17 @@
 }
 
 @keyframes carousel-shadow-breathe {
-  0%, 100% { transform: scaleX(1); opacity: 1; }
-  50% { transform: scaleX(0.85); opacity: 0.6; }
+
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scaleX(0.85);
+    opacity: 0.6;
+  }
 }
 
 /* ---- Estado ativo — destaque máximo ---- */
@@ -707,7 +742,7 @@
 }
 
 #player-header-buttons button,
-#player-header-buttons > div {
+#player-header-buttons>div {
   pointer-events: auto;
 }
 
@@ -755,13 +790,27 @@
 }
 
 @keyframes slide-from-left {
-  from { transform: translateX(-60px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-60px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slide-from-right {
-  from { transform: translateX(60px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(60px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 
@@ -771,10 +820,14 @@
   padding: 12px 24px;
   border-radius: 9999px;
   background: rgba(25, 25, 25, 0.55);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;
+  box-shadow:
+    0 24px 48px -12px rgba(0, 0, 0, 0.75),
+    0 12px 24px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
   -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
-  border: 1px solid rgba(255, 255, 255, 0.18);
   transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
 }
 
@@ -1055,7 +1108,7 @@
   transform: translateY(0);
 }
 
-#player-feedback > div {
+#player-feedback>div {
   pointer-events: auto;
 }
 
@@ -1246,18 +1299,18 @@
     height: 100%;
     max-height: 100dvh;
   }
-  
+
   #player-screen-playlist {
     overflow: hidden !important;
     margin-top: -55px;
   }
-  
+
   #player-screen-playlist #tracks-container {
     overflow-y: auto !important;
     padding-top: 140px;
     padding-bottom: 0 !important;
   }
-  
+
   #player-tabs-bar {
     top: 140px;
     padding: 5px 6px;
@@ -1283,7 +1336,7 @@
   #player-tabs-bar .player-tab span {
     font-size: 0.65rem;
   }
-  
+
   #player-modal header {
     padding: 0.75rem 1rem;
   }
@@ -1320,7 +1373,7 @@
     width: 32px;
     height: 32px;
   }
-  
+
   #mini-player-bar {
     bottom: 90px;
     padding: 10px 16px;
@@ -1329,6 +1382,7 @@
 
 /* Responsividade Desktop */
 @media (min-width: 769px) {
+
   #player-modal>header,
   #player-modal>#player-screen-discover,
   #player-modal>#player-screen-playlist,
@@ -1339,7 +1393,7 @@
     margin-right: auto;
     width: 100%;
   }
-  
+
   #player-modal #tracks-container {
     padding-bottom: 0 !important;
   }
@@ -1356,7 +1410,7 @@
   #player-feedback.visible {
     transform: translateX(-50%) translateY(0);
   }
-  
+
   #mini-player-bar {
     left: 50%;
     right: auto;
@@ -1541,8 +1595,13 @@
 }
 
 @keyframes dot-progress {
-  from { width: 0%; }
-  to { width: 100%; }
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
 }
 
 /* Desktop */
@@ -1566,7 +1625,7 @@
 }
 
 /* Discover container content items */
-#discover-container > div {
+#discover-container>div {
   position: relative;
   z-index: 25;
   pointer-events: auto !important;
@@ -1682,9 +1741,12 @@
 
 /* Animações do Player */
 @keyframes soundWave {
-  0%, 100% {
+
+  0%,
+  100% {
     height: 8px;
   }
+
   50% {
     height: 24px;
   }
@@ -1703,16 +1765,16 @@
   transform: translateX(-50%);
   width: 100vw;
   height: 420px;
-  background: 
+  background:
     url('../imagens/radio/Sunshine_Live_90er_2024.jpg') center top / cover no-repeat;
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
-  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.4) 30%, black 50%, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.4) 30%, black 50%, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
 }
 
-#player-screen-radio > * {
+#player-screen-radio>* {
   position: relative;
   z-index: 1;
 }
