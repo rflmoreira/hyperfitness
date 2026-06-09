@@ -2408,7 +2408,6 @@
 
     html {
       overflow-x: hidden;
-      overflow-y: auto;
       width: 100%;
       max-width: 100%;
       position: relative;
@@ -2425,7 +2424,6 @@
       -webkit-user-select: none;
       overscroll-behavior-y: auto;
       overflow-x: hidden;
-      overflow-y: auto;
       width: 100%;
       max-width: 100%;
       position: relative;
@@ -2455,22 +2453,24 @@
     }
 
 
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px
-    }
+    @media (hover: hover) and (pointer: fine) {
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px
+      }
 
-    ::-webkit-scrollbar-track {
-      background: var(--background-darker)
-    }
+      ::-webkit-scrollbar-track {
+        background: var(--background-darker)
+      }
 
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary-color);
-      border-radius: 10px
-    }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px
+      }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-hover)
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-hover)
+      }
     }
 
     .scrollbar-hide {
@@ -6494,7 +6494,8 @@
     .container,
     #main-content {
       max-width: 100%;
-      overflow-x: hidden
+      overflow-x: hidden;
+      overflow-y: visible !important;
     }
 
     /* Espaço no topo para revelar o header fixo (logo + imagem) atrás do
@@ -6979,6 +6980,11 @@
       }
     }
 
+    .home-dashboard-shell {
+      overflow: visible !important;
+      height: auto !important;
+    }
+
     @media (min-width:1024px) {
       #main-content {
         width: 100%;
@@ -7258,9 +7264,10 @@
       height: 100%;
       object-fit: cover;
       object-position: center;
-      transform: translate3d(0, var(--card-parallax-offset, 0), 0) scale(var(--card-image-scale, 1.05));
-      transition: transform 0.6s ease;
-      will-change: transform;
+      transform: translate3d(0, var(--card-parallax-offset, 0), 0);
+      scale: var(--card-image-scale, 1.05);
+      transition: scale 0.6s ease;
+      will-change: transform, scale;
       pointer-events: none
     }
 
@@ -7272,7 +7279,7 @@
     @media (prefers-reduced-motion:reduce) {
       .workout-card .exercise-card-image {
         transition-duration: 0.3s;
-        transform: scale(1.02)
+        scale: 1.02
       }
     }
 
@@ -8687,6 +8694,8 @@
       background-size: cover;
       background-position: center top;
       background-repeat: no-repeat;
+      will-change: transform;
+      transform: translateZ(0);
       z-index: 0;
     }
 
@@ -12333,14 +12342,17 @@
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
       const viewportCenter = viewportHeight / 2;
 
+      const updates = [];
+
+      // Fase 1: Leituras do DOM (evita layout thrashing)
       CARD_PARALLAX_STATE.items.forEach(({ image }, card) => {
         if (!image || !card.isConnected) {
-          CARD_PARALLAX_STATE.items.delete(card);
+          updates.push({ card, delete: true });
           return;
         }
 
         if (PREFERS_REDUCED_MOTION_QUERY && PREFERS_REDUCED_MOTION_QUERY.matches) {
-          image.style.setProperty('--card-parallax-offset', '0px');
+          updates.push({ image, offset: '0px' });
           return;
         }
 
@@ -12350,7 +12362,16 @@
         const normalized = distanceFromCenter / viewportHeight;
         const offset = Math.max(-18, Math.min(18, normalized * -42));
 
-        image.style.setProperty('--card-parallax-offset', `${offset.toFixed(2)}px`);
+        updates.push({ image, offset: `${offset.toFixed(2)}px` });
+      });
+
+      // Fase 2: Escritas no DOM
+      updates.forEach(update => {
+        if (update.delete) {
+          CARD_PARALLAX_STATE.items.delete(update.card);
+        } else {
+          update.image.style.setProperty('--card-parallax-offset', update.offset);
+        }
       });
     }
 
