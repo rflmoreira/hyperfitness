@@ -2347,10 +2347,8 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
         inset 1px 0 0 rgba(255, 255, 255, 0.2),
         inset -1px 0 0 rgba(255, 255, 255, 0.08),
-        inset 0 -30px 40px -26px rgba(255, 255, 255, 0.08),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.9),
-        inset 0 -10px 30px -10px rgba(0, 0, 0, 0.7),
-        inset 0 -2px 12px rgba(57, 255, 20, 0.04);
+        inset 0 -18px 30px -24px rgba(0, 0, 0, 0.52),
+        inset 0 -26px 46px -42px rgba(57, 255, 20, 0.055);
       --liquid-card-reflection:
         linear-gradient(106deg, transparent 0%, rgba(255, 255, 255, 0.11) 18%, transparent 39%),
         radial-gradient(110% 68% at 50% -22%, rgba(255, 255, 255, 0.22), transparent 58%),
@@ -6491,11 +6489,18 @@
       min-width: 0
     }
 
-    .container,
-    #main-content {
+    .container {
       max-width: 100%;
       overflow-x: hidden;
       overflow-y: visible !important;
+    }
+
+    #main-content {
+      max-width: 100%;
+      overflow-x: clip !important;
+      overflow-y: visible !important;
+      height: auto !important;
+      max-height: none !important;
     }
 
     /* Espaço no topo para revelar o header fixo (logo + imagem) atrás do
@@ -6512,6 +6517,8 @@
       --energy-amber: 255, 145, 52;
       --energy-steel: 137, 180, 250;
       --energy-violet: 180, 166, 247;
+      --pg-background-parallax-y: 0px;
+      --pg-background-parallax-overdraw: clamp(3rem, 7vh, 5rem);
       position: absolute;
       top: var(--hf-header-reveal);
       left: 0;
@@ -6538,17 +6545,21 @@
     #page-background::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
+      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      will-change: transform;
       background:
-        radial-gradient(ellipse at top right, rgba(255, 122, 31, 0.05) 0%, transparent 60%),
+        linear-gradient(124deg, transparent 0%, rgba(57, 255, 20, 0.022) 26%, rgba(137, 180, 250, 0.014) 44%, rgba(255, 122, 31, 0.018) 61%, transparent 78%),
         linear-gradient(118deg, rgba(255, 255, 255, 0.02), transparent 32%, rgba(255, 255, 255, 0.008) 72%, transparent 100%);
     }
 
     #page-background::after {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
       opacity: 0.1;
+      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      will-change: transform;
       background: repeating-linear-gradient(116deg, transparent 0 92px, rgba(255, 255, 255, 0.02) 93px, transparent 94px);
       -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
       mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
@@ -6560,6 +6571,12 @@
       inset: 0;
       overflow: hidden;
       pointer-events: none;
+    }
+
+    #page-background > .animated-shapes {
+      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
+      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      will-change: transform;
     }
 
     #page-background [data-scroll-layer] {
@@ -6590,7 +6607,7 @@
     #page-background .energy-stream--ambient {
       opacity: 0.58;
       stroke-width: 1;
-      stroke-dasharray: 2 15;
+      stroke-dasharray: none;
     }
 
     #page-background .energy-stream--rails {
@@ -6618,7 +6635,7 @@
 
     #page-background .energy-orbit {
       position: absolute;
-      display: block;
+      display: none;
       border-radius: 50%;
       opacity: 0.3;
     }
@@ -6754,6 +6771,17 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      #page-background {
+        --pg-background-parallax-y: 0px !important;
+      }
+
+      #page-background::before,
+      #page-background::after,
+      #page-background > .animated-shapes {
+        transform: none;
+        will-change: auto;
+      }
+
       #page-background [data-scroll-layer] {
         will-change: auto;
       }
@@ -9271,6 +9299,156 @@
         0 18px 40px -24px rgba(166, 227, 161, 0.34),
         var(--liquid-card-inner);
     }
+
+    /* ===== Home Premium Material Refinement ===== */
+    .home-dashboard-shell {
+      --home-premium-shadow:
+        0 42px 96px -48px rgba(0, 0, 0, 0.92),
+        0 24px 52px -36px rgba(0, 0, 0, 0.78),
+        0 14px 36px -34px rgba(255, 122, 31, 0.28),
+        0 10px 30px -32px rgba(57, 255, 20, 0.1);
+      --home-premium-inner:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 2px 0 rgba(255, 255, 255, 0.13),
+        inset 1px 0 0 rgba(255, 255, 255, 0.16),
+        inset -1px 0 0 rgba(255, 255, 255, 0.06),
+        inset 0 18px 38px -34px rgba(57, 255, 20, 0.07),
+        inset 0 -18px 32px -24px rgba(0, 0, 0, 0.46),
+        inset 0 -30px 52px -46px rgba(137, 180, 250, 0.055);
+      position: relative;
+      isolation: isolate;
+    }
+
+    .home-dashboard-shell::before,
+    .home-dashboard-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 2rem;
+      pointer-events: none;
+    }
+
+    .home-dashboard-shell::before {
+      z-index: 0;
+      background:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 1400 560' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2339ff14' stop-opacity='0'/%3E%3Cstop offset='.2' stop-color='%2339ff14' stop-opacity='.11'/%3E%3Cstop offset='.42' stop-color='%23f2d5a7' stop-opacity='.1'/%3E%3Cstop offset='.62' stop-color='%2378dce8' stop-opacity='.075'/%3E%3Cstop offset='.8' stop-color='%23ff9b4a' stop-opacity='.075'/%3E%3Cstop offset='1' stop-color='%23ff9b4a' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2378dce8' stop-opacity='0'/%3E%3Cstop offset='.3' stop-color='%2378dce8' stop-opacity='.055'/%3E%3Cstop offset='.54' stop-color='%2339ff14' stop-opacity='.095'/%3E%3Cstop offset='.76' stop-color='%23ffb36e' stop-opacity='.055'/%3E%3Cstop offset='1' stop-color='%23ffb36e' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='soft'%3E%3CfeGaussianBlur stdDeviation='2.8'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 372 C210 218 430 482 744 312 S1138 82 1490 236' fill='none' stroke='url(%23a)' stroke-width='3.2' stroke-linecap='round' filter='url(%23soft)'/%3E%3Cpath d='M-120 458 C260 318 438 578 794 414 S1104 212 1510 342' fill='none' stroke='url(%23b)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M-80 238 C244 122 492 300 820 188 S1130 42 1480 138' fill='none' stroke='url(%23a)' stroke-width='1.1' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E"),
+        linear-gradient(116deg, transparent 8%, rgba(57, 255, 20, 0.024) 26%, rgba(137, 180, 250, 0.014) 45%, transparent 57%, rgba(255, 122, 31, 0.018) 72%, transparent 88%),
+        linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.012) 42%, transparent 100%);
+      background-size:
+        100% 100%,
+        100% 100%,
+        100% 100%;
+      opacity: 0.58;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell::after {
+      z-index: 0;
+      background:
+        linear-gradient(102deg, transparent 0%, rgba(255, 255, 255, 0.034) 18%, transparent 34%, rgba(137, 180, 250, 0.016) 52%, rgba(255, 122, 31, 0.016) 68%, transparent 84%),
+        linear-gradient(148deg, transparent 6%, rgba(57, 255, 20, 0.024) 34%, transparent 58%, rgba(242, 213, 167, 0.014) 76%, transparent 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 22%, transparent 76%, rgba(0, 0, 0, 0.08));
+      opacity: 0.34;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-dashboard-shell :is(.phase-dashboard__hero, .phase-dashboard__goal, .phase-stats, .hf-week-summary__main, nav[aria-label="Navegação por semanas"]) {
+      border-bottom-color: rgba(255, 255, 255, 0.075);
+      box-shadow:
+        var(--home-premium-shadow),
+        var(--home-premium-inner);
+    }
+
+    .home-dashboard-shell :is(.phase-dashboard__hero, .phase-stats, .hf-week-summary__main)::before {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 18%),
+        linear-gradient(116deg, transparent 0%, rgba(255, 255, 255, 0.1) 17%, transparent 37%, rgba(57, 255, 20, 0.018) 64%, transparent 82%),
+        linear-gradient(92deg, rgba(255, 122, 31, 0.035), transparent 26%, rgba(57, 255, 20, 0.018) 70%, transparent 100%);
+      opacity: 0.42;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell .phase-dashboard__goal::after,
+    .home-dashboard-shell :is(.phase-dashboard__hero, .phase-stats, .hf-week-summary__main)::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 10%, transparent 100%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent 12%, transparent 88%, rgba(255, 255, 255, 0.05)),
+        linear-gradient(118deg, transparent 6%, rgba(255, 255, 255, 0.08) 21%, transparent 39%, rgba(57, 255, 20, 0.018) 66%, transparent 88%),
+        linear-gradient(24deg, rgba(255, 122, 31, 0.04), transparent 36%, rgba(57, 255, 20, 0.014) 78%, transparent);
+      opacity: 0.42;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell .phase-dashboard__goal::after {
+      opacity: 0.36;
+      z-index: 0;
+    }
+
+    .home-dashboard-shell .hf-week-summary__main {
+      box-shadow:
+        0 38px 78px -42px rgba(0, 0, 0, 0.94),
+        0 22px 44px -34px rgba(57, 255, 20, 0.12),
+        0 16px 34px -32px rgba(255, 122, 31, 0.24),
+        var(--home-premium-inner);
+    }
+
+    .home-dashboard-shell .hf-week-image-layer {
+      overflow: hidden;
+      opacity: 0.38 !important;
+      filter: brightness(0.78) saturate(0.92) contrast(1.04) !important;
+      transform: translateZ(0);
+      mix-blend-mode: normal;
+    }
+
+    .home-dashboard-shell .hf-week-image-layer::before,
+    .home-dashboard-shell .hf-week-image-layer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .home-dashboard-shell .hf-week-image-layer::before {
+      background:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 180' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2339ff14' stop-opacity='0'/%3E%3Cstop offset='.32' stop-color='%2339ff14' stop-opacity='.12'/%3E%3Cstop offset='.55' stop-color='%23d8f7c8' stop-opacity='.08'/%3E%3Cstop offset='.78' stop-color='%23ff7a1f' stop-opacity='.09'/%3E%3Cstop offset='1' stop-color='%23ff7a1f' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeGaussianBlur stdDeviation='2.2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-70 128 C210 38 418 156 664 82 S970 32 1270 94' fill='none' stroke='url(%23w)' stroke-width='10' stroke-linecap='round' filter='url(%23s)'/%3E%3Cpath d='M-50 154 C242 88 430 180 720 116 S996 72 1250 130' fill='none' stroke='url(%23w)' stroke-width='2.2' stroke-linecap='round' opacity='.6'/%3E%3C/svg%3E"),
+        linear-gradient(90deg, rgba(3, 6, 5, 0.68), transparent 34%, transparent 66%, rgba(4, 10, 5, 0.42)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%, rgba(0, 0, 0, 0.34));
+      opacity: 0.62;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell .hf-week-image-layer::after {
+      background:
+        linear-gradient(102deg, transparent 8%, rgba(255, 255, 255, 0.035) 24%, transparent 44%, rgba(57, 255, 20, 0.018) 72%, transparent 92%),
+        linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.14));
+      opacity: 0.24;
+      mix-blend-mode: screen;
+    }
+
+    .home-dashboard-shell .hf-gamified-glow {
+      background:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 180' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2378dce8' stop-opacity='0'/%3E%3Cstop offset='.24' stop-color='%2378dce8' stop-opacity='.055'/%3E%3Cstop offset='.48' stop-color='%2339ff14' stop-opacity='.12'/%3E%3Cstop offset='.72' stop-color='%23f2d5a7' stop-opacity='.06'/%3E%3Cstop offset='1' stop-color='%23ff9b4a' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 122 C214 42 438 154 716 84 S1016 40 1290 112' fill='none' stroke='url(%23g)' stroke-width='16' stroke-linecap='round' filter='url(%23blur)'/%3E%3Cpath d='M-80 94 C238 16 506 112 782 58 S1038 18 1280 82' fill='none' stroke='url(%23g)' stroke-width='2' stroke-linecap='round' opacity='.6'/%3E%3C/svg%3E"),
+        linear-gradient(96deg, transparent 0%, rgba(57, 255, 20, 0.038) 34%, rgba(137, 180, 250, 0.018) 54%, rgba(255, 122, 31, 0.016) 76%, transparent 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: 0.48;
+    }
   </style>
 </head>
 
@@ -9280,16 +9458,18 @@
       <svg class="energy-field" viewBox="0 0 1200 1800" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="main-energy-warm" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ff7a1f" stop-opacity="0" />
-            <stop offset="35%" stop-color="#ff6a12" stop-opacity="0.58" />
-            <stop offset="63%" stop-color="#ff9438" stop-opacity="0.34" />
-            <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
+            <stop offset="0%" stop-color="#39ff14" stop-opacity="0" />
+            <stop offset="24%" stop-color="#39ff14" stop-opacity="0.28" />
+            <stop offset="46%" stop-color="#a6e3a1" stop-opacity="0.2" />
+            <stop offset="68%" stop-color="#ff9b4a" stop-opacity="0.24" />
+            <stop offset="100%" stop-color="#78dce8" stop-opacity="0" />
           </linearGradient>
           <linearGradient id="main-energy-cool" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#ff7a1f" stop-opacity="0" />
-            <stop offset="44%" stop-color="#ff8a2b" stop-opacity="0.24" />
-            <stop offset="77%" stop-color="#ff5f0a" stop-opacity="0.28" />
-            <stop offset="100%" stop-color="#ff7a1f" stop-opacity="0" />
+            <stop offset="0%" stop-color="#78dce8" stop-opacity="0" />
+            <stop offset="30%" stop-color="#78dce8" stop-opacity="0.16" />
+            <stop offset="56%" stop-color="#39ff14" stop-opacity="0.2" />
+            <stop offset="80%" stop-color="#f2d5a7" stop-opacity="0.12" />
+            <stop offset="100%" stop-color="#ff9b4a" stop-opacity="0" />
           </linearGradient>
           <filter id="main-energy-glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="8" />
@@ -9310,7 +9490,7 @@
         <g class="energy-stream energy-stream--signal" data-scroll-layer="lines-signal" stroke="url(#main-energy-warm)">
           <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
         </g>
-        <path class="energy-stream energy-stream--pulse" data-scroll-layer="line-pulse" stroke="#ffb56b"
+        <path class="energy-stream energy-stream--pulse" data-scroll-layer="line-pulse" stroke="#a6e3a1"
           d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
       </svg>
 
@@ -10527,10 +10707,147 @@
       }
     };
 
-    const handleGsapScrollPageHide = () => gsapScrollController.destroy();
+    const handleGsapScrollPageHide = () => {
+      gsapScrollController.destroy();
+      pageBackgroundParallaxController.destroy();
+    };
     const handleGsapScrollPageShow = (event) => {
       if (event.persisted && appInitialized) {
         gsapScrollController.init(DOM_ELEMENTS.pageBackground);
+        pageBackgroundParallaxController.init(DOM_ELEMENTS.pageBackground);
+      }
+    };
+
+    const pageBackgroundParallaxController = {
+      layer: null,
+      frame: null,
+      currentY: 0,
+      targetY: 0,
+      maxShift: 56,
+      factor: 0.04,
+      reduceMotionQuery: null,
+      boundScroll: null,
+      boundResize: null,
+      boundMotionChange: null,
+
+      init(layer) {
+        this.destroy();
+        if (!layer) return;
+
+        this.layer = layer;
+        this.boundScroll = this.handleScroll.bind(this);
+        this.boundResize = this.handleResize.bind(this);
+        this.boundMotionChange = this.handleMotionPreferenceChange.bind(this);
+        this.reduceMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') || null;
+
+        this.updateMotionScale();
+        window.addEventListener('scroll', this.boundScroll, { passive: true });
+        window.addEventListener('resize', this.boundResize, { passive: true });
+
+        if (this.reduceMotionQuery) {
+          if (typeof this.reduceMotionQuery.addEventListener === 'function') {
+            this.reduceMotionQuery.addEventListener('change', this.boundMotionChange);
+          } else if (typeof this.reduceMotionQuery.addListener === 'function') {
+            this.reduceMotionQuery.addListener(this.boundMotionChange);
+          }
+        }
+
+        this.handleScroll();
+      },
+
+      updateMotionScale() {
+        const isMobile = window.matchMedia?.('(max-width: 767px)').matches;
+        this.factor = isMobile ? 0.028 : 0.038;
+        this.maxShift = isMobile ? 34 : 58;
+      },
+
+      getReducedMotion() {
+        return !!this.reduceMotionQuery?.matches;
+      },
+
+      setOffset(value) {
+        if (!this.layer) return;
+        this.layer.style.setProperty('--pg-background-parallax-y', `${value.toFixed(2)}px`);
+      },
+
+      schedule() {
+        if (this.frame !== null) return;
+        this.frame = window.requestAnimationFrame(() => this.tick());
+      },
+
+      tick() {
+        this.frame = null;
+
+        const delta = this.targetY - this.currentY;
+        if (Math.abs(delta) < 0.08) {
+          this.currentY = this.targetY;
+          this.setOffset(this.currentY);
+          return;
+        }
+
+        this.currentY += delta * 0.18;
+        this.setOffset(this.currentY);
+        this.schedule();
+      },
+
+      handleScroll() {
+        if (!this.layer) return;
+
+        if (this.getReducedMotion()) {
+          this.targetY = 0;
+          this.currentY = 0;
+          this.setOffset(0);
+          return;
+        }
+
+        const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        this.targetY = Math.max(-this.maxShift, Math.min(0, -scrollY * this.factor));
+        this.schedule();
+      },
+
+      handleResize() {
+        this.updateMotionScale();
+        this.handleScroll();
+      },
+
+      handleMotionPreferenceChange() {
+        this.handleScroll();
+      },
+
+      destroy() {
+        if (this.boundScroll) {
+          window.removeEventListener('scroll', this.boundScroll);
+          this.boundScroll = null;
+        }
+
+        if (this.boundResize) {
+          window.removeEventListener('resize', this.boundResize);
+          this.boundResize = null;
+        }
+
+        if (this.reduceMotionQuery && this.boundMotionChange) {
+          if (typeof this.reduceMotionQuery.removeEventListener === 'function') {
+            this.reduceMotionQuery.removeEventListener('change', this.boundMotionChange);
+          } else if (typeof this.reduceMotionQuery.removeListener === 'function') {
+            this.reduceMotionQuery.removeListener(this.boundMotionChange);
+          }
+        }
+
+        this.boundMotionChange = null;
+        this.reduceMotionQuery = null;
+
+        if (this.frame !== null) {
+          window.cancelAnimationFrame(this.frame);
+          this.frame = null;
+        }
+
+        if (this.layer) {
+          this.layer.style.removeProperty('--pg-background-parallax-y');
+        }
+
+        this.layer = null;
+        this.currentY = 0;
+        this.targetY = 0;
       }
     };
 
@@ -17680,6 +17997,7 @@
         openProgramScreen(true);
       }
       gsapScrollController.init(DOM_ELEMENTS.pageBackground);
+      pageBackgroundParallaxController.init(DOM_ELEMENTS.pageBackground);
       window.addEventListener('pagehide', handleGsapScrollPageHide);
       window.addEventListener('pageshow', handleGsapScrollPageShow);
     }
