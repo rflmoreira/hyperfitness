@@ -3725,6 +3725,7 @@
       padding: 0.65rem 0.8rem;
       border-radius: 999px;
       overflow: hidden;
+      overflow: clip;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       text-align: left;
@@ -3740,6 +3741,7 @@
       backdrop-filter: blur(48px) saturate(180%) contrast(110%);
       transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 250ms ease;
       isolation: isolate;
+      contain: paint;
     }
     
     .hf-week-summary__main::before {
@@ -3767,6 +3769,9 @@
       position: absolute;
       inset: 0;
       z-index: 3;
+      border-radius: inherit;
+      overflow: hidden;
+      clip-path: inset(0 round 999px);
       pointer-events: none;
       background:
         radial-gradient(circle at 75% 50%, rgba(57, 255, 20, 0.06) 0%, transparent 40%),
@@ -9410,11 +9415,18 @@
     }
 
     .home-dashboard-shell .hf-week-image-layer {
+      inset: 0 !important;
+      border-radius: inherit;
       overflow: hidden;
+      overflow: clip;
+      clip-path: inset(0 round 999px);
+      contain: paint;
       opacity: 0.38 !important;
       filter: brightness(0.78) saturate(0.92) contrast(1.04) !important;
       transform: translateZ(0);
       mix-blend-mode: normal;
+      background-size: cover !important;
+      background-repeat: no-repeat !important;
     }
 
     .home-dashboard-shell .hf-week-image-layer::before,
@@ -9422,6 +9434,8 @@
       content: "";
       position: absolute;
       inset: 0;
+      border-radius: inherit;
+      clip-path: inset(0 round 999px);
       pointer-events: none;
     }
 
