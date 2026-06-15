@@ -6535,6 +6535,10 @@
       box-shadow:
         0 -16px 38px -10px rgba(0, 0, 0, 0.8),
         inset 0 1px 0 0 rgba(255, 255, 255, 0.025);
+      isolation: isolate;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
     }
 
     #page-background .bg-gradient-base {
