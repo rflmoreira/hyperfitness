@@ -6825,45 +6825,6 @@
       box-shadow: var(--liquid-card-shadow), var(--liquid-card-inner)
     }
 
-    .liquid-glass {
-      position: relative;
-      background: var(--liquid-card-bg);
-      -webkit-backdrop-filter: var(--liquid-card-filter);
-      backdrop-filter: var(--liquid-card-filter);
-      border: 1px solid var(--liquid-card-border);
-      box-shadow:
-        var(--liquid-card-shadow),
-        var(--liquid-card-inner);
-      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      overflow: hidden;
-    }
-
-    .liquid-glass::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: var(--liquid-card-reflection);
-      opacity: 0.42;
-      mix-blend-mode: screen;
-      pointer-events: none;
-    }
-
-    .liquid-glass:hover {
-      background: var(--liquid-card-bg-strong);
-      border-color: rgba(255, 255, 255, 0.24);
-      box-shadow:
-        0 34px 78px -34px rgba(0, 0, 0, 0.9),
-        0 18px 34px -24px rgba(255, 122, 31, 0.2),
-        var(--liquid-card-inner);
-    }
-
-    .liquid-glass:active {
-      transform: scale(0.97);
-      background: var(--liquid-card-bg);
-      transition-duration: 0.1s;
-    }
-
     .modal-subtitle,
     .notepad-toolbar .notepad-indicator,
     #timer-status,
@@ -8495,12 +8456,6 @@
       text-overflow: ellipsis;
     }
 
-    .program-subtitle {
-      margin: 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
     .program-list {
       display: grid;
       grid-template-columns: 1fr;
@@ -8647,15 +8602,6 @@
       width: auto;
       margin-bottom: 40px;
       filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.15));
-    }
-
-    .login-subtitle {
-      color: var(--text-subtle);
-      font-size: 0.85rem;
-      font-weight: 400;
-      margin-bottom: 40px;
-      text-align: center;
-      letter-spacing: 0.02em;
     }
 
     .login-buttons {
