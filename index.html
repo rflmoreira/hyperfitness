@@ -6526,7 +6526,7 @@
       z-index: -1;
       overflow: hidden;
       pointer-events: none;
-      background-color: #010302;
+      background-color: #000000;
       --pg-background-parallax-y: 0px;
       --pg-background-parallax-overdraw: clamp(3rem, 7vh, 5rem);
       border-top: 1px solid var(--liquid-card-border);
@@ -6545,7 +6545,7 @@
     #page-background .bg-gradient-base {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
-      background: radial-gradient(circle at 50% 0%, #060c08 0%, #010302 80%);
+      background: radial-gradient(circle at 50% 0%, #001206 0%, #000000 80%);
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
       will-change: transform;
     }
@@ -6557,8 +6557,8 @@
       height: 110%;
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
       will-change: transform;
-      opacity: 0.85;
-      filter: blur(50px);
+      opacity: 1;
+      filter: blur(35px);
     }
 
     #page-background .bg-noise {
