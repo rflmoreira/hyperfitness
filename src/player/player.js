@@ -29,7 +29,6 @@ async function injectPlayerHtml() {
     document.body.appendChild(playerContainer);
     
     playerHtmlInjected = true;
-    console.log('🎵 [PLAYER] HTML injetado com sucesso');
     return true;
   } catch (error) {
     console.error('❌ [PLAYER] Erro ao injetar HTML:', error);
@@ -465,7 +464,6 @@ const MUSIC_PLAYER = (() => {
       resetPlaybackState();
       state.audioCache.clear();
       state.playlistsLoaded = false;
-      console.log('🧹 [CLEAR] Todos os dados do player foram limpos!');
       return true;
     } catch (e) {
       console.error('Erro ao limpar dados:', e);
@@ -498,7 +496,6 @@ const MUSIC_PLAYER = (() => {
         }));
 
       localStorage.setItem(PLAYLISTS_STORAGE_KEY, JSON.stringify(playlistsToSave));
-      console.log(`💾 [STORAGE] Salvas ${playlistsToSave.length} playlists`);
     } catch (e) {
       console.warn('Erro ao salvar playlists:', e);
     }
@@ -573,7 +570,6 @@ const MUSIC_PLAYER = (() => {
       const stored = localStorage.getItem(PLAYLISTS_STORAGE_KEY);
       if (stored) {
         const playlists = JSON.parse(stored);
-        console.log(`📂 [STORAGE] Carregadas ${playlists.length} playlists`);
         return playlists;
       }
     } catch (e) {
@@ -635,7 +631,6 @@ const MUSIC_PLAYER = (() => {
             state.audioCache.set(key, entry);
           }
         });
-        console.log(`🔊 [STORAGE] Carregadas ${state.audioCache.size} entradas de cache de áudio`);
       }
     } catch (e) {
       console.warn('Erro ao carregar cache de áudio:', e);
@@ -1160,7 +1155,6 @@ const MUSIC_PLAYER = (() => {
     if (trackEndFallbackKey === key) return;
     trackEndFallbackKey = key;
 
-    console.log(`🔄 [AUDIO] Fim da faixa detectado via fallback (remaining: ${remaining.toFixed(3)}s, ended: ${audio.ended}, paused: ${audio.paused})`);
     audioHandlers.ended();
   }
 
@@ -1472,7 +1466,6 @@ const MUSIC_PLAYER = (() => {
       if (handlingEnded) return;
       handlingEnded = true;
 
-      console.log(`🏁 [AUDIO] Track ended, playing next`);
       resetTrackEndFallback();
       stopPlaying();
 
@@ -1515,7 +1508,6 @@ const MUSIC_PLAYER = (() => {
     error: (e) => {
       // Ignora erros durante reset do elemento
       if (ignoringErrorsSet.has(audio)) {
-        console.log(`🔇 [AUDIO] Ignoring error during reset`);
         return;
       }
       if (isPlayingFromYouTube()) {
@@ -1531,16 +1523,7 @@ const MUSIC_PLAYER = (() => {
       const errorCode = audio.error?.code;
       const label = errorCode ? ` (code ${errorCode})` : '';
       console.error(`❌ [AUDIO] Error event${label}:`, e);
-      // Passa a URL atual que falhou
-      const failedUrl = state.currentAttemptUrl || audio.currentSrc || audio.src || '';
-      handleAudioError(e, failedUrl);
-    },
-    loadstart: () => {
-      if (!hasValidTrack()) return;
-      console.log(`📥 [AUDIO] Loading started`);
-    },
-    canplay: () => {
-      console.log(`✅ [AUDIO] Can play`);
+      handleAudioError(e);
     },
     play: () => {
       handlePlaybackStarted();
@@ -1614,7 +1597,6 @@ const MUSIC_PLAYER = (() => {
       }
       // Limpa estado de reconexão se estava tentando
       if (state.reconnectAttempts > 0) {
-        console.log(`✅ [RECONNECT] Reprodução retomada com sucesso`);
         resetReconnectState();
       }
     },
@@ -1649,8 +1631,6 @@ const MUSIC_PLAYER = (() => {
     if (!target) return;
     target.addEventListener('ended', audioHandlers.ended);
     target.addEventListener('error', audioHandlers.error);
-    target.addEventListener('loadstart', audioHandlers.loadstart);
-    target.addEventListener('canplay', audioHandlers.canplay);
     target.addEventListener('play', audioHandlers.play);
     target.addEventListener('pause', audioHandlers.pause);
     target.addEventListener('stalled', audioHandlers.stalled);
@@ -1665,8 +1645,6 @@ const MUSIC_PLAYER = (() => {
     if (!target) return;
     target.removeEventListener('ended', audioHandlers.ended);
     target.removeEventListener('error', audioHandlers.error);
-    target.removeEventListener('loadstart', audioHandlers.loadstart);
-    target.removeEventListener('canplay', audioHandlers.canplay);
     target.removeEventListener('play', audioHandlers.play);
     target.removeEventListener('pause', audioHandlers.pause);
     target.removeEventListener('stalled', audioHandlers.stalled);
@@ -1741,7 +1719,6 @@ const MUSIC_PLAYER = (() => {
 
   // Detecta quando a conexão volta
   window.addEventListener('online', () => {
-    console.log(`📡 [NETWORK] Conexão restaurada`);
     if (state.connectionLost && state.currentTrackIndex >= 0) {
       state.connectionLost = false;
       attemptReconnect();
@@ -1769,7 +1746,6 @@ const MUSIC_PLAYER = (() => {
 
     // Se já está tocando normalmente, não precisa reconectar
     if (!audio.paused && audio.readyState >= 3) {
-      console.log(`✅ [RECONNECT] Áudio já está tocando, cancelando reconexão`);
       resetReconnectState();
       clearBufferingTimer();
       return;
@@ -1777,7 +1753,6 @@ const MUSIC_PLAYER = (() => {
 
     // Se a track terminou, não tenta reconectar - vai para próxima
     if (audio.ended) {
-      console.log(`🏁 [RECONNECT] Track já terminou, pulando para próxima`);
       resetReconnectState();
       clearBufferingTimer();
       playNextFrom(trackIndex + 1);
@@ -1786,8 +1761,6 @@ const MUSIC_PLAYER = (() => {
 
     state.reconnectAttempts++;
     setTrackLoading(trackIndex, true);
-    console.log(`🔄 [RECONNECT] Tentativa ${state.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} para faixa ${trackIndex}`);
-
     let attemptedUrl = '';
     try {
       // Pausa antes de tentar nova URL
@@ -1803,7 +1776,6 @@ const MUSIC_PLAYER = (() => {
       }
 
       attemptedUrl = resolved.audioUrl;
-      console.log(`🔗 [RECONNECT] Nova URL obtida, tentando reproduzir...`);
       setAudioSource(resolved.audioUrl);
 
       // Aguarda o áudio estar pronto antes de tentar tocar (reduzido para 8s)
@@ -1840,7 +1812,6 @@ const MUSIC_PLAYER = (() => {
       }
 
       await audio.play();
-      console.log(`✅ [RECONNECT] Reprodução retomada com sucesso`);
       resetReconnectState();
       clearBufferingTimer();
       updateUiState();
@@ -1857,7 +1828,6 @@ const MUSIC_PLAYER = (() => {
     // Se ainda não atingiu o máximo de tentativas, agenda próxima
     if (state.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       const reconnectDelay = RECONNECT_INTERVAL_MS * Math.min(state.reconnectAttempts, 3); // Backoff progressivo
-      console.log(`⏰ [RECONNECT] Próxima tentativa em ${reconnectDelay / 1000}s`);
       state.reconnectTimer = setTimeout(attemptReconnect, reconnectDelay);
     } else {
       console.warn(`❌ [RECONNECT] Máximo de tentativas atingido, pulando para próxima faixa`);
@@ -4393,12 +4363,10 @@ const MUSIC_PLAYER = (() => {
         
         // Se não for retry, tenta mais uma vez
         if (!isRetry) {
-          console.log('Tentando reproduzir novamente:', track.name);
           return playYouTubeSearchResult(item, true);
         }
         
         // Se já foi retry, avança para próxima
-        console.log('Falha após retry, avançando para próxima');
         youtubePlayingVideoId = null;
         updateYouTubeSearchHighlight();
         playNextYouTubeSearchResult();
@@ -4419,12 +4387,10 @@ const MUSIC_PLAYER = (() => {
       
       // Se não for retry, tenta mais uma vez
       if (!isRetry) {
-        console.log('Erro, tentando novamente:', track.name);
         return playYouTubeSearchResult(item, true);
       }
       
       // Se já foi retry, avança para próxima
-      console.log('Erro após retry, avançando para próxima');
       youtubePlayingVideoId = null;
       updateYouTubeSearchHighlight();
       playNextYouTubeSearchResult();
@@ -5698,8 +5664,6 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
-    console.log(`🌐 [IMPORT] Iniciando importação do CSV "${file.name}" (${(file.size / 1024).toFixed(1)}KB)`);
-
     try {
       const text = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -5793,13 +5757,9 @@ const MUSIC_PLAYER = (() => {
         refreshCoversAfterEnrichment(importSessionId);
       });
 
-      console.log(`🌐 [IMPORT] Importação concluída com ${normalizedTracks.length} faixas`);
-
       if (normalizedTracks.length) {
         const tracksToPreload = state.tracks.length ? state.tracks : normalizedTracks;
-        preloadTracksInBackground(tracksToPreload).then(() => {
-          console.log(`✅ [LOAD] Todas as faixas processadas`);
-        });
+        preloadTracksInBackground(tracksToPreload);
       }
 
       const importedPlaylist = state.playlists[1] || state.playlists[0];
@@ -6123,8 +6083,6 @@ const MUSIC_PLAYER = (() => {
     if (!playlist) return;
     const { preloadAudio = true } = options;
 
-    console.log(`🎵 [PLAYLIST] Selecionando playlist: "${playlist.name}"`);
-
     // Limpa estado de reprodução do YouTube se estiver ativo
     clearYouTubePlaybackState({ updateUi: false });
 
@@ -6188,19 +6146,14 @@ const MUSIC_PLAYER = (() => {
         if (state.playingPlaylistId === playlistId && state.isPlaying) {
           startPlaybackCountdown();
         }
-        console.log(`🎯 [SELECT] enrichTracksWithCovers concluído, chamando refreshCoversAfterEnrichment...`);
         refreshCoversAfterEnrichment(importSessionId);
       })
       .catch(() => { });
 
     if (preloadAudio && !state.preloadedPlaylists.has(playlist.id)) {
-      console.log(`🔄 [PRELOAD] Iniciando resolução de ${state.tracks.length} faixas`);
       preloadTracksInBackground(state.tracks).then(() => {
         state.preloadedPlaylists.add(playlist.id);
-        console.log(`✅ [PRELOAD] Todas as faixas processadas`);
       });
-    } else if (state.preloadedPlaylists.has(playlist.id)) {
-      console.log(`⏭️ [PRELOAD] Playlist "${playlist.name}" já foi pré-carregada, pulando`);
     }
 
     if (autoPlay && state.tracks.length > 0) {
@@ -6238,7 +6191,6 @@ const MUSIC_PLAYER = (() => {
         return result;
       } else {
         if (retryCount < maxRetries) {
-          console.log(`🔄 [PRELOAD] Track ${index} not found, retrying with search... (${retryCount + 1}/${maxRetries + 1})`);
           // Limpa o videoId para forçar nova busca
           const originalVideoId = clearTrackVideoId(track);
           // Limpa cache da faixa
@@ -6254,13 +6206,11 @@ const MUSIC_PLAYER = (() => {
           }
           return retryResult;
         }
-        console.log(`❌ [PRELOAD] Track ${index} not found after ${maxRetries + 1} attempts`);
         markTrackUnavailable(index);
         return null;
       }
     } catch (error) {
       if (retryCount < maxRetries) {
-        console.log(`🔄 [PRELOAD] Track ${index} failed, retrying with search... (${retryCount + 1}/${maxRetries + 1})`);
         // Limpa o videoId para forçar nova busca
         const originalVideoId = clearTrackVideoId(track);
         // Limpa cache da faixa
@@ -6276,7 +6226,6 @@ const MUSIC_PLAYER = (() => {
         }
         return retryResult;
       }
-      console.log(`❌ [PRELOAD] Track ${index} failed after ${maxRetries + 1} attempts`);
       markTrackUnavailable(index);
       return null;
     }
@@ -6804,8 +6753,6 @@ const MUSIC_PLAYER = (() => {
     const track = state.tracks[index];
     if (!track) return;
 
-    console.log(`🔄 [RETRY] Tentando buscar novamente: "${track.name}"`);
-
     // Remove o status de indisponível
     track.unavailable = false;
     
@@ -6926,11 +6873,8 @@ const MUSIC_PLAYER = (() => {
           if (duration > 0) {
             video.lengthSeconds = duration;
             updateTrackDurationFromResult(track, index, video);
-            console.log(`⏱️ [AUDIO] Duration from audio: ${duration}s`);
           }
-        } catch (e) {
-          console.log(`⚠️ [AUDIO] Could not get duration from audio`);
-        }
+        } catch (e) { }
       }
 
       const result = { ...video, audioUrl };
@@ -6942,7 +6886,7 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  async function handleAudioError(event = null, passedFailedUrl = '') {
+  async function handleAudioError(event = null) {
     const failingIndex = state.currentTrackIndex;
     if (failingIndex < 0 || state.audioRecoveryInProgress) return;
 
@@ -6982,12 +6926,8 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
-    // Usa a URL passada como parâmetro (capturada no momento do erro) ou fallback
-    const failedUrl = passedFailedUrl || state.currentAttemptUrl || audio.currentSrc || audio.src || '';
-
     // Verifica se o usuário já clicou em outra música
     if (isStale()) {
-      console.log(`🔄 [AUDIO] Recovery cancelled - user changed track`);
       return;
     }
 
@@ -7012,12 +6952,8 @@ const MUSIC_PLAYER = (() => {
       const cachedResult = trackKey ? getCacheEntry(state.searchCache, trackKey) : null;
       const targetVideoId = cachedResult?.videoId || null;
 
-      // Debug: mostra a URL que falhou
-      console.log(`🔍 [AUDIO] Failed URL: ${failedUrl.substring(0, 100)}...`);
-
       // Verifica se o usuário já clicou em outra música
       if (isStale()) {
-        console.log(`🔄 [AUDIO] Recovery cancelled - user changed track`);
         return;
       }
 
@@ -7029,7 +6965,6 @@ const MUSIC_PLAYER = (() => {
       const refreshed = await resolveTrackWithCache(track, failingIndex, { forceRefresh: true, preserveFailures: true });
       // Verifica novamente após o await
       if (isStale()) {
-        console.log(`🔄 [AUDIO] Recovery cancelled after resolve - user changed track`);
         return;
       }
 
@@ -7051,8 +6986,6 @@ const MUSIC_PLAYER = (() => {
         const alternativeResult = await resolveTrackWithCache(track, failingIndex, { forceRefresh: true, preserveFailures: false });
 
         if (alternativeResult?.audioUrl && alternativeResult.videoId !== originalVideoId) {
-          console.log(`🔄 [AUDIO] Found alternative video: ${alternativeResult.videoId}`);
-
           if (!isStale()) {
             try {
               // Reseta o elemento de áudio antes de tentar nova URL
@@ -7062,7 +6995,6 @@ const MUSIC_PLAYER = (() => {
               await delay(300);
               await audio.play();
               markPlaybackSuccess(failingIndex);
-              console.log(`✅ [AUDIO] Recovery with alternative video succeeded for track ${failingIndex}`);
               return;
             } catch (altError) {
               console.error(`❌ [AUDIO] Alternative video play failed: ${altError.message}`);
@@ -7108,7 +7040,6 @@ const MUSIC_PLAYER = (() => {
 
         // Verifica mais uma vez antes de tocar
         if (isStale()) {
-          console.log(`🔄 [AUDIO] Recovery cancelled before play - user changed track`);
           return;
         }
 
@@ -7121,7 +7052,6 @@ const MUSIC_PLAYER = (() => {
 
         await audio.play();
         markPlaybackSuccess(failingIndex);
-        console.log(`✅ [AUDIO] Recovery succeeded for track ${failingIndex}`);
         return;
       } catch (retryError) {
         // Se o erro for "interrupted by pause", tenta novamente após um delay
@@ -7132,7 +7062,6 @@ const MUSIC_PLAYER = (() => {
           try {
             await audio.play();
             markPlaybackSuccess(failingIndex);
-            console.log(`✅ [AUDIO] Recovery succeeded on retry for track ${failingIndex}`);
             return;
           } catch (secondError) {
             console.error(`❌ [AUDIO] Recovery play failed after retry: ${secondError.message}`);
@@ -7144,7 +7073,6 @@ const MUSIC_PLAYER = (() => {
 
       // Verifica se o usuário mudou de track antes de continuar
       if (isStale()) {
-        console.log(`🔄 [AUDIO] Recovery cancelled - user changed track`);
         return;
       }
 
@@ -7155,14 +7083,11 @@ const MUSIC_PLAYER = (() => {
         }
       } else {
         // Agenda nova tentativa de recovery - reduzido para 500ms
-        // Passa a URL atual que vai falhar para a próxima chamada
-        const urlToMark = state.currentAttemptUrl || '';
-        console.log(`🔄 [AUDIO] Scheduling retry ${attempt + 1}/${maxAttempts} in 0.5s...`);
         const savedRequestId = currentRequestId;
         setTimeout(() => {
           // Verifica se ainda é a mesma requisição
           if (state.playRequestId === savedRequestId && state.currentTrackIndex === failingIndex && !state.isPlaying) {
-            handleAudioError(null, urlToMark);
+            handleAudioError();
           }
         }, 500);
       }
@@ -7246,15 +7171,12 @@ const MUSIC_PLAYER = (() => {
 
   async function findVideoForTrack(track) {
     const artists = getTrackArtists(track);
-    console.log(`🎵 [SEARCH START] Searching for: "${track.name}" by "${artists}"`);
-
     const durationMs = extractDurationMs(track);
 
     // Busca via YouTube (scraping)
     const result = await searchPlayDl(track.name, artists, durationMs);
 
     if (result) {
-      console.log(`✅ [SEARCH SUCCESS] Found: ${result.videoId}`);
       return result;
     }
 
@@ -7306,8 +7228,6 @@ const MUSIC_PLAYER = (() => {
     if (cached !== null) return cached;
 
     try {
-      console.log(`🎵 [AUDIO] Fetching audio for: ${videoId}`);
-
       const response = await fetch(`/audio?v=${videoId}`);
 
       // Rate limit - retry com backoff
@@ -7329,8 +7249,6 @@ const MUSIC_PLAYER = (() => {
         console.warn(`⚠️ [AUDIO] No audio URL in response`);
         return null;
       }
-
-      console.log(`✅ [AUDIO] Got audio URL for ${videoId}`);
 
       // Cache a URL
       setCacheEntry(state.audioCache, videoId, data.audioUrl);

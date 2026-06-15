@@ -15063,10 +15063,6 @@
       });
     }
 
-    function openExercisePickerModal() {
-      setPickerOpen(true);
-    }
-
     function closeExercisePickerModal() {
       setPickerOpen(false);
     }
@@ -15443,80 +15439,6 @@
       saveApplicationState();
       renderAllComponents();
       closeEditModal();
-    }
-
-    // ======================
-    // Proxies de CORS
-    // ======================
-    const CORS_PROXIES = Object.freeze(
-      isLocalDev
-        ? [
-          (url) => ({
-            id: 'corsproxy',
-            url: `https://corsproxy.io/?${encodeURIComponent(url)}`
-          })
-        ]
-        : [
-          (url) => ({
-            id: 'netlify-proxy',
-            url: `/proxy?url=${encodeURIComponent(url)}`
-          }),
-          (url) => ({
-            id: 'corsproxy',
-            url: `https://corsproxy.io/?${encodeURIComponent(url)}`
-          })
-        ]
-    );
-
-    const PROXY_RANGE_HEADER = 'bytes=0-32767';
-    const PROXY_VALIDATION_TIMEOUT_MS = 8000;
-
-    // ======================
-    // Helpers utilitários
-    // ======================
-
-    // Remove wrappers de proxy para downloads diretos
-    function unwrapProxiedUrl(url) {
-      if (!url) return url;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        const proxiedParam = parsed.searchParams.get('url') || parsed.searchParams.get('quest');
-        const isNetlifyProxy = parsed.pathname.startsWith('/proxy') && proxiedParam;
-        const isKnownProxyHost = ['corsproxy.io', 'api.codetabs.com', 'api.allorigins.win'].includes(parsed.hostname);
-        // Retorna a URL desembrulhada para proxy Netlify OU proxies conhecidos
-        if ((isNetlifyProxy || isKnownProxyHost) && proxiedParam) {
-          return decodeURIComponent(proxiedParam);
-        }
-      } catch {
-        // fallback para strings sem URL completa
-        const patterns = [
-          '/proxy?url=',
-          'corsproxy.io/?',
-          'api.codetabs.com/v1/proxy?quest=',
-          'api.allorigins.win/raw?url='
-        ];
-        for (const pattern of patterns) {
-          const idx = url.indexOf(pattern);
-          if (idx !== -1) {
-            const raw = url.slice(idx + pattern.length);
-            try { return decodeURIComponent(raw); } catch { return raw; }
-          }
-        }
-      }
-      return url;
-    }
-
-    function isProxyUrl(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        const host = parsed.hostname;
-        const path = parsed.pathname || '';
-        if (path.startsWith('/proxy')) return true;
-        return ['corsproxy.io', 'api.codetabs.com', 'api.allorigins.win'].includes(host);
-      } catch {
-        return url.includes('/proxy?url=') || url.includes('corsproxy.io/?') || url.includes('api.codetabs.com/v1/proxy?quest=') || url.includes('api.allorigins.win/raw?url=');
-      }
     }
 
     const STORAGE_KEYS = {

@@ -59,12 +59,9 @@ export const handler = async (event) => {
     return makeResponse(503, { error: 'Audio service not configured. Set RAPIDAPI_KEY environment variable.' });
   }
 
-  console.log(`[AUDIO] Fetching audio for: ${videoId}`);
-
   try {
     const result = await getAudio(videoId);
     if (result) {
-      console.log(`[AUDIO] Success for ${videoId}`);
       return makeResponse(200, { videoId, ...result });
     }
   } catch (error) {

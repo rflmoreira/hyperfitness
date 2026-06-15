@@ -82,8 +82,6 @@ async function searchYouTubePlaylists(query, limit = 10) {
   // Busca com "playlist" na query para melhorar resultados
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' playlist')}`;
   
-  console.log(`[PLAYLIST SEARCH] URL: ${searchUrl}`);
-  
   const html = await fetchYouTubeHTML(searchUrl);
   const jsonData = parseYouTubeInitialData(html);
   
@@ -286,7 +284,6 @@ async function searchYouTubePlaylists(query, limit = 10) {
   
   findPlaylists(jsonData);
   
-  console.log(`[PLAYLIST SEARCH] Found ${playlists.length} playlists for "${query}"`);
   return playlists;
 }
 
