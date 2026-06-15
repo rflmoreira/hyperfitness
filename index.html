@@ -6519,281 +6519,64 @@
     }
 
     #page-background {
-      --energy-orange: 255, 122, 31;
-      --energy-amber: 255, 145, 52;
-      --energy-steel: 137, 180, 250;
-      --energy-violet: 180, 166, 247;
-      --pg-background-parallax-y: 0px;
-      --pg-background-parallax-overdraw: clamp(3rem, 7vh, 5rem);
       position: absolute;
       top: var(--hf-header-reveal);
-      left: 0;
-      right: 0;
-      bottom: 0;
+      left: 0; right: 0; bottom: 0;
       width: 100%;
       z-index: -1;
       overflow: hidden;
       pointer-events: none;
-      background-color: #0c0b0e;
-      background-image:
-        linear-gradient(112deg, rgba(255, 255, 255, 0.03), transparent 30%, rgba(255, 255, 255, 0.015) 62%, transparent 100%),
-        linear-gradient(180deg, rgba(5, 5, 8, 0.5), transparent 20%, transparent 80%, rgba(5, 5, 8, 0.5));
-      /* Borda de transição bem definida: cantos superiores arredondados criam a
-         divisão arredondada entre o header (atrás) e o conteúdo que sobe por
-         cima. A sombra projetada para cima reforça a profundidade, destacando
-         que o #main-content está sobreposto ao header. */
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background-color: #121216;
+      --pg-background-parallax-y: 0px;
+      --pg-background-parallax-overdraw: clamp(3rem, 7vh, 5rem);
+      border-top: 1px solid rgba(255, 255, 255, 0.045);
       border-top-left-radius: clamp(20px, 4vw, 34px);
       border-top-right-radius: clamp(20px, 4vw, 34px);
-      box-shadow: 0 -16px 38px -10px rgba(0, 0, 0, 0.75);
+      box-shadow:
+        0 -16px 38px -10px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.025);
     }
 
-    #page-background::before {
-      content: "";
+    #page-background .bg-gradient-base {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
-      transform: translate3d(0, var(--pg-background-parallax-y), 0);
-      will-change: transform;
-      background:
-        linear-gradient(124deg, transparent 0%, rgba(57, 255, 20, 0.022) 26%, rgba(137, 180, 250, 0.014) 44%, rgba(255, 122, 31, 0.018) 61%, transparent 78%),
-        linear-gradient(118deg, rgba(255, 255, 255, 0.02), transparent 32%, rgba(255, 255, 255, 0.008) 72%, transparent 100%);
-    }
-
-    #page-background::after {
-      content: "";
-      position: absolute;
-      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
-      opacity: 0.1;
-      transform: translate3d(0, var(--pg-background-parallax-y), 0);
-      will-change: transform;
-      background: repeating-linear-gradient(116deg, transparent 0 92px, rgba(255, 255, 255, 0.02) 93px, transparent 94px);
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
-      mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, black 50%, rgba(0, 0, 0, 0.42) 82%, transparent 100%);
-    }
-
-    #page-background .animated-shapes,
-    #page-background .energy-geometry {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    #page-background > .animated-shapes {
-      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
+      background: radial-gradient(circle at 50% 0%, #1e1e24 0%, #121216 80%);
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
       will-change: transform;
     }
 
-    #page-background [data-scroll-layer] {
-      transform: translate3d(0, 0, 0);
-      will-change: transform, opacity;
-    }
-
-    #page-background .energy-field {
+    #page-background .bg-abstract-bands {
       position: absolute;
-      top: -1%;
-      left: -7%;
-      width: 114%;
-      height: 104%;
-      overflow: visible;
-      pointer-events: none;
+      inset: calc(-1 * var(--pg-background-parallax-overdraw)) -5%;
+      width: 110%;
+      height: 110%;
+      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      will-change: transform;
+      opacity: 0.8;
+      filter: blur(60px);
     }
 
-    #page-background .energy-stream {
-      fill: none;
-      stroke-linecap: round;
-    }
-
-    #page-background .energy-stream path,
-    #page-background path.energy-stream {
-      vector-effect: non-scaling-stroke;
-    }
-
-    #page-background .energy-stream--ambient {
-      opacity: 0.58;
-      stroke-width: 1;
-      stroke-dasharray: none;
-    }
-
-    #page-background .energy-stream--rails {
-      opacity: 0.48;
-      stroke-width: 1.1;
-    }
-
-    #page-background .energy-stream--glow {
-      opacity: 0.42;
-      stroke-width: 8;
-      filter: url(#main-energy-glow);
-    }
-
-    #page-background .energy-stream--signal {
-      opacity: 0.82;
-      stroke-width: 1.55;
-    }
-
-    #page-background .energy-stream--pulse {
-      opacity: 0.54;
-      stroke-width: 2.2;
-      stroke-dasharray: 86 410;
-      stroke-dashoffset: 160;
-    }
-
-    #page-background .energy-orbit {
+    #page-background .bg-noise {
       position: absolute;
-      display: none;
-      border-radius: 50%;
-      opacity: 0.3;
+      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
+      opacity: 0.12;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      background-size: 150px 150px;
+      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      will-change: transform;
+      mix-blend-mode: overlay;
     }
 
-    #page-background .energy-orbit--primary {
-      top: clamp(2rem, 14vh, 8rem);
-      right: clamp(-7rem, -5vw, -1.5rem);
-      width: clamp(16rem, 29vw, 25rem);
-      height: clamp(25rem, 42vw, 37rem);
-      border: 1px solid rgba(var(--energy-orange), 0.18);
-      box-shadow: inset 0 0 32px rgba(var(--energy-orange), 0.028);
-      transform: rotate(-18deg);
-    }
-
-    #page-background .energy-orbit--primary::before,
-    #page-background .energy-orbit--secondary::before {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(var(--energy-amber), 0.72);
-      box-shadow: 0 0 13px rgba(var(--energy-orange), 0.54);
-    }
-
-    #page-background .energy-orbit--primary::before {
-      top: 19%;
-      left: 5%;
-    }
-
-    #page-background .energy-orbit--secondary {
-      left: clamp(-7rem, -6vw, -2rem);
-      bottom: clamp(1rem, 12vh, 7rem);
-      width: clamp(16rem, 30vw, 27rem);
-      height: clamp(24rem, 40vw, 35rem);
-      border: 1px solid rgba(var(--energy-orange), 0.1);
-      transform: rotate(19deg);
-    }
-
-    #page-background .energy-orbit--secondary::before {
-      bottom: 22%;
-      right: 7%;
-      background: rgba(var(--energy-amber), 0.58);
-      box-shadow: 0 0 13px rgba(var(--energy-orange), 0.36);
-    }
-
-    #page-background .energy-beam {
-      position: absolute;
-      display: block;
-      width: clamp(12rem, 30vw, 26rem);
-      height: 1px;
-      opacity: 0.38;
-      background: linear-gradient(90deg, transparent, rgba(var(--energy-orange), 0.52), rgba(255, 255, 255, 0.18), transparent);
-      box-shadow: 0 0 12px rgba(var(--energy-orange), 0.18);
-    }
-
-    #page-background .energy-beam--upper {
-      top: clamp(7rem, 24vh, 14rem);
-      left: clamp(-6rem, -3vw, 0rem);
-      transform: rotate(-23deg);
-    }
-
-    #page-background .energy-beam--lower {
-      bottom: clamp(6rem, 17vh, 12rem);
-      right: clamp(-7rem, -3vw, 0rem);
-      transform: rotate(-21deg);
-      background: linear-gradient(90deg, transparent, rgba(var(--energy-orange), 0.26), rgba(var(--energy-orange), 0.46), transparent);
-    }
-
-    #page-background .energy-sweep {
-      position: absolute;
-      top: 15%;
-      right: -18%;
-      width: 90%;
-      height: clamp(5rem, 10vw, 8rem);
-      opacity: 0.22;
-      background: linear-gradient(90deg, transparent 0%, rgba(var(--energy-orange), 0.12) 33%, rgba(255, 122, 31, 0.04) 50%, transparent 76%);
-      clip-path: polygon(2% 100%, 100% 0, 92% 0, 0 79%);
-      filter: blur(3px);
-    }
-
-
-    @media (max-width: 767px) {
-      #page-background {
-        background-image:
-          linear-gradient(128deg, rgba(var(--energy-orange), 0.058), transparent 36%, rgba(var(--energy-orange), 0.022) 76%, transparent 100%),
-          linear-gradient(180deg, rgba(8, 8, 14, 0.12), transparent 24%);
-      }
-
-      #page-background::after,
-      #page-background .energy-orbit--secondary,
-      #page-background .energy-beam--lower {
-        display: none;
-      }
-
-      #page-background .energy-field {
-        left: -36%;
-        width: 172%;
-        opacity: 0.67;
-      }
-
-      #page-background .energy-stream--ambient path:nth-child(2),
-      #page-background .energy-stream--glow,
-      #page-background .energy-stream--pulse {
-        display: none;
-      }
-
-      #page-background .energy-stream--rails {
-        opacity: 0.3;
-      }
-
-      #page-background .energy-orbit--primary {
-        top: clamp(12rem, 18%, 18rem);
-        right: -10rem;
-        width: 17rem;
-        height: 27rem;
-        opacity: 0.22;
-      }
-
-      #page-background .energy-beam--upper {
-        left: -8rem;
-        width: 18rem;
-        opacity: 0.24;
-      }
-
-      #page-background .energy-sweep {
-        top: 12%;
-        right: -44%;
-        width: 130%;
-        opacity: 0.1;
-        filter: none;
-      }
-    }
-
+    /* ── Reduced Motion ── */
     @media (prefers-reduced-motion: reduce) {
       #page-background {
         --pg-background-parallax-y: 0px !important;
       }
-
-      #page-background::before,
-      #page-background::after,
-      #page-background > .animated-shapes {
-        transform: none;
+      #page-background .bg-gradient-base,
+      #page-background .bg-abstract-bands,
+      #page-background .bg-noise {
+        transform: none !important;
         will-change: auto;
-      }
-
-      #page-background [data-scroll-layer] {
-        will-change: auto;
-      }
-
-      #page-background .energy-stream--pulse {
-        display: none;
       }
     }
 
@@ -9337,8 +9120,8 @@
     .home-dashboard-shell::before {
       z-index: 0;
       background:
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 1400 560' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2339ff14' stop-opacity='0'/%3E%3Cstop offset='.2' stop-color='%2339ff14' stop-opacity='.11'/%3E%3Cstop offset='.42' stop-color='%23f2d5a7' stop-opacity='.1'/%3E%3Cstop offset='.62' stop-color='%2378dce8' stop-opacity='.075'/%3E%3Cstop offset='.8' stop-color='%23ff9b4a' stop-opacity='.075'/%3E%3Cstop offset='1' stop-color='%23ff9b4a' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2378dce8' stop-opacity='0'/%3E%3Cstop offset='.3' stop-color='%2378dce8' stop-opacity='.055'/%3E%3Cstop offset='.54' stop-color='%2339ff14' stop-opacity='.095'/%3E%3Cstop offset='.76' stop-color='%23ffb36e' stop-opacity='.055'/%3E%3Cstop offset='1' stop-color='%23ffb36e' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='soft'%3E%3CfeGaussianBlur stdDeviation='2.8'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 372 C210 218 430 482 744 312 S1138 82 1490 236' fill='none' stroke='url(%23a)' stroke-width='3.2' stroke-linecap='round' filter='url(%23soft)'/%3E%3Cpath d='M-120 458 C260 318 438 578 794 414 S1104 212 1510 342' fill='none' stroke='url(%23b)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M-80 238 C244 122 492 300 820 188 S1130 42 1480 138' fill='none' stroke='url(%23a)' stroke-width='1.1' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E"),
-        linear-gradient(116deg, transparent 8%, rgba(57, 255, 20, 0.024) 26%, rgba(137, 180, 250, 0.014) 45%, transparent 57%, rgba(255, 122, 31, 0.018) 72%, transparent 88%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 1400 560' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2339ff14' stop-opacity='0'/%3E%3Cstop offset='.2' stop-color='%2339ff14' stop-opacity='.11'/%3E%3Cstop offset='.42' stop-color='%23f5a623' stop-opacity='.1'/%3E%3Cstop offset='.62' stop-color='%23ff7a1f' stop-opacity='.08'/%3E%3Cstop offset='.8' stop-color='%23ff7a1f' stop-opacity='.06'/%3E%3Cstop offset='1' stop-color='%23ff7a1f' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23ff7a1f' stop-opacity='0'/%3E%3Cstop offset='.3' stop-color='%23f5a623' stop-opacity='.06'/%3E%3Cstop offset='.54' stop-color='%2339ff14' stop-opacity='.09'/%3E%3Cstop offset='.76' stop-color='%2322c55e' stop-opacity='.05'/%3E%3Cstop offset='1' stop-color='%2322c55e' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='soft'%3E%3CfeGaussianBlur stdDeviation='2.8'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 372 C210 218 430 482 744 312 S1138 82 1490 236' fill='none' stroke='url(%23a)' stroke-width='3.2' stroke-linecap='round' filter='url(%23soft)'/%3E%3Cpath d='M-120 458 C260 318 438 578 794 414 S1104 212 1510 342' fill='none' stroke='url(%23b)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M-80 238 C244 122 492 300 820 188 S1130 42 1480 138' fill='none' stroke='url(%23a)' stroke-width='1.1' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E"),
+        linear-gradient(116deg, transparent 8%, rgba(57, 255, 20, 0.024) 26%, rgba(245, 166, 35, 0.016) 45%, transparent 57%, rgba(255, 122, 31, 0.018) 72%, transparent 88%),
         linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.012) 42%, transparent 100%);
       background-size:
         100% 100%,
@@ -9459,8 +9242,8 @@
 
     .home-dashboard-shell .hf-gamified-glow {
       background:
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 180' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2378dce8' stop-opacity='0'/%3E%3Cstop offset='.24' stop-color='%2378dce8' stop-opacity='.055'/%3E%3Cstop offset='.48' stop-color='%2339ff14' stop-opacity='.12'/%3E%3Cstop offset='.72' stop-color='%23f2d5a7' stop-opacity='.06'/%3E%3Cstop offset='1' stop-color='%23ff9b4a' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 122 C214 42 438 154 716 84 S1016 40 1290 112' fill='none' stroke='url(%23g)' stroke-width='16' stroke-linecap='round' filter='url(%23blur)'/%3E%3Cpath d='M-80 94 C238 16 506 112 782 58 S1038 18 1280 82' fill='none' stroke='url(%23g)' stroke-width='2' stroke-linecap='round' opacity='.6'/%3E%3C/svg%3E"),
-        linear-gradient(96deg, transparent 0%, rgba(57, 255, 20, 0.038) 34%, rgba(137, 180, 250, 0.018) 54%, rgba(255, 122, 31, 0.016) 76%, transparent 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 180' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2322c55e' stop-opacity='0'/%3E%3Cstop offset='.22' stop-color='%2339ff14' stop-opacity='.06'/%3E%3Cstop offset='.48' stop-color='%23f5a623' stop-opacity='.1'/%3E%3Cstop offset='.72' stop-color='%23ff7a1f' stop-opacity='.06'/%3E%3Cstop offset='1' stop-color='%23ff7a1f' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M-90 122 C214 42 438 154 716 84 S1016 40 1290 112' fill='none' stroke='url(%23g)' stroke-width='16' stroke-linecap='round' filter='url(%23blur)'/%3E%3Cpath d='M-80 94 C238 16 506 112 782 58 S1038 18 1280 82' fill='none' stroke='url(%23g)' stroke-width='2' stroke-linecap='round' opacity='.6'/%3E%3C/svg%3E"),
+        linear-gradient(96deg, transparent 0%, rgba(57, 255, 20, 0.038) 34%, rgba(245, 166, 35, 0.02) 54%, rgba(255, 122, 31, 0.018) 76%, transparent 100%),
         url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.05'/%3E%3C/svg%3E");
       opacity: 0.48;
     }
@@ -9469,54 +9252,36 @@
 
 <body>
   <div id="page-background" class="background-layer" data-scroll-background aria-hidden="true">
-    <div class="animated-shapes">
-      <svg class="energy-field" viewBox="0 0 1200 1800" preserveAspectRatio="none" aria-hidden="true">
+    <div class="bg-gradient-base"></div>
+    
+    <div class="bg-abstract-bands">
+      <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" style="width: 100%; height: 100%;">
         <defs>
-          <linearGradient id="main-energy-warm" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#39ff14" stop-opacity="0" />
-            <stop offset="24%" stop-color="#39ff14" stop-opacity="0.28" />
-            <stop offset="46%" stop-color="#a6e3a1" stop-opacity="0.2" />
-            <stop offset="68%" stop-color="#ff9b4a" stop-opacity="0.24" />
-            <stop offset="100%" stop-color="#78dce8" stop-opacity="0" />
+          <linearGradient id="grad-band-1" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#18181e" stop-opacity="1" />
+            <stop offset="50%" stop-color="#1e2a1e" stop-opacity="1" />
+            <stop offset="100%" stop-color="#18181e" stop-opacity="1" />
           </linearGradient>
-          <linearGradient id="main-energy-cool" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#78dce8" stop-opacity="0" />
-            <stop offset="30%" stop-color="#78dce8" stop-opacity="0.16" />
-            <stop offset="56%" stop-color="#39ff14" stop-opacity="0.2" />
-            <stop offset="80%" stop-color="#f2d5a7" stop-opacity="0.12" />
-            <stop offset="100%" stop-color="#ff9b4a" stop-opacity="0" />
-          </linearGradient>
-          <filter id="main-energy-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="8" />
-          </filter>
-        </defs>
-        <g class="energy-stream energy-stream--ambient" data-scroll-layer="lines-ambient"
-          stroke="url(#main-energy-cool)">
-          <path d="M -120 246 C 180 108, 236 434, 488 422 S 886 252, 1324 566" />
-          <path d="M -132 1260 C 246 1096, 324 1418, 646 1334 S 1004 1050, 1320 1218" />
-        </g>
-        <g class="energy-stream energy-stream--rails" data-scroll-layer="lines-rails" stroke="url(#main-energy-warm)">
-          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
-          <path d="M -42 516 C 234 604, 136 858, 402 928 S 742 1048, 648 1318 S 242 1540, -58 1692" />
-        </g>
-        <g class="energy-stream energy-stream--glow" data-scroll-layer="lines-glow" stroke="url(#main-energy-warm)">
-          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
-        </g>
-        <g class="energy-stream energy-stream--signal" data-scroll-layer="lines-signal" stroke="url(#main-energy-warm)">
-          <path d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
-        </g>
-        <path class="energy-stream energy-stream--pulse" data-scroll-layer="line-pulse" stroke="#a6e3a1"
-          d="M 1258 108 C 976 266, 1072 468, 796 584 S 460 760, 562 988 S 1034 1194, 1204 1480" />
-      </svg>
 
-      <div class="energy-geometry">
-        <span class="energy-orbit energy-orbit--primary" data-scroll-layer="orbit-primary"></span>
-        <span class="energy-orbit energy-orbit--secondary" data-scroll-layer="orbit-secondary"></span>
-        <span class="energy-beam energy-beam--upper" data-scroll-layer="beam-upper"></span>
-        <span class="energy-beam energy-beam--lower" data-scroll-layer="beam-lower"></span>
-      </div>
-      <span class="energy-sweep" data-scroll-layer="sweep"></span>
+          <linearGradient id="grad-band-2" x1="100%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#18181e" stop-opacity="0" />
+            <stop offset="50%" stop-color="#1c160c" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="#08080a" stop-opacity="0" />
+          </linearGradient>
+          
+          <linearGradient id="grad-band-3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1a1c1a" stop-opacity="0.6" />
+            <stop offset="100%" stop-color="#18181e" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+
+        <path d="M -200 800 C 300 900, 600 200, 1200 300" fill="none" stroke="url(#grad-band-1)" stroke-width="300" />
+        <path d="M -200 200 C 400 100, 700 800, 1200 900" fill="none" stroke="url(#grad-band-2)" stroke-width="200" />
+        <path d="M -100 -100 C 300 300, 800 0, 1200 400" fill="none" stroke="url(#grad-band-3)" stroke-width="250" />
+      </svg>
     </div>
+
+    <div class="bg-noise"></div>
   </div>
 
   <!-- Login Screen -->
@@ -10620,43 +10385,71 @@
             scrollTrigger: createTrigger('page-background-atmosphere', mobile ? 1.7 : 2.25)
           })
             .fromTo(getLayer('sweep'),
-              { xPercent: mobile ? 9 : 17, yPercent: -34, rotation: -3, autoAlpha: mobile ? 0.04 : 0.07 },
-              { xPercent: mobile ? -8 : -18, yPercent: mobile ? 44 : 62, rotation: 3, autoAlpha: mobile ? 0.11 : 0.23 }, 0);
+              { xPercent: mobile ? 8 : 14, yPercent: -28, rotation: -2, autoAlpha: mobile ? 0.04 : 0.06 },
+              { xPercent: mobile ? -6 : -16, yPercent: mobile ? 38 : 56, rotation: 2, autoAlpha: mobile ? 0.1 : 0.2 }, 0)
+            .fromTo(getLayer('hotspot-alpha'),
+              { scale: 0.85, autoAlpha: mobile ? 0.2 : 0.3 },
+              { scale: 1.15, autoAlpha: mobile ? 0.45 : 0.65 }, 0)
+            .fromTo(getLayer('hotspot-beta'),
+              { scale: 0.9, autoAlpha: mobile ? 0.15 : 0.25 },
+              { scale: 1.1, autoAlpha: mobile ? 0.38 : 0.55 }, 0);
+
+          if (!mobile) {
+            atmosphere
+              .fromTo(getLayer('sweep-counter'),
+                { xPercent: -12, yPercent: 20, rotation: 1, autoAlpha: 0.04 },
+                { xPercent: 10, yPercent: -32, rotation: -1, autoAlpha: 0.14 }, 0)
+              .fromTo(getLayer('hotspot-gamma'),
+                { scale: 0.8, autoAlpha: 0.15 },
+                { scale: 1.2, autoAlpha: 0.45 }, 0);
+          }
 
           const geometry = window.gsap.timeline({
             defaults: { ease: 'none', force3D: true },
             scrollTrigger: createTrigger('page-background-geometry', mobile ? 1.48 : 1.9)
           })
             .fromTo(getLayer('lines-ambient'),
-              { xPercent: mobile ? -1 : -4, yPercent: mobile ? -5 : -12, autoAlpha: mobile ? 0.12 : 0.18 },
-              { xPercent: mobile ? 1 : 4, yPercent: mobile ? 7 : 17, autoAlpha: mobile ? 0.28 : 0.42 }, 0)
+              { xPercent: mobile ? -1 : -3, yPercent: mobile ? -4 : -10, autoAlpha: mobile ? 0.1 : 0.15 },
+              { xPercent: mobile ? 1 : 3, yPercent: mobile ? 6 : 14, autoAlpha: mobile ? 0.3 : 0.45 }, 0)
             .fromTo(getLayer('lines-rails'),
-              { xPercent: mobile ? 2 : 5, yPercent: mobile ? -8 : -18, autoAlpha: mobile ? 0.17 : 0.2 },
-              { xPercent: mobile ? -2 : -6, yPercent: mobile ? 12 : 25, autoAlpha: mobile ? 0.36 : 0.5 }, 0)
+              { xPercent: mobile ? 2 : 4, yPercent: mobile ? -7 : -16, autoAlpha: mobile ? 0.15 : 0.2 },
+              { xPercent: mobile ? -2 : -5, yPercent: mobile ? 10 : 22, autoAlpha: mobile ? 0.38 : 0.55 }, 0)
             .fromTo(getLayer('lines-signal'),
-              { xPercent: mobile ? 2 : 6, yPercent: mobile ? -9 : -21, autoAlpha: mobile ? 0.2 : 0.28 },
-              { xPercent: mobile ? -2 : -7, yPercent: mobile ? 12 : 28, autoAlpha: mobile ? 0.42 : 0.76 }, 0)
+              { xPercent: mobile ? 2 : 5, yPercent: mobile ? -8 : -18, autoAlpha: mobile ? 0.18 : 0.25 },
+              { xPercent: mobile ? -2 : -6, yPercent: mobile ? 10 : 24, autoAlpha: mobile ? 0.45 : 0.72 }, 0)
             .fromTo(getLayer('orbit-primary'),
-              { xPercent: mobile ? 2 : 5, yPercent: -8, rotation: -24, autoAlpha: mobile ? 0.1 : 0.14 },
-              { xPercent: mobile ? -3 : -7, yPercent: mobile ? 12 : 18, rotation: mobile ? -13 : -7, autoAlpha: mobile ? 0.24 : 0.4 }, 0)
+              { xPercent: mobile ? 2 : 4, yPercent: -6, rotation: -26, autoAlpha: mobile ? 0.08 : 0.12 },
+              { xPercent: mobile ? -3 : -6, yPercent: mobile ? 10 : 16, rotation: mobile ? -15 : -8, autoAlpha: mobile ? 0.22 : 0.36 }, 0)
             .fromTo(getLayer('beam-upper'),
-              { xPercent: mobile ? -5 : -12, yPercent: mobile ? -8 : -14, rotation: -23, autoAlpha: mobile ? 0.08 : 0.12 },
-              { xPercent: mobile ? 6 : 14, yPercent: mobile ? 13 : 20, rotation: -23, autoAlpha: mobile ? 0.25 : 0.44 }, 0);
+              { xPercent: mobile ? -4 : -10, yPercent: mobile ? -6 : -12, rotation: -19, autoAlpha: mobile ? 0.06 : 0.1 },
+              { xPercent: mobile ? 5 : 12, yPercent: mobile ? 10 : 18, rotation: -19, autoAlpha: mobile ? 0.22 : 0.38 }, 0);
 
           if (!mobile) {
             geometry
               .fromTo(getLayer('lines-glow'),
-                { xPercent: 6, yPercent: -21, autoAlpha: 0.12 },
-                { xPercent: -7, yPercent: 28, autoAlpha: 0.34 }, 0)
+                { xPercent: 5, yPercent: -18, autoAlpha: 0.06 },
+                { xPercent: -6, yPercent: 24, autoAlpha: 0.28 }, 0)
+              .fromTo(getLayer('lines-glow-secondary'),
+                { xPercent: -3, yPercent: -12, autoAlpha: 0.04 },
+                { xPercent: 4, yPercent: 18, autoAlpha: 0.18 }, 0)
+              .fromTo(getLayer('lines-volume'),
+                { xPercent: -3, yPercent: -10, autoAlpha: 0.05 },
+                { xPercent: 4, yPercent: 16, autoAlpha: 0.17 }, 0)
               .fromTo(getLayer('line-pulse'),
-                { xPercent: 6, yPercent: -21, strokeDashoffset: 320, autoAlpha: 0.14 },
-                { xPercent: -7, yPercent: 28, strokeDashoffset: -420, autoAlpha: 0.62 }, 0)
+                { xPercent: 5, yPercent: -18, strokeDashoffset: 380, autoAlpha: 0.08 },
+                { xPercent: -6, yPercent: 24, strokeDashoffset: -520, autoAlpha: 0.48 }, 0)
+              .fromTo(getLayer('lines-reflection'),
+                { xPercent: -2, yPercent: -5, autoAlpha: 0.04 },
+                { xPercent: 2, yPercent: 7, autoAlpha: 0.18 }, 0)
               .fromTo(getLayer('orbit-secondary'),
-                { xPercent: -5, yPercent: 14, rotation: 27, autoAlpha: 0.08 },
-                { xPercent: 7, yPercent: -18, rotation: 10, autoAlpha: 0.3 }, 0)
+                { xPercent: -4, yPercent: 12, rotation: 22, autoAlpha: 0.05 },
+                { xPercent: 6, yPercent: -16, rotation: 8, autoAlpha: 0.26 }, 0)
               .fromTo(getLayer('beam-lower'),
-                { xPercent: 14, yPercent: 17, rotation: -21, autoAlpha: 0.09 },
-                { xPercent: -16, yPercent: -21, rotation: -21, autoAlpha: 0.38 }, 0);
+                { xPercent: 12, yPercent: 14, rotation: -16, autoAlpha: 0.06 },
+                { xPercent: -14, yPercent: -18, rotation: -16, autoAlpha: 0.32 }, 0)
+              .fromTo(getLayer('beam-cross'),
+                { xPercent: -8, yPercent: -10, rotation: -32, autoAlpha: 0.04 },
+                { xPercent: 8, yPercent: 12, rotation: -32, autoAlpha: 0.2 }, 0);
           }
 
           const timelines = [atmosphere, geometry];
