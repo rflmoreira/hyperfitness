@@ -20,14 +20,11 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <!-- Lottie (Bodymovin) - Renderizador SVG, leve e estável -->
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js"></script>
-  <!-- GSAP + ScrollTrigger - animacao ambiental do fundo global -->
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
   <script src="src/player/playlists.js"></script>
   <script>
-    // Configuração de ambiente (app)
     const isLocalDev = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname) ||
       window.location.port === '5500' ||
       window.location.protocol === 'file:';
@@ -35,19 +32,14 @@
   <script src="src/player/player.js"></script>
 
   <style>
-    /* ===== Builder de Treino "Monte Seu Treino" ===== */
     #builder-screen {
-      --bld-bg: #08090d;
       --bld-surface: rgba(18, 20, 27, 0.78);
-      --bld-surface-strong: rgba(255, 255, 255, 0.045);
       --bld-line: rgba(238, 242, 255, 0.08);
       --bld-line-strong: rgba(238, 242, 255, 0.16);
       --bld-text: rgba(248, 250, 255, 0.94);
       --bld-muted: rgba(196, 205, 220, 0.62);
       --bld-faint: rgba(196, 205, 220, 0.42);
       --bld-accent: #f0781f;
-      --bld-accent-soft: rgba(240, 120, 31, 0.12);
-      --bld-danger: #f38ba8;
       --bld-green: #a6e3a1;
       --bld-ease: cubic-bezier(0.28, 0.11, 0.32, 1);
       --bld-spring: cubic-bezier(0.175, 0.885, 0.32, 1.12);
@@ -2035,7 +2027,6 @@
       }
     }
 
-    /* ===== Card "Criar treino" na tela de seleção ===== */
     .program-card-create {
       display: flex;
       flex-direction: column;
@@ -2144,7 +2135,6 @@
       font-size: 0.7rem;
     }
 
-    /* ===== Exercise Edit Modal ===== */
     #exercise-edit-modal .modal-card {
       max-height: min(92vh, 780px);
       display: flex;
@@ -2291,20 +2281,13 @@
       --primary-color: #ff7a1f;
       --primary-hover: #ff9147;
       --ring-amber: rgba(249, 226, 175, 0.65);
-      --ring-primary: rgba(255, 122, 31, 0.55);
       --neon-green: #39ff14;
-      --neon-green-soft: rgba(57, 255, 20, 0.55);
-      --neon-green-dim: rgba(57, 255, 20, 0.12);
-      --neon-green-glow: rgba(57, 255, 20, 0.18);
-      --neon-green-subtle: rgba(57, 255, 20, 0.06);
       --background-dark: #13121b;
       --background-darker: #0c0b13;
       --surface-0: #242234;
       --surface-1: #37354a;
       --surface-2: #4a485e;
-      --overlay-0: #5d5b70;
       --overlay-1: #716f84;
-      --overlay-2: #858399;
       --text: #cdd6f4;
       --subtext-0: #a6adc8;
       --subtext-1: #bac2de;
@@ -2312,18 +2295,7 @@
       --text-subtle: rgba(166, 173, 200, 0.75);
       --lavender: #b4befe;
       --blue: #89b4fa;
-      --sapphire: #74c7ec;
-      --sky: #89dceb;
-      --teal: #94e2d5;
       --green: #a6e3a1;
-      --yellow: #f9e2af;
-      --peach: #fab387;
-      --maroon: #eba0ac;
-      --red: #f38ba8;
-      --mauve: #cba6f7;
-      --pink: #f5c2e7;
-      --flamingo: #f2cdcd;
-      --rosewater: #f5e0dc;
       --liquid-card-bg:
         url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
         radial-gradient(120% 86% at 18% -18%, rgba(255, 255, 255, 0.2), transparent 48%),
@@ -2353,14 +2325,12 @@
         linear-gradient(106deg, transparent 0%, rgba(255, 255, 255, 0.11) 18%, transparent 39%),
         radial-gradient(110% 68% at 50% -22%, rgba(255, 255, 255, 0.22), transparent 58%),
         radial-gradient(82% 64% at 94% 8%, rgba(255, 255, 255, 0.11), transparent 54%);
-      --glass-bg: var(--liquid-card-bg);
       --glass-border: var(--liquid-card-border-soft);
       --elev-1: 0 12px 28px -16px rgba(17, 17, 27, 0.6);
       --elev-2: 0 24px 48px -24px rgba(17, 17, 27, 0.7);
       --btn-shadow: 0 18px 40px -18px rgba(255, 122, 31, 0.75);
       --btn-shadow-hover: 0 28px 65px -22px rgba(255, 122, 31, 0.95);
     }
-
 
     /* Safari Liquid Glass (iOS 26) — tint elements.
        Safari 26 lê background-color de elementos position:fixed próximos às
@@ -2450,7 +2420,6 @@
         radial-gradient(ellipse at 85% 100%, rgba(64, 242, 96, 0.03), transparent 50%);
     }
 
-
     @media (hover: hover) and (pointer: fine) {
       ::-webkit-scrollbar {
         width: 8px;
@@ -2508,7 +2477,6 @@
       right: 0;
       padding-bottom: 0;
     }
-
 
     @keyframes fadeIn {
       from {
@@ -3529,27 +3497,6 @@
       }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
 
       .phase-title,
@@ -3711,7 +3658,6 @@
       white-space: nowrap;
     }
 
-    /* ===== Compact Gamified Week Summary ===== */
     .hf-week-summary {
       display: block;
     }
@@ -3808,9 +3754,7 @@
       filter: brightness(1.05);
     }
 
-    /* Header: Gamified Ring */
     .hf-gamified-ring {
-      --week-ring-track: rgba(255, 255, 255, 0.095);
       --phase-rings-size: 4.6rem;
       --ring-gap: 0.22rem;
       --inner-ring-stroke: 0.38rem;
@@ -3928,7 +3872,6 @@
       flex: 1 1 auto;
     }
 
-    /* Progress Area */
     .hf-compact-progress {
       display: flex;
       flex-direction: column;
@@ -3979,7 +3922,6 @@
       pointer-events: none;
     }
 
-    /* Footer: Context */
     .hf-compact-context {
       color: rgba(255, 190, 140, 0.6);
       font-size: 0.55rem;
@@ -4008,7 +3950,6 @@
       flex-shrink: 0;
     }
 
-    /* ===== Bottom sheet de semanas (mobile) ===== */
     .hf-week-sheet {
       position: fixed;
       inset: 0;
@@ -4213,7 +4154,6 @@
       --hf-day-control-height: 3.6rem;
       --hf-day-badge-size: 1.54rem;
       --hf-day-badge-top: 0.38rem;
-      --hf-day-rail-y: calc(var(--hf-day-badge-top) + var(--hf-day-badge-size) / 2);
       --hf-routine-gap: clamp(0.26rem, 1.6vw, 0.48rem);
       position: relative;
       align-items: center;
@@ -5061,29 +5001,6 @@
       }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     .current-week-marker-animation {
       animation: pulse-glow 2s infinite;
       will-change: transform, box-shadow
@@ -5096,7 +5013,6 @@
       will-change: background-position
     }
 
-    /* ===== Animações Lottie no #main-content ===== */
     .hf-lottie {
       display: inline-block;
       vertical-align: middle;
@@ -5110,7 +5026,6 @@
       transform: translateZ(0);
     }
 
-    /* ===== Celebração ao concluir o treino ===== */
     .hf-celebration {
       position: fixed;
       inset: 0;
@@ -5924,7 +5839,6 @@
       pointer-events: auto
     }
 
-
     .btn-theme-principal:hover:not(:disabled) {
       transform: translateY(-2px) scale(1.04);
       box-shadow: var(--btn-shadow-hover), inset 0 1px 0 0 rgba(205, 214, 244, 0.22);
@@ -5942,8 +5856,6 @@
 
     .quick-actions-toggle {
       --quick-actions-font-size: calc(var(--quick-action-size) * 0.4);
-      --btn-gap: 0.35rem;
-      --btn-padding: 0;
       width: var(--quick-action-size);
       height: var(--quick-action-size);
       display: flex;
@@ -6563,8 +6475,6 @@
       filter: blur(80px);
     }
 
-
-
     /* ── Reduced Motion ── */
     @media (prefers-reduced-motion: reduce) {
       #page-background {
@@ -6927,7 +6837,6 @@
       box-shadow: var(--liquid-card-shadow), var(--liquid-card-inner)
     }
 
-    /* Liquid Glass Effect - Apple Style */
     .liquid-glass {
       position: relative;
       background: var(--liquid-card-bg);
@@ -7553,10 +7462,6 @@
       box-shadow: var(--elev-1), var(--elev-2)
     }
 
-
-
-
-
     .notepad-char-counter {
       position: absolute;
       bottom: 0.75rem;
@@ -7578,8 +7483,6 @@
       color: rgba(243, 139, 168, 0.9);
       font-weight: 700;
     }
-
-
 
     .notepad-editor-wrapper {
       position: relative;
@@ -7643,7 +7546,6 @@
       justify-content: center;
       gap: 0.6rem
     }
-
 
     .timer-control-btn.primary:hover:not(:disabled) {
       transform: translateY(-2px) scale(1.04);
@@ -7943,7 +7845,6 @@
       overflow: hidden
     }
 
-
     .notepad-tab:hover {
       border-color: rgba(205, 214, 244, 0.35);
       box-shadow: 0 18px 36px -18px rgba(255, 122, 31, 0.65)
@@ -7955,7 +7856,6 @@
       box-shadow: 0 18px 40px -18px var(--primary-color, 0.75), inset 0 1px 0 0 rgba(205, 214, 244, 0.2);
       overflow: visible
     }
-
 
     .notepad-toolbar {
       display: flex;
@@ -8530,7 +8430,6 @@
       mix-blend-mode: multiply;
     }
 
-
     .header-background>* {
       position: relative;
       z-index: 2
@@ -8570,7 +8469,6 @@
       pointer-events: none
     }
 
-    /* === Seleção de Programa (overlay premium) === */
     .program-overlay {
       position: fixed;
       inset: 0;
@@ -8736,7 +8634,6 @@
       z-index: 3;
     }
 
-    /* ====== Login Screen ====== */
     #login-screen {
       position: fixed;
       inset: 0;
@@ -8916,7 +8813,6 @@
       z-index: 1;
     }
 
-    /* ===== Apple Liquid Glass Card Finish ===== */
     .phase-dashboard__hero,
     .phase-dashboard__goal,
     .phase-stats,
@@ -9087,7 +8983,6 @@
         var(--liquid-card-inner);
     }
 
-    /* ===== Home Premium Material Refinement ===== */
     .home-dashboard-shell {
       --home-premium-shadow:
         0 42px 96px -48px rgba(0, 0, 0, 0.92),
@@ -9280,7 +9175,6 @@
     </div>
   </div>
 
-  <!-- Login Screen -->
   <div id="login-screen">
     <div class="login-content">
       <img src="src/imagens/HyperFitness.png" alt="HyperFitness" class="login-logo">
@@ -9424,7 +9318,6 @@
     </div>
   </div>
 
-  <!-- Builder de Treino "Monte Seu Treino" -->
   <section id="builder-screen" class="hidden" data-picker-open="false">
     <header class="builder-header">
       <button id="builder-back-btn" class="builder-back-btn" type="button" aria-label="Voltar">
@@ -9522,7 +9415,6 @@
               </button>
             </header>
 
-            <!-- Recents Section -->
             <div class="picker-context-section" id="picker-recents-section">
               <div class="picker-section-header">
                 <span class="section-icon"><i class="ph-bold ph-clock-counter-clockwise" aria-hidden="true"></i></span>
@@ -9545,7 +9437,6 @@
               </div>
             </div>
 
-            <!-- Favorites Section -->
             <div class="picker-context-section" id="picker-favorites-section">
               <div class="picker-section-header">
                 <span class="section-icon"><i class="ph-bold ph-star" aria-hidden="true"></i></span>
@@ -9571,7 +9462,6 @@
               </div>
             </div>
 
-            <!-- Smart Suggestions -->
             <div class="picker-context-section" id="picker-suggestions-section">
               <div class="picker-section-header">
                 <span class="section-icon"><i class="ph-bold ph-sparkle" aria-hidden="true"></i></span>
@@ -9602,13 +9492,10 @@
               </div>
             </div>
 
-
-            <!-- Filters -->
             <div class="ex-picker-filters-wrap">
               <div class="ex-picker-filters" id="exercise-picker-filters"></div>
             </div>
 
-            <!-- Exercise List Section Title -->
             <div class="ex-picker-section-title">
               <i class="ph-fill ph-list-bullets" aria-hidden="true"></i>
               <span>Todos os exercícios</span>
@@ -9616,7 +9503,6 @@
                 aria-live="polite">0</span>
             </div>
 
-            <!-- Exercise List (scrollable) -->
             <div class="builder-picker-scroll">
               <div class="ex-picker-list" id="exercise-picker-list"></div>
             </div>
@@ -9685,7 +9571,6 @@
 
   </div>
 
-  <!-- User Dropdown Overlay com blur -->
   <div id="user-overlay" class="fixed inset-0 z-[35] pointer-events-none overlay-blur"
     style="display:none; transition: opacity 0.25s ease;"></div>
 
@@ -9933,7 +9818,6 @@
     </div>
   </div>
 
-  <!-- Exercise Edit Modal -->
   <div id="exercise-edit-modal"
     class="fixed inset-0 overlay-blur z-[140] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
     role="dialog" aria-labelledby="exercise-edit-title" aria-hidden="true" style="display:none">
@@ -17801,7 +17685,6 @@
         }
       });
 
-      // Bottom sheet de semanas (mobile)
       document.addEventListener('click', (event) => {
         if (event.target.closest('[data-action="close-week-sheet"]')) {
           closeWeekSheet();
@@ -17824,7 +17707,6 @@
       initializeApp();
     }
 
-    // ====== Login Screen ======
     function initLoginScreen() {
       const loginScreen = document.getElementById('login-screen');
       if (!loginScreen) return;
