@@ -6534,8 +6534,9 @@
       border-top-right-radius: clamp(1.35rem, 2.4vw, 2rem);
       box-shadow:
         0 -16px 38px -10px rgba(0, 0, 0, 0.8),
-        inset 0 1px 1px rgba(255, 255, 255, 0.15),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        0 -4px 24px -6px rgba(0, 150, 60, 0.05),
+        inset 0 1px 1px rgba(0, 150, 60, 0.1),
+        inset 0 0 0 1px rgba(0, 150, 60, 0.03);
       isolation: isolate;
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
@@ -6545,7 +6546,7 @@
     #page-background .bg-gradient-base {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
-      background: radial-gradient(circle at 50% 0%, #001206 0%, #000000 80%);
+      background: radial-gradient(circle at 50% 0%, #000a04 0%, #000000 80%);
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
       will-change: transform;
     }
@@ -6557,20 +6558,11 @@
       height: 110%;
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
       will-change: transform;
-      opacity: 1;
-      filter: blur(35px);
+      opacity: 0.35;
+      filter: blur(80px);
     }
 
-    #page-background .bg-noise {
-      position: absolute;
-      inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
-      opacity: 0.04;
-      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
-      background-size: 150px 150px;
-      transform: translate3d(0, var(--pg-background-parallax-y), 0);
-      will-change: transform;
-      mix-blend-mode: overlay;
-    }
+
 
     /* ── Reduced Motion ── */
     @media (prefers-reduced-motion: reduce) {
@@ -9263,20 +9255,20 @@
       <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" style="width: 100%; height: 100%;">
         <defs>
           <linearGradient id="grad-band-1" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#18181e" stop-opacity="1" />
-            <stop offset="50%" stop-color="#1e2a1e" stop-opacity="1" />
-            <stop offset="100%" stop-color="#18181e" stop-opacity="1" />
+            <stop offset="0%" stop-color="#001407" stop-opacity="1" />
+            <stop offset="50%" stop-color="#023d18" stop-opacity="1" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="1" />
           </linearGradient>
 
           <linearGradient id="grad-band-2" x1="100%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stop-color="#18181e" stop-opacity="0" />
-            <stop offset="50%" stop-color="#1c160c" stop-opacity="0.8" />
-            <stop offset="100%" stop-color="#08080a" stop-opacity="0" />
+            <stop offset="0%" stop-color="#000000" stop-opacity="0" />
+            <stop offset="50%" stop-color="#01240e" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
           </linearGradient>
           
           <linearGradient id="grad-band-3" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1a1c1a" stop-opacity="0.6" />
-            <stop offset="100%" stop-color="#18181e" stop-opacity="0" />
+            <stop offset="0%" stop-color="#011f0c" stop-opacity="0.75" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
           </linearGradient>
         </defs>
 
@@ -9285,8 +9277,6 @@
         <path d="M -100 -100 C 300 300, 800 0, 1200 400" fill="none" stroke="url(#grad-band-3)" stroke-width="250" />
       </svg>
     </div>
-
-    <div class="bg-noise"></div>
   </div>
 
   <!-- Login Screen -->
