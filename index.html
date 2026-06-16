@@ -2569,7 +2569,6 @@
 
     .content-enter-animation {
       animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-      will-change: transform, opacity
     }
 
     #phase-header {
@@ -5518,7 +5517,6 @@
 
     button,
     .completion-toggle-wrapper {
-      will-change: transform;
       transition: transform 0.25s ease
     }
 
@@ -8741,8 +8739,23 @@
       filter: brightness(0.78) saturate(0.92) contrast(1.04) !important;
       transform: translateZ(0);
       mix-blend-mode: normal;
+      background-image: image-set(
+        url("src/imagens/week-summary-bg.avif") type("image/avif"),
+        url("src/imagens/week-summary-bg.webp") type("image/webp"),
+        url("src/imagens/week-summary-bg.png") type("image/png")
+      ) !important;
       background-size: cover !important;
       background-repeat: no-repeat !important;
+    }
+
+    @media (max-width: 640px) {
+      .home-dashboard-shell .hf-week-image-layer {
+        background-image: image-set(
+          url("src/imagens/week-summary-bg-mobile.avif") type("image/avif"),
+          url("src/imagens/week-summary-bg-mobile.webp") type("image/webp"),
+          url("src/imagens/week-summary-bg.png") type("image/png")
+        ) !important;
+      }
     }
 
     .home-dashboard-shell .hf-week-image-layer::before,
@@ -11816,7 +11829,7 @@
       return `
         <div class="absolute inset-0 overflow-hidden rounded-3xl">
           <img src="${imageUrl}"
-            alt="Ilustração do exercício ${exercise.name}" class="exercise-card-image" data-parallax-image>
+            alt="Ilustração do exercício ${exercise.name}" class="exercise-card-image" data-parallax-image loading="lazy" decoding="async">
           <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
         </div>
 
