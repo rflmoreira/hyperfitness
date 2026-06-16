@@ -8089,7 +8089,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: clamp(420px, 58vh, 620px);
+      height: clamp(300px, 42vh, 460px);
       pointer-events: none;
       background: url("src/imagens/capa de fundo.jpg");
       background-size: cover;
@@ -8098,6 +8098,8 @@
       will-change: transform;
       transform: translateZ(0);
       z-index: 0;
+      -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
     }
 
     .header-background::after {
@@ -8106,7 +8108,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: clamp(420px, 58vh, 620px);
+      height: clamp(300px, 42vh, 460px);
       pointer-events: none;
       z-index: 1;
       background:
@@ -8114,6 +8116,8 @@
         linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.28));
       opacity: 0.72;
       mix-blend-mode: multiply;
+      -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
     }
 
     .header-background>* {
