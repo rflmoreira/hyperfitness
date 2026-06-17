@@ -9919,6 +9919,7 @@
     const DOM_ELEMENTS = {};
     let confettiInstance;
     let scrollObserver;
+    let weekSheetImageLazyObserver = null;
 
     // ===== Background ambiental com GSAP ScrollTrigger =====
     const gsapScrollController = {
@@ -11059,6 +11060,13 @@
       sheet.setAttribute("aria-hidden", "false");
       document.body.classList.add("week-sheet-open");
       document.body.style.overflow = "hidden";
+
+      const setupImages = () => setupWeekSheetImageLazyLoading();
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(setupImages);
+      } else {
+        window.setTimeout(setupImages, 0);
+      }
     }
 
     function closeWeekSheet() {
@@ -11556,6 +11564,7 @@
       const fragment = document.createDocumentFragment();
       workout.exercises.forEach((ex, idx) => fragment.appendChild(createExerciseCard(ex, idx)));
       DOM_ELEMENTS.workoutDetails.appendChild(fragment);
+      setupWeekSheetImageLazyLoading();
       refreshCardParallax();
 
       const backToTopBtn = document.createElement('div');
@@ -11881,9 +11890,12 @@
 
     function createExerciseCardHTML(exercise, index, isCompleted, isLocked) {
       const imageUrl = getExerciseImageUrl(exercise.name);
+      const imageSourceAttribute = shouldUseControlledSheetImageLazy()
+        ? `data-src="${imageUrl}"`
+        : `src="${imageUrl}"`;
       return `
         <div class="absolute inset-0 overflow-hidden rounded-3xl">
-          <img src="${imageUrl}"
+          <img ${imageSourceAttribute}
             alt="Ilustração do exercício ${exercise.name}" class="exercise-card-image" data-parallax-image loading="lazy" decoding="async">
           <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
         </div>
@@ -11900,6 +11912,79 @@
           ${createCompletionButtonHTML(index, isCompleted, isLocked)}
         </div>
       `;
+    }
+
+    function shouldUseControlledSheetImageLazy() {
+      return typeof window.matchMedia === "function"
+        && window.matchMedia("(max-width: 640px), (pointer: coarse)").matches;
+    }
+
+    function loadWeekSheetImage(img) {
+      const imageUrl = img?.dataset?.src;
+      if (!imageUrl) return;
+      img.src = imageUrl;
+      img.removeAttribute("data-src");
+    }
+
+    function isWeekSheetImageVisible(img, root) {
+      if (!img || !root) return false;
+      const target = img.closest(".workout-card") || img;
+      const rootRect = root.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      if (!rootRect.width || !rootRect.height || !targetRect.width || !targetRect.height) return false;
+
+      return targetRect.bottom > rootRect.top
+        && targetRect.top < rootRect.bottom
+        && targetRect.right > rootRect.left
+        && targetRect.left < rootRect.right;
+    }
+
+    function setupWeekSheetImageLazyLoading() {
+      if (weekSheetImageLazyObserver) {
+        weekSheetImageLazyObserver.disconnect();
+        weekSheetImageLazyObserver = null;
+      }
+
+      const images = DOM_ELEMENTS.workoutDetails
+        ? Array.from(DOM_ELEMENTS.workoutDetails.querySelectorAll("img.exercise-card-image[data-src]"))
+        : [];
+      if (!images.length) return;
+
+      if (!shouldUseControlledSheetImageLazy()) {
+        images.forEach(loadWeekSheetImage);
+        return;
+      }
+
+      const root = document.querySelector(".hf-week-sheet__body");
+      if (!root || typeof window.IntersectionObserver !== "function") {
+        images.forEach(loadWeekSheetImage);
+        return;
+      }
+
+      const pendingImages = [];
+      images.forEach(img => {
+        if (isWeekSheetImageVisible(img, root)) {
+          loadWeekSheetImage(img);
+        } else {
+          pendingImages.push(img);
+        }
+      });
+
+      if (!pendingImages.length) return;
+
+      weekSheetImageLazyObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          loadWeekSheetImage(entry.target);
+          observer.unobserve(entry.target);
+        });
+      }, {
+        root,
+        rootMargin: "80px 0px",
+        threshold: 0.01
+      });
+
+      pendingImages.forEach(img => weekSheetImageLazyObserver.observe(img));
     }
 
     function initializeCardParallaxSystem() {
