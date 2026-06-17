@@ -12798,8 +12798,16 @@
       scrollObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
+            const target = entry.target;
+            target.classList.add("is-visible");
+
+            window.setTimeout(() => {
+              if (target.isConnected && target.classList.contains("is-visible")) {
+                target.style.willChange = "auto";
+              }
+            }, 700);
+
+            observer.unobserve(target);
           }
         });
       }, { rootMargin: "0px 0px -100px 0px" });
