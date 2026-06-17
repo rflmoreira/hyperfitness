@@ -10050,6 +10050,9 @@
 
       refresh() {
         if (!this.media || typeof window.ScrollTrigger === 'undefined') return;
+        const hasActiveTriggers = typeof window.ScrollTrigger.getAll !== 'function'
+          || window.ScrollTrigger.getAll().length > 0;
+        if (!hasActiveTriggers) return;
         if (this.refreshFrame !== null) return;
 
         this.refreshFrame = window.requestAnimationFrame(() => {
