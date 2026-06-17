@@ -3846,6 +3846,16 @@
       max-width: none;
     }
 
+    @media (max-width: 640px), (pointer: coarse) {
+      .hf-week-sheet .workout-card,
+      .hf-week-sheet .exercise-stat-button,
+      .hf-week-sheet .completion-toggle-wrapper,
+      .hf-week-sheet .exercise-method-pill {
+        -webkit-backdrop-filter: blur(18px) saturate(160%) contrast(1.04) brightness(1.03);
+        backdrop-filter: blur(18px) saturate(160%) contrast(1.04) brightness(1.03);
+      }
+    }
+
     .hf-week-sheet__panel #day-selector {
       max-width: 100%;
       margin: 0 !important;
