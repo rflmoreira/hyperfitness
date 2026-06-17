@@ -12001,7 +12001,9 @@
       });
       CARD_PARALLAX_STATE.items.clear();
 
-      const cards = document.querySelectorAll('.workout-card');
+      const cards = DOM_ELEMENTS.workoutDetails
+        ? DOM_ELEMENTS.workoutDetails.querySelectorAll('.workout-card')
+        : [];
       cards.forEach(card => {
         const image = card.querySelector('[data-parallax-image]');
         if (!image) return;
@@ -12682,7 +12684,45 @@
       saveApplicationState();
 
       setTimeout(() => {
-        renderWorkoutDetails();
+        const isCompleted = !!APP_STATE.completionStatus[index];
+        const isLocked = isPastWorkoutCheck() && isCompleted;
+        const currentToggle = DOM_ELEMENTS.workoutDetails?.querySelector(`.completion-toggle-wrapper[data-index="${index}"]`);
+        const card = currentToggle?.closest('.workout-card');
+
+        if (!currentToggle || !card) {
+          console.warn('Fallback renderWorkoutDetails after completion toggle');
+          renderWorkoutDetails();
+          return;
+        }
+
+        card.classList.toggle('exercise-completed', isCompleted);
+        card.style.borderColor = isCompleted ? "rgba(166, 227, 161, 0.6)" : "var(--surface-0)";
+
+        const template = document.createElement('template');
+        template.innerHTML = createCompletionButtonHTML(index, isCompleted, isLocked).trim();
+        const newToggle = template.content.firstElementChild;
+
+        if (!newToggle) {
+          console.warn('Fallback renderWorkoutDetails after completion toggle');
+          renderWorkoutDetails();
+          return;
+        }
+
+        currentToggle.replaceWith(newToggle);
+
+        const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
+        const workoutLetter = phaseData?.schedule?.[APP_STATE.currentDay];
+        const workout = workoutLetter && workoutLetter !== "OFF" ? phaseData?.workouts?.[workoutLetter] : null;
+
+        if (!workout || !Array.isArray(workout.exercises)) {
+          console.warn('Fallback renderWorkoutDetails after completion toggle');
+          renderWorkoutDetails();
+          return;
+        }
+
+        const totalExercises = workout.exercises.length;
+        const completedExercises = Object.values(APP_STATE.completionStatus).filter(Boolean).length;
+        updateWorkoutButton(completedExercises >= totalExercises);
       }, 100);
     }
 
