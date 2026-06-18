@@ -23,6 +23,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/fourshared"
+  to = "/.netlify/functions/fourshared"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]

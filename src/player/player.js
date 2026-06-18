@@ -6825,6 +6825,156 @@ const MUSIC_PLAYER = (() => {
     return null;
   }
 
+  // === 4shared Fallback Functions ===
+
+  /**
+   * Busca uma faixa no 4shared como fonte alternativa de áudio.
+   * Ativado quando YouTube + RapidAPI falham.
+   */
+  async function search4shared(trackName, artistName, durationMs = null) {
+    // Só funciona em produção (Netlify) ou com netlify dev
+    if (localDevFlag && !window.location.port.toString().startsWith('888')) {
+      return null;
+    }
+
+    const query = `${trackName} ${artistName}`.trim();
+    if (!query) return null;
+
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+
+      const response = await fetch(`/fourshared?action=search&q=${encodeURIComponent(query)}&limit=10`, {
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+
+      if (!response.ok) {
+        console.warn(`[4SHARED] HTTP ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const files = data?.files;
+      if (!Array.isArray(files) || !files.length) {
+        return null;
+      }
+
+      // Pontua e seleciona o melhor resultado
+      const scored = files.map(file => {
+        let score = 0;
+        const fileName = (file.name || '').toLowerCase();
+        const trackLower = trackName.toLowerCase();
+        const artistLower = artistName.toLowerCase();
+
+        // Pontuação por nome da faixa (0-50)
+        const titleSim = calculateStringSimilarity(fileName, trackLower);
+        score += titleSim * 50;
+
+        // Pontuação por artista (0-30)
+        if (artistLower) {
+          const artistSim = calculateStringSimilarity(fileName, artistLower);
+          score += artistSim * 30;
+        }
+
+        // Bonus se contém ambos nome e artista
+        if (fileName.includes(trackLower) || trackLower.includes(fileName)) score += 10;
+        if (artistLower && fileName.includes(artistLower)) score += 10;
+
+        // Penalidade para covers, remixes etc.
+        const negTerms = ['cover', 'remix', 'karaoke', 'instrumental', 'ringtone', '8d audio'];
+        if (negTerms.some(t => fileName.includes(t) && !trackLower.includes(t))) {
+          score -= 15;
+        }
+
+        return { ...file, score };
+      });
+
+      scored.sort((a, b) => b.score - a.score);
+      const best = scored[0];
+
+      if (!best || best.score < 5) return null;
+
+      console.log(`🔄 [4SHARED] Found fallback: "${best.name}" (score: ${best.score.toFixed(1)})`);
+      return {
+        fileId: best.id,
+        name: best.name,
+        source: '4shared'
+      };
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.warn('[4SHARED] Search timeout');
+      } else {
+        console.warn(`[4SHARED] Search error: ${error.message}`);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Obtém a URL de stream de um arquivo do 4shared.
+   * Usa cache com TTL de AUDIO_URL_TTL_MS (10 min).
+   */
+  async function get4sharedStreamUrl(fileId) {
+    if (!fileId) return null;
+
+    // Chave de cache com prefixo para evitar colisão com videoIds do YouTube
+    const cacheKey = `4s-${fileId}`;
+    const cached = getCacheEntry(state.audioCache, cacheKey, AUDIO_URL_TTL_MS);
+    if (cached !== null) return cached;
+
+    // O endpoint /fourshared?action=stream retorna o áudio diretamente (proxy server-side).
+    // A URL do endpoint É a URL de stream para o <audio> element.
+    // Não fazemos HEAD request pois forçaria o server a baixar o MP3 inteiro só para validar.
+    // Erros de reprodução serão tratados pelo handleAudioError existente.
+    const streamUrl = `/fourshared?action=stream&id=${encodeURIComponent(fileId)}`;
+    setCacheEntry(state.audioCache, cacheKey, streamUrl);
+    return streamUrl;
+  }
+
+  /**
+   * Tenta reproduzir via 4shared como fallback.
+   * Retorna o resultado com audioUrl se bem-sucedido, ou null.
+   */
+  async function tryFoursharedFallback(track, index) {
+    const trackName = getTrackTitle(track);
+    const artists = getTrackArtists(track);
+    const durationMs = extractDurationMs(track);
+
+    console.log(`🔄 [4SHARED] Tentando fallback para: "${trackName}" - ${artists}`);
+
+    const searchResult = await search4shared(trackName, artists, durationMs);
+    if (!searchResult) {
+      console.warn(`❌ [4SHARED] Nenhum resultado encontrado para: "${trackName}"`);
+      return null;
+    }
+
+    const streamUrl = await get4sharedStreamUrl(searchResult.fileId);
+    if (!streamUrl) {
+      console.warn(`❌ [4SHARED] Não foi possível obter stream URL para: "${searchResult.name}"`);
+      return null;
+    }
+
+    console.log(`✅ [4SHARED] Fallback disponível: "${searchResult.name}"`);
+
+    const result = {
+      videoId: `4s-${searchResult.fileId}`,
+      instance: '4shared-fallback',
+      audioUrl: streamUrl,
+      lengthSeconds: 0 // Será detectado via getAudioDuration
+    };
+
+    // Cache o resultado
+    const key = getTrackKey(track);
+    if (key) {
+      setCacheEntry(state.searchCache, key, result);
+    }
+
+    return result;
+  }
+
+  // === End 4shared Fallback Functions ===
+
   async function resolveTrackAudio(track, index, forceRefresh = false) {
     const key = getTrackKey(track);
 
@@ -6851,7 +7001,10 @@ const MUSIC_PLAYER = (() => {
       } else {
         video = await findVideoForTrack(track);
         if (!video) {
-          console.warn(`❌ [AUDIO] Nenhum vídeo encontrado para "${track.name}"`);
+          console.warn(`❌ [AUDIO] Nenhum vídeo encontrado para "${track.name}", tentando 4shared...`);
+          // Fallback: tenta 4shared quando YouTube não encontra nada
+          const foursharedResult = await tryFoursharedFallback(track, index);
+          if (foursharedResult) return foursharedResult;
           return null;
         }
       }
@@ -6862,7 +7015,10 @@ const MUSIC_PLAYER = (() => {
       }
       const audioUrl = await getAudioUrl(video.videoId);
       if (!audioUrl) {
-        console.warn(`❌ [AUDIO] Não foi possível resolver stream para "${track.name}" (${video.videoId})`);
+        console.warn(`❌ [AUDIO] Não foi possível resolver stream para "${track.name}" (${video.videoId}), tentando 4shared...`);
+        // Fallback: tenta 4shared quando RapidAPI não consegue extrair áudio
+        const foursharedResult = await tryFoursharedFallback(track, index);
+        if (foursharedResult) return foursharedResult;
         return null;
       }
 
@@ -6882,6 +7038,13 @@ const MUSIC_PLAYER = (() => {
       return result;
     } catch (error) {
       console.warn(`❌ [AUDIO] Erro ao resolver faixa "${track?.name || 'desconhecida'}": ${error.message}`);
+      // Fallback: tenta 4shared em caso de erro inesperado
+      try {
+        const foursharedResult = await tryFoursharedFallback(track, index);
+        if (foursharedResult) return foursharedResult;
+      } catch (fbError) {
+        console.warn(`❌ [4SHARED] Fallback também falhou: ${fbError.message}`);
+      }
       return null;
     }
   }
@@ -7002,6 +7165,25 @@ const MUSIC_PLAYER = (() => {
           }
         }
 
+        // Último recurso: tenta 4shared antes de marcar como indisponível
+        if (!isStale()) {
+          console.log(`🔄 [AUDIO] Tentando fallback 4shared para track ${failingIndex}...`);
+          const foursharedResult = await tryFoursharedFallback(track, failingIndex);
+          if (foursharedResult?.audioUrl && !isStale()) {
+            try {
+              await resetAudioWithDelay();
+              loadAudioSource(foursharedResult.audioUrl);
+              await delay(300);
+              await audio.play();
+              markPlaybackSuccess(failingIndex);
+              console.log(`✅ [4SHARED] Fallback bem-sucedido para track ${failingIndex}`);
+              return;
+            } catch (fbError) {
+              console.error(`❌ [4SHARED] Fallback play failed: ${fbError.message}`);
+            }
+          }
+        }
+
         // Se ainda não conseguiu, marca como indisponível
         console.warn(`⏭️ [AUDIO] No audio URL available for track ${failingIndex}, marking as unavailable`);
         if (!isStale()) {
@@ -7078,7 +7260,22 @@ const MUSIC_PLAYER = (() => {
 
       // Só marca como indisponível após esgotar todas as combinações
       if (attempt >= maxAttempts) {
+        // Último recurso: tenta 4shared antes de desistir
         if (!isStale()) {
+          const foursharedLast = await tryFoursharedFallback(track, failingIndex);
+          if (foursharedLast?.audioUrl && !isStale()) {
+            try {
+              await resetAudioWithDelay();
+              loadAudioSource(foursharedLast.audioUrl);
+              await delay(300);
+              await audio.play();
+              markPlaybackSuccess(failingIndex);
+              console.log(`✅ [4SHARED] Fallback final bem-sucedido para track ${failingIndex}`);
+              return;
+            } catch (fbLastErr) {
+              console.error(`❌ [4SHARED] Fallback final falhou: ${fbLastErr.message}`);
+            }
+          }
           handleUnavailableTrack(failingIndex);
         }
       } else {
