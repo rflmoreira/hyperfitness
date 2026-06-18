@@ -6277,7 +6277,14 @@ const MUSIC_PLAYER = (() => {
   async function isPlayableAudioUrl(url) {
     if (!url) return { playable: false, reason: 'empty' };
 
-    const isProxied = url.includes('/audio') || url.includes('/fourshared') || url.startsWith('/proxy');
+    // O fallback do 4shared usa um Redirect 302 para uma CDN anti-hotlink.
+    // O fetch com CORS enviará um header Origin, o que faz a CDN retornar uma resposta em branco.
+    // Ignoramos a validação para URLs do fourshared pois a tag <audio> (no-cors) tocará perfeitamente.
+    if (url.includes('/fourshared')) {
+      return { playable: true, reason: 'fourshared-trusted-redirect' };
+    }
+
+    const isProxied = url.includes('/audio') || url.startsWith('/proxy');
 
     // URLs sem proxy não conseguem ser validadas por CORS; confiar nelas
     if (!isProxied) return { playable: true, reason: 'non-proxied' };
