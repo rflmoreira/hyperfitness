@@ -4352,7 +4352,6 @@ const MUSIC_PLAYER = (() => {
       // Limpa cache se for retry
       if (isRetry) {
         state.audioCache.delete(videoId);
-        unavailableTracks.delete(videoId);
       }
 
       // Busca o áudio
@@ -6278,7 +6277,7 @@ const MUSIC_PLAYER = (() => {
   async function isPlayableAudioUrl(url) {
     if (!url) return { playable: false, reason: 'empty' };
 
-    const isProxied = isProxyUrl(url) || url.startsWith('/proxy');
+    const isProxied = url.includes('/audio') || url.includes('/fourshared') || url.startsWith('/proxy');
 
     // URLs sem proxy não conseguem ser validadas por CORS; confiar nelas
     if (!isProxied) return { playable: true, reason: 'non-proxied' };

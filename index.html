@@ -17,6 +17,13 @@
   <link rel="preload" href="src/imagens/capa de fundo.jpg" as="image" />
   <link rel="stylesheet" href="src/player/player.css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      corePlugins: {
+        preflight: false,
+      }
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -9948,185 +9955,12 @@
     let workoutDetailsDirty = true;
 
     // ===== Background ambiental com GSAP ScrollTrigger =====
+    // O controller do GSAP foi removido pois a estrutura do background 
+    // agora utiliza apenas CSS para as animações visuais.
     const gsapScrollController = {
-      media: null,
-      timelines: [],
-      resizeObserver: null,
-      refreshFrame: null,
-      root: null,
-
-      init(layer) {
-        this.destroy();
-
-        if (!layer || typeof window.gsap === 'undefined' || typeof window.ScrollTrigger === 'undefined') {
-          return;
-        }
-
-        window.gsap.registerPlugin(window.ScrollTrigger);
-        this.root = layer;
-
-        const elements = layer.querySelectorAll('[data-scroll-layer]');
-        const getLayer = (name) => layer.querySelector(`[data-scroll-layer="${name}"]`);
-        const clearScene = () => window.gsap.set(elements, {
-          clearProps: 'transform,opacity,visibility,strokeDashoffset'
-        });
-        const createTrigger = (id, scrub) => ({
-          id,
-          trigger: document.documentElement,
-          start: 0,
-          end: 'max',
-          scrub,
-          invalidateOnRefresh: true
-        });
-
-        this.media = window.gsap.matchMedia();
-        this.media.add({
-          reducedMotion: '(prefers-reduced-motion: reduce)',
-          mobile: '(max-width: 767px)'
-        }, (context) => {
-          const { reducedMotion, mobile } = context.conditions;
-
-          clearScene();
-          if (reducedMotion) {
-            return;
-          }
-
-          const atmosphere = window.gsap.timeline({
-            defaults: { ease: 'none', force3D: true },
-            scrollTrigger: createTrigger('page-background-atmosphere', mobile ? 1.7 : 2.25)
-          })
-            .fromTo(getLayer('sweep'),
-              { xPercent: mobile ? 8 : 14, yPercent: -28, rotation: -2, autoAlpha: mobile ? 0.04 : 0.06 },
-              { xPercent: mobile ? -6 : -16, yPercent: mobile ? 38 : 56, rotation: 2, autoAlpha: mobile ? 0.1 : 0.2 }, 0)
-            .fromTo(getLayer('hotspot-alpha'),
-              { scale: 0.85, autoAlpha: mobile ? 0.2 : 0.3 },
-              { scale: 1.15, autoAlpha: mobile ? 0.45 : 0.65 }, 0)
-            .fromTo(getLayer('hotspot-beta'),
-              { scale: 0.9, autoAlpha: mobile ? 0.15 : 0.25 },
-              { scale: 1.1, autoAlpha: mobile ? 0.38 : 0.55 }, 0);
-
-          if (!mobile) {
-            atmosphere
-              .fromTo(getLayer('sweep-counter'),
-                { xPercent: -12, yPercent: 20, rotation: 1, autoAlpha: 0.04 },
-                { xPercent: 10, yPercent: -32, rotation: -1, autoAlpha: 0.14 }, 0)
-              .fromTo(getLayer('hotspot-gamma'),
-                { scale: 0.8, autoAlpha: 0.15 },
-                { scale: 1.2, autoAlpha: 0.45 }, 0);
-          }
-
-          const geometry = window.gsap.timeline({
-            defaults: { ease: 'none', force3D: true },
-            scrollTrigger: createTrigger('page-background-geometry', mobile ? 1.48 : 1.9)
-          })
-            .fromTo(getLayer('lines-ambient'),
-              { xPercent: mobile ? -1 : -3, yPercent: mobile ? -4 : -10, autoAlpha: mobile ? 0.1 : 0.15 },
-              { xPercent: mobile ? 1 : 3, yPercent: mobile ? 6 : 14, autoAlpha: mobile ? 0.3 : 0.45 }, 0)
-            .fromTo(getLayer('lines-rails'),
-              { xPercent: mobile ? 2 : 4, yPercent: mobile ? -7 : -16, autoAlpha: mobile ? 0.15 : 0.2 },
-              { xPercent: mobile ? -2 : -5, yPercent: mobile ? 10 : 22, autoAlpha: mobile ? 0.38 : 0.55 }, 0)
-            .fromTo(getLayer('lines-signal'),
-              { xPercent: mobile ? 2 : 5, yPercent: mobile ? -8 : -18, autoAlpha: mobile ? 0.18 : 0.25 },
-              { xPercent: mobile ? -2 : -6, yPercent: mobile ? 10 : 24, autoAlpha: mobile ? 0.45 : 0.72 }, 0)
-            .fromTo(getLayer('orbit-primary'),
-              { xPercent: mobile ? 2 : 4, yPercent: -6, rotation: -26, autoAlpha: mobile ? 0.08 : 0.12 },
-              { xPercent: mobile ? -3 : -6, yPercent: mobile ? 10 : 16, rotation: mobile ? -15 : -8, autoAlpha: mobile ? 0.22 : 0.36 }, 0)
-            .fromTo(getLayer('beam-upper'),
-              { xPercent: mobile ? -4 : -10, yPercent: mobile ? -6 : -12, rotation: -19, autoAlpha: mobile ? 0.06 : 0.1 },
-              { xPercent: mobile ? 5 : 12, yPercent: mobile ? 10 : 18, rotation: -19, autoAlpha: mobile ? 0.22 : 0.38 }, 0);
-
-          if (!mobile) {
-            geometry
-              .fromTo(getLayer('lines-glow'),
-                { xPercent: 5, yPercent: -18, autoAlpha: 0.06 },
-                { xPercent: -6, yPercent: 24, autoAlpha: 0.28 }, 0)
-              .fromTo(getLayer('lines-glow-secondary'),
-                { xPercent: -3, yPercent: -12, autoAlpha: 0.04 },
-                { xPercent: 4, yPercent: 18, autoAlpha: 0.18 }, 0)
-              .fromTo(getLayer('lines-volume'),
-                { xPercent: -3, yPercent: -10, autoAlpha: 0.05 },
-                { xPercent: 4, yPercent: 16, autoAlpha: 0.17 }, 0)
-              .fromTo(getLayer('line-pulse'),
-                { xPercent: 5, yPercent: -18, strokeDashoffset: 380, autoAlpha: 0.08 },
-                { xPercent: -6, yPercent: 24, strokeDashoffset: -520, autoAlpha: 0.48 }, 0)
-              .fromTo(getLayer('lines-reflection'),
-                { xPercent: -2, yPercent: -5, autoAlpha: 0.04 },
-                { xPercent: 2, yPercent: 7, autoAlpha: 0.18 }, 0)
-              .fromTo(getLayer('orbit-secondary'),
-                { xPercent: -4, yPercent: 12, rotation: 22, autoAlpha: 0.05 },
-                { xPercent: 6, yPercent: -16, rotation: 8, autoAlpha: 0.26 }, 0)
-              .fromTo(getLayer('beam-lower'),
-                { xPercent: 12, yPercent: 14, rotation: -16, autoAlpha: 0.06 },
-                { xPercent: -14, yPercent: -18, rotation: -16, autoAlpha: 0.32 }, 0)
-              .fromTo(getLayer('beam-cross'),
-                { xPercent: -8, yPercent: -10, rotation: -32, autoAlpha: 0.04 },
-                { xPercent: 8, yPercent: 12, rotation: -32, autoAlpha: 0.2 }, 0);
-          }
-
-          const timelines = [atmosphere, geometry];
-          this.timelines.push(...timelines);
-
-          return () => {
-            timelines.forEach((timeline) => {
-              timeline.scrollTrigger?.kill();
-              timeline.kill();
-            });
-            this.timelines = this.timelines.filter((timeline) => !timelines.includes(timeline));
-            clearScene();
-          };
-        });
-
-        if (typeof window.ResizeObserver === 'function') {
-          this.resizeObserver = new ResizeObserver(() => this.refresh());
-          this.resizeObserver.observe(document.documentElement);
-          this.resizeObserver.observe(document.body);
-        }
-
-        this.refresh();
-      },
-
-      refresh() {
-        if (!this.media || typeof window.ScrollTrigger === 'undefined') return;
-        const hasActiveTriggers = typeof window.ScrollTrigger.getAll !== 'function'
-          || window.ScrollTrigger.getAll().length > 0;
-        if (!hasActiveTriggers) return;
-        if (this.refreshFrame !== null) return;
-
-        this.refreshFrame = window.requestAnimationFrame(() => {
-          this.refreshFrame = null;
-          if (this.media) window.ScrollTrigger.refresh();
-        });
-      },
-
-      destroy() {
-        if (this.refreshFrame !== null) {
-          window.cancelAnimationFrame(this.refreshFrame);
-          this.refreshFrame = null;
-        }
-
-        if (this.resizeObserver) {
-          this.resizeObserver.disconnect();
-          this.resizeObserver = null;
-        }
-
-        if (this.media) {
-          this.media.revert();
-          this.media = null;
-        }
-
-        this.timelines.forEach((timeline) => {
-          timeline.scrollTrigger?.kill();
-          timeline.kill();
-        });
-        this.timelines = [];
-
-        if (typeof window.ScrollTrigger !== 'undefined') {
-          window.ScrollTrigger.getById('page-background-atmosphere')?.kill();
-          window.ScrollTrigger.getById('page-background-geometry')?.kill();
-        }
-
-        this.root = null;
-      }
+      init() {},
+      refresh() {},
+      destroy() {}
     };
 
     const handleGsapScrollPageHide = () => {

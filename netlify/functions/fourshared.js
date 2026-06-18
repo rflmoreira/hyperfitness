@@ -188,21 +188,22 @@ async function getStreamUrl(fileId) {
 
     const html = await pageRes.text();
 
-    // Strategy 1: Extract jsDirectDownloadLink hidden input
+    // Strategy 1: Extract jsD1PreviewUrl hidden input (Best for streaming)
+    const previewLinkMatch = html.match(
+      /class=["']jsD1PreviewUrl["'][^>]*value=["']([^"']+)["']/i
+    );
+    if (previewLinkMatch?.[1]) {
+      console.log(`[4SHARED] Found jsD1PreviewUrl for ${fileId}`);
+      return previewLinkMatch[1];
+    }
+
+    // Strategy 2: Extract jsDirectDownloadLink hidden input (Fallback)
     const directLinkMatch = html.match(
       /id=["']jsDirectDownloadLink["'][^>]*value=["']([^"']+)["']/i
     );
     if (directLinkMatch?.[1]) {
       console.log(`[4SHARED] Found jsDirectDownloadLink for ${fileId}`);
       return directLinkMatch[1];
-    }
-
-    // Strategy 2: Find dc*.4shared.com/download/ URLs in the HTML
-    const cdnPattern = /https?:\/\/dc\d+\.4shared\.com\/download\/[^\s"'<>]+/gi;
-    const cdnLinks = html.match(cdnPattern);
-    if (cdnLinks?.length) {
-      console.log(`[4SHARED] Found CDN download link for ${fileId}`);
-      return cdnLinks[0];
     }
 
     // Strategy 3: Look for any direct audio source
@@ -277,50 +278,18 @@ export const handler = async (event) => {
         return makeResponse(404, { error: 'Could not resolve stream URL' });
       }
 
-      // Fetch the audio content server-side and proxy it to the client
-      try {
-        const audioRes = await fetch(streamUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'Accept': 'audio/mpeg, audio/*, */*',
-            'Referer': 'https://www.4shared.com/'
-          },
-          redirect: 'follow'
-        });
-
-        if (!audioRes.ok) {
-          console.error(`[4SHARED] Audio fetch failed: ${audioRes.status}`);
-          return makeResponse(502, { error: 'Audio fetch failed' });
-        }
-
-        const contentType = audioRes.headers.get('content-type') || '';
-
-        // Verify we got audio content, not HTML
-        if (contentType.includes('text/html')) {
-          console.error(`[4SHARED] Got HTML instead of audio for ${id}`);
-          return makeResponse(502, { error: 'Got HTML instead of audio — download may require login' });
-        }
-
-        const audioBuffer = await audioRes.arrayBuffer();
-        const audioBase64 = Buffer.from(audioBuffer).toString('base64');
-
-        return {
-          statusCode: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET,OPTIONS',
-            'Content-Type': contentType.includes('audio') ? contentType : 'audio/mpeg',
-            'Content-Length': audioBuffer.byteLength.toString(),
-            'Accept-Ranges': 'bytes',
-            'Cache-Control': 'public, max-age=3600'
-          },
-          body: audioBase64,
-          isBase64Encoded: true
-        };
-      } catch (audioErr) {
-        console.error(`[4SHARED] Audio proxy error: ${audioErr.message}`);
-        return makeResponse(502, { error: 'Audio proxy failed' });
-      }
+      // Return a 302 Redirect to the actual audio stream URL.
+      // This bypasses Netlify's 6MB payload limit and 10-second timeout constraints
+      // since the client browser will directly stream the audio from the CDN.
+      return {
+        statusCode: 302,
+        headers: {
+          ...CORS_HEADERS,
+          'Location': streamUrl,
+          'Cache-Control': 'no-cache'
+        },
+        body: ''
+      };
     }
 
     return makeResponse(400, {
