@@ -278,18 +278,58 @@ export const handler = async (event) => {
         return makeResponse(404, { error: 'Could not resolve stream URL' });
       }
 
-      // Return the URL directly in JSON to bypass Netlify 302 query string propagation.
-      // Netlify appends original query strings (e.g. ?action=stream) to 302 Locations,
-      // which invalidates 4shared's strict sbsr= signatures.
-      return {
-        statusCode: 200,
-        headers: {
+      const rangeHeader = event.headers.range || event.headers.Range || '';
+      let start = 0;
+      let end = '';
+      
+      if (rangeHeader) {
+        const parts = rangeHeader.replace(/bytes=/, "").split("-");
+        start = parseInt(parts[0], 10) || 0;
+        end = parts[1] ? parseInt(parts[1], 10) : '';
+      }
+      
+      // Limit chunks to 2MB to safely fit within Netlify's 6MB Lambda payload limit (Base64 overhead is ~33%)
+      const MAX_CHUNK = 2 * 1024 * 1024;
+      let targetEnd = end !== '' ? end : start + MAX_CHUNK - 1;
+
+      try {
+        const proxyRes = await fetch(streamUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+            'Range': `bytes=${start}-${targetEnd}`
+          }
+        });
+
+        if (!proxyRes.ok && proxyRes.status !== 206) {
+          return makeResponse(proxyRes.status, { error: 'Failed to proxy audio stream' });
+        }
+
+        const arrayBuffer = await proxyRes.arrayBuffer();
+        const base64Body = Buffer.from(arrayBuffer).toString('base64');
+
+        const headers = {
           ...CORS_HEADERS,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        body: JSON.stringify({ streamUrl })
-      };
+          'Content-Type': proxyRes.headers.get('content-type') || 'audio/mpeg',
+          'Accept-Ranges': 'bytes'
+        };
+
+        const contentRange = proxyRes.headers.get('content-range');
+        if (contentRange) {
+           headers['Content-Range'] = contentRange;
+        }
+        
+        headers['Content-Length'] = arrayBuffer.byteLength.toString();
+
+        return {
+          statusCode: proxyRes.status, // typically 206 or 200
+          headers,
+          body: base64Body,
+          isBase64Encoded: true
+        };
+      } catch (error) {
+        console.error('Proxy stream error:', error);
+        return makeResponse(500, { error: 'Internal server error while streaming' });
+      }
     }
 
     return makeResponse(400, {

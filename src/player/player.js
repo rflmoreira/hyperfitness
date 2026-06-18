@@ -6277,6 +6277,10 @@ const MUSIC_PLAYER = (() => {
   async function isPlayableAudioUrl(url) {
     if (!url) return { playable: false, reason: 'empty' };
 
+    if (url.includes('/fourshared')) {
+      return { playable: true, reason: 'fourshared-proxy' };
+    }
+
     const isProxied = url.includes('/audio') || url.startsWith('/proxy');
 
     // URLs sem proxy não conseguem ser validadas por CORS; confiar nelas
@@ -6922,19 +6926,11 @@ const MUSIC_PLAYER = (() => {
     const cached = getCacheEntry(state.audioCache, cacheKey, AUDIO_URL_TTL_MS);
     if (cached !== null) return cached;
 
-    try {
-      const response = await fetch(`/fourshared?action=stream&id=${encodeURIComponent(fileId)}`);
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      if (data && data.streamUrl) {
-        setCacheEntry(state.audioCache, cacheKey, data.streamUrl);
-        return data.streamUrl;
-      }
-    } catch (error) {
-      console.warn(`[4SHARED] Erro ao extrair stream URL do proxy: ${error.message}`);
-    }
-    return null;
+    // O endpoint /fourshared?action=stream atua como Proxy e usa Range Requests 
+    // para fatiar o áudio em pedaços de 2MB, evitando IP Binding do 4shared e o limite de 6MB do Netlify.
+    const streamUrl = `/fourshared?action=stream&id=${encodeURIComponent(fileId)}`;
+    setCacheEntry(state.audioCache, cacheKey, streamUrl);
+    return streamUrl;
   }
 
   /**
