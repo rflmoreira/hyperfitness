@@ -13877,8 +13877,7 @@
           toggle.__bldMobileToggleBound = true;
         }
       }
-      if (typeof renderPickerFilters === "function") renderPickerFilters();
-      if (typeof renderPickerList === "function") renderPickerList();
+      if (typeof renderPickerContentIfOpen === "function") renderPickerContentIfOpen();
     }
 
     /**
@@ -14768,6 +14767,40 @@
     }
 
     // ====== Picker / Banco de Exercícios ======
+
+    /**
+     * Removes heavy picker content (list items, filter chips, images) from the
+     * DOM and resets the results counter to a neutral state. Called when the
+     * picker closes so that 0 items, 0 images and 0 network requests exist
+     * while the panel is hidden (`aria-hidden` + `inert`).
+     */
+    function clearPickerContent() {
+      const list = document.getElementById("exercise-picker-list");
+      if (list) list.innerHTML = "";
+      const filters = document.getElementById("exercise-picker-filters");
+      if (filters) filters.innerHTML = "";
+      const counter = document.getElementById("exercise-picker-count");
+      if (counter) {
+        counter.textContent = "0";
+        counter.setAttribute("data-state", "all");
+      }
+    }
+
+    /**
+     * Conditionally populates or clears the picker content based on
+     * `BUILDER_STATE.pickerOpen`. When open, delegates to the existing
+     * `renderPickerFilters()` and `renderPickerList()`. When closed, strips
+     * all heavy children via `clearPickerContent()`.
+     */
+    function renderPickerContentIfOpen() {
+      if (BUILDER_STATE.pickerOpen) {
+        if (typeof renderPickerFilters === "function") renderPickerFilters();
+        if (typeof renderPickerList === "function") renderPickerList();
+      } else {
+        clearPickerContent();
+      }
+    }
+
     /**
      * Single source of truth for picker visibility. The panel stays mounted in
      * `.builder-workspace`; state, ARIA attributes and CSS own the transition.
@@ -14801,8 +14834,14 @@
       }
       if (toggle) toggle.setAttribute("aria-expanded", String(next));
 
-      if (typeof renderPickerFilters === "function") renderPickerFilters();
-      if (typeof renderPickerList === "function") renderPickerList();
+      if (next) {
+        // Populate filters and list before focusing the search input.
+        if (typeof renderPickerFilters === "function") renderPickerFilters();
+        if (typeof renderPickerList === "function") renderPickerList();
+      } else {
+        // Strip heavy content (items, images, filters) while panel is hidden.
+        clearPickerContent();
+      }
 
       if (next) {
         const search = document.getElementById("exercise-picker-search");
