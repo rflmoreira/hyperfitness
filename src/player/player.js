@@ -6277,13 +6277,6 @@ const MUSIC_PLAYER = (() => {
   async function isPlayableAudioUrl(url) {
     if (!url) return { playable: false, reason: 'empty' };
 
-    // O fallback do 4shared usa um Redirect 302 para uma CDN anti-hotlink.
-    // O fetch com CORS enviará um header Origin, o que faz a CDN retornar uma resposta em branco.
-    // Ignoramos a validação para URLs do fourshared pois a tag <audio> (no-cors) tocará perfeitamente.
-    if (url.includes('/fourshared')) {
-      return { playable: true, reason: 'fourshared-trusted-redirect' };
-    }
-
     const isProxied = url.includes('/audio') || url.startsWith('/proxy');
 
     // URLs sem proxy não conseguem ser validadas por CORS; confiar nelas
@@ -6929,13 +6922,19 @@ const MUSIC_PLAYER = (() => {
     const cached = getCacheEntry(state.audioCache, cacheKey, AUDIO_URL_TTL_MS);
     if (cached !== null) return cached;
 
-    // O endpoint /fourshared?action=stream retorna o áudio diretamente (proxy server-side).
-    // A URL do endpoint É a URL de stream para o <audio> element.
-    // Não fazemos HEAD request pois forçaria o server a baixar o MP3 inteiro só para validar.
-    // Erros de reprodução serão tratados pelo handleAudioError existente.
-    const streamUrl = `/fourshared?action=stream&id=${encodeURIComponent(fileId)}`;
-    setCacheEntry(state.audioCache, cacheKey, streamUrl);
-    return streamUrl;
+    try {
+      const response = await fetch(`/fourshared?action=stream&id=${encodeURIComponent(fileId)}`);
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      if (data && data.streamUrl) {
+        setCacheEntry(state.audioCache, cacheKey, data.streamUrl);
+        return data.streamUrl;
+      }
+    } catch (error) {
+      console.warn(`[4SHARED] Erro ao extrair stream URL do proxy: ${error.message}`);
+    }
+    return null;
   }
 
   /**

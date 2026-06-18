@@ -278,17 +278,17 @@ export const handler = async (event) => {
         return makeResponse(404, { error: 'Could not resolve stream URL' });
       }
 
-      // Return a 302 Redirect to the actual audio stream URL.
-      // This bypasses Netlify's 6MB payload limit and 10-second timeout constraints
-      // since the client browser will directly stream the audio from the CDN.
+      // Return the URL directly in JSON to bypass Netlify 302 query string propagation.
+      // Netlify appends original query strings (e.g. ?action=stream) to 302 Locations,
+      // which invalidates 4shared's strict sbsr= signatures.
       return {
-        statusCode: 302,
+        statusCode: 200,
         headers: {
           ...CORS_HEADERS,
-          'Location': streamUrl,
+          'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
         },
-        body: ''
+        body: JSON.stringify({ streamUrl })
       };
     }
 
