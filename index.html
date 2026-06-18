@@ -4199,6 +4199,31 @@
       white-space: nowrap;
     }
 
+    @media (min-width: 768px) {
+      .hf-week-sheet__body {
+        --hf-week-sheet-content-max: 70rem;
+      }
+
+      .hf-week-sheet__panel .hf-week-sheet__current,
+      .hf-week-sheet__panel .hf-week-sheet__nav,
+      .hf-week-sheet__panel #workout-details,
+      .hf-week-sheet__panel .hf-week-sheet__controls {
+        width: 100%;
+        max-width: var(--hf-week-sheet-content-max);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hf-week-sheet__panel .hf-week-sheet__nav {
+        margin-top: 0;
+        margin-bottom: 0.42rem;
+      }
+
+      .hf-week-sheet__panel #workout-details {
+        gap: 1.25rem;
+      }
+    }
+
     #day-selector::before {
       content: "";
       position: absolute;
@@ -12884,7 +12909,15 @@
     }
 
     function renderAllComponents() {
-      renderProgramScreen();
+      const programSelectionScreen = DOM_ELEMENTS.programScreen || document.getElementById("program-selection-screen");
+      const shouldRenderProgramScreen = programSelectionScreen
+        && !programSelectionScreen.hidden
+        && !programSelectionScreen.classList.contains("hidden")
+        && programSelectionScreen.getAttribute("aria-hidden") !== "true";
+
+      if (shouldRenderProgramScreen) {
+        renderProgramScreen();
+      }
       renderStepperNavigation();
       renderPhaseHeader();
       renderDaySelector();
