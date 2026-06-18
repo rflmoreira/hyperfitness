@@ -12168,6 +12168,8 @@
       const cards = DOM_ELEMENTS.workoutDetails
         ? DOM_ELEMENTS.workoutDetails.querySelectorAll('.workout-card')
         : [];
+      if (!cards.length) return;
+
       cards.forEach(card => {
         const image = card.querySelector('[data-parallax-image]');
         if (!image) return;
@@ -12197,6 +12199,7 @@
 
     function scheduleCardParallaxUpdate() {
       if (!CARD_PARALLAX_STATE.initialized) return;
+      if (!isWeekSheetOpen() && CARD_PARALLAX_STATE.items.size === 0) return;
       if (CARD_PARALLAX_STATE.rafId !== null) return;
 
       CARD_PARALLAX_STATE.rafId = window.requestAnimationFrame(updateCardParallaxPositions);
@@ -12204,6 +12207,8 @@
 
     function updateCardParallaxPositions() {
       CARD_PARALLAX_STATE.rafId = null;
+      if (!isWeekSheetOpen() && CARD_PARALLAX_STATE.items.size === 0) return;
+
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
       const viewportCenter = viewportHeight / 2;
 
