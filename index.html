@@ -12069,15 +12069,14 @@
       // Top bar blur on scroll
       const topBar = document.getElementById('top-bar');
       const topBarLogo = document.getElementById('top-bar-logo');
+      let topBarBlurActive = null;
       window.addEventListener('scroll', () => {
         if (!topBar || topBar.classList.contains('hidden')) return;
-        if (window.scrollY > 30) {
-          topBar.classList.add('top-bar-blur-active');
-          if (topBarLogo) topBarLogo.style.opacity = '1';
-        } else {
-          topBar.classList.remove('top-bar-blur-active');
-          if (topBarLogo) topBarLogo.style.opacity = '0';
-        }
+        const shouldBeActive = window.scrollY > 30;
+        if (shouldBeActive === topBarBlurActive) return;
+        topBarBlurActive = shouldBeActive;
+        topBar.classList.toggle('top-bar-blur-active', shouldBeActive);
+        if (topBarLogo) topBarLogo.style.opacity = shouldBeActive ? '1' : '0';
       }, { passive: true });
 
       // User avatar dropdown toggle
