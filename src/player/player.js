@@ -6283,13 +6283,13 @@ const MUSIC_PLAYER = (() => {
     if (!isProxied) return { playable: true, reason: 'non-proxied' };
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), PROXY_VALIDATION_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
     try {
       const resp = await fetch(url, {
         method: 'GET',
         redirect: 'follow',
         signal: controller.signal,
-        headers: { Range: PROXY_RANGE_HEADER }
+        headers: { Range: 'bytes=0-8192' }
       });
       clearTimeout(timer);
 
