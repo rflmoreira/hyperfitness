@@ -9945,6 +9945,7 @@
     let confettiInstance;
     let scrollObserver;
     let weekSheetImageLazyObserver = null;
+    let workoutDetailsDirty = true;
 
     // ===== Background ambiental com GSAP ScrollTrigger =====
     const gsapScrollController = {
@@ -10797,7 +10798,12 @@
       }
 
       saveApplicationState();
-      renderWorkoutDetails();
+      if (isWeekSheetOpen()) {
+        renderWorkoutDetailsIfNeeded({ force: true });
+      } else {
+        markWorkoutDetailsDirty();
+        clearWorkoutDetailsIfClosed();
+      }
     }
 
     function getCompletionKey(weekNumber = APP_STATE.currentWeekNumber, day = APP_STATE.currentDay) {
@@ -11077,9 +11083,40 @@
       DOM_ELEMENTS.stepperNav.appendChild(container);
     }
 
+    function isWeekSheetOpen() {
+      return document.getElementById("week-sheet")?.classList.contains("is-open") || false;
+    }
+
+    function markWorkoutDetailsDirty() {
+      workoutDetailsDirty = true;
+    }
+
+    function clearWorkoutDetailsIfClosed() {
+      if (isWeekSheetOpen()) return;
+
+      const workoutDetails = DOM_ELEMENTS.workoutDetails || document.getElementById("workout-details");
+      if (!workoutDetails) return;
+
+      const hadCards = !!workoutDetails.querySelector(".workout-card");
+      if (workoutDetails.innerHTML) {
+        workoutDetails.innerHTML = "";
+      }
+      if (hadCards) {
+        refreshCardParallax();
+      }
+    }
+
+    function renderWorkoutDetailsIfNeeded({ force = false } = {}) {
+      if (!force && !workoutDetailsDirty) return;
+      renderWorkoutDetails();
+      workoutDetailsDirty = false;
+    }
+
     function openWeekSheet() {
       const sheet = document.getElementById("week-sheet");
       if (!sheet) return;
+
+      renderWorkoutDetailsIfNeeded();
 
       sheet.classList.add("is-open");
       sheet.setAttribute("aria-hidden", "false");
@@ -11556,7 +11593,12 @@
       APP_STATE.currentDay = day;
       loadCurrentCompletionStatus();
       renderStepperNavigation();
-      renderWorkoutDetails();
+      if (isWeekSheetOpen()) {
+        renderWorkoutDetailsIfNeeded({ force: true });
+      } else {
+        markWorkoutDetailsDirty();
+        clearWorkoutDetailsIfClosed();
+      }
       renderDaySelector();
     }
 
@@ -12921,7 +12963,12 @@
       renderStepperNavigation();
       renderPhaseHeader();
       renderDaySelector();
-      renderWorkoutDetails();
+      if (isWeekSheetOpen()) {
+        renderWorkoutDetailsIfNeeded({ force: true });
+      } else {
+        markWorkoutDetailsDirty();
+        clearWorkoutDetailsIfClosed();
+      }
     }
 
     function setupScrollAnimation() {
@@ -12966,7 +13013,12 @@
         workout.exercises.forEach((_, index) => { APP_STATE.completionStatus[index] = true; });
         APP_STATE.allCompletions[`week${APP_STATE.currentWeekNumber}-${APP_STATE.currentDay}`] = APP_STATE.completionStatus;
         saveApplicationState();
-        renderWorkoutDetails();
+        if (isWeekSheetOpen()) {
+          renderWorkoutDetailsIfNeeded({ force: true });
+        } else {
+          markWorkoutDetailsDirty();
+          clearWorkoutDetailsIfClosed();
+        }
         return;
       }
 
