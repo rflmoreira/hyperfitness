@@ -14981,26 +14981,6 @@
         // Make items keyboard-focusable.
         if (!item.hasAttribute("tabindex")) item.setAttribute("tabindex", "0");
         if (!item.hasAttribute("role")) item.setAttribute("role", "button");
-
-        // Click → fast-add via DEFAULT_EXERCISE.
-        item.addEventListener("click", () => {
-          addExerciseToActiveWorkout(item.dataset.name);
-        });
-
-        // Keyboard activation: Enter or Space (with preventDefault to suppress page scroll).
-        item.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-            e.preventDefault();
-            addExerciseToActiveWorkout(item.dataset.name);
-          }
-        });
-      });
-
-      const customBtn = list.querySelector('[data-action="custom"]');
-      customBtn?.addEventListener("click", () => {
-        // Custom Exercise Action: open the form modal without closing the
-        // picker. The picker's search and filter are preserved.
-        openExerciseFormModal({ mode: "create" });
       });
 
       // Reconcile `data-added` indicators after the list is mounted.
@@ -15090,6 +15070,36 @@
         BUILDER_STATE.pickerSearch = e.target.value;
         renderPickerList();
       });
+      const pickerList = document.getElementById("exercise-picker-list");
+      if (pickerList && !pickerList.__bldPickerDelegationBound) {
+        const getPickerListTarget = (event) => {
+          const eventTarget = event.target instanceof Element ? event.target : event.target?.parentElement;
+          const target = eventTarget?.closest?.('.ex-picker-item, [data-action="custom"]');
+          return target && pickerList.contains(target) ? target : null;
+        };
+
+        const handlePickerListActivation = (event) => {
+          const target = getPickerListTarget(event);
+          if (!target) return;
+
+          if (target.dataset.action === "custom") {
+            openExerciseFormModal({ mode: "create" });
+            return;
+          }
+
+          const name = target.dataset.name;
+          if (name) addExerciseToActiveWorkout(name);
+        };
+
+        pickerList.addEventListener("click", handlePickerListActivation);
+        pickerList.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
+          if (!getPickerListTarget(event)) return;
+          event.preventDefault();
+          handlePickerListActivation(event);
+        });
+        pickerList.__bldPickerDelegationBound = true;
+      }
 
       // ESC para fechar modais
       document.addEventListener("keydown", (e) => {
