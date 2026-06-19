@@ -187,15 +187,18 @@ async function getStreamUrl(fileId) {
     }
 
     const html = await pageRes.text();
+    let streamUrl = null;
 
     // Strategy 1: Extract jsD1PreviewUrl hidden input (Best for streaming)
-    const previewLinkMatch = html.match(
-      /class=["']jsD1PreviewUrl["'][^>]*value=["']([^"']+)["']/i
-    );
-    if (previewLinkMatch?.[1]) {
+    const match = html.match(/class=["']jsD1PreviewUrl["'][^>]*value=["']([^"']+)["']/i) || 
+                  html.match(/value=["']([^"']+)["'][^>]*class=["']jsD1PreviewUrl["']/i);
+    
+    if (match && match[1]) {
+      streamUrl = match[1];
       console.log(`[4SHARED] Found jsD1PreviewUrl for ${fileId}`);
-      return previewLinkMatch[1];
     }
+
+    if (streamUrl) return streamUrl;
 
     // Strategy 2: Extract jsDirectDownloadLink hidden input (Fallback)
     const directLinkMatch = html.match(
@@ -293,16 +296,26 @@ export const handler = async (event) => {
       let targetEnd = end !== '' ? end : start + MAX_CHUNK - 1;
 
       try {
-        // Probe file size to prevent requesting out-of-bounds ranges
-        // 4shared CDN returns 400 Bad Request if range end > file size.
-        const headRes = await fetch(streamUrl, {
-          method: 'HEAD',
+        // Probe file size using a 1-byte GET request instead of HEAD.
+        // Some CDNs block HEAD requests or omit Content-Length.
+        const probeRes = await fetch(streamUrl, {
+          method: 'GET',
           headers: {
-             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+             'Range': 'bytes=0-0'
           }
         });
         
-        const contentLength = parseInt(headRes.headers.get('content-length') || '0', 10);
+        let contentLength = 0;
+        if (probeRes.ok || probeRes.status === 206) {
+          const cr = probeRes.headers.get('content-range');
+          if (cr) {
+            const match = cr.match(/\/(\d+)$/);
+            if (match && match[1]) contentLength = parseInt(match[1], 10);
+          } else {
+            contentLength = parseInt(probeRes.headers.get('content-length') || '0', 10);
+          }
+        }
         
         if (contentLength > 0) {
           if (start >= contentLength) {
@@ -337,7 +350,9 @@ export const handler = async (event) => {
         const headers = {
           ...CORS_HEADERS,
           'Content-Type': proxyRes.headers.get('content-type') || 'audio/mpeg',
-          'Accept-Ranges': 'bytes'
+          'Accept-Ranges': 'bytes',
+          'X-Debug-Content-Length': String(contentLength),
+          'X-Debug-Target-End': String(targetEnd)
         };
 
         const contentRange = proxyRes.headers.get('content-range');
