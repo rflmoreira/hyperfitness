@@ -2738,12 +2738,11 @@ const MUSIC_PLAYER = (() => {
     // Não foca automaticamente no input ao trocar para YouTube
     // O foco acontece ao clicar no botão de busca
 
-    // Recalcula posições do carrossel 3D ao mostrar a aba Biblioteca
+    // Inicializa lógica de scroll da aba Biblioteca
     if (isPlaylist) {
       requestAnimationFrame(() => {
-        updateCarouselPositions();
+        initPlaylistsMarquee();
         setupTracksScrollEffect();
-        setTimeout(updateCarouselPositions, 100);
       });
     } else if (isDiscover) {
       requestAnimationFrame(() => {
@@ -3249,6 +3248,11 @@ const MUSIC_PLAYER = (() => {
       modal.removeAttribute('inert');
       modal.style.pointerEvents = 'auto';
       updatePlaylistEmptyState();
+      requestAnimationFrame(() => {
+        if (TAB_ORDER[currentTabIndex] === 'playlist') {
+          initPlaylistsMarquee();
+        }
+      });
     } else {
       modal.setAttribute('inert', '');
       modal.style.pointerEvents = 'none';
@@ -5793,300 +5797,123 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  function renderPlaylists(playlists = state.playlists, scrollToFirst = false) {
+  function renderPlaylists(scrollToFirst = false) {
     if (!ui.playlistsContainer) return;
 
-    // Garante que a playlist "Músicas Favoritas" sempre exista
-    ensureWatchLaterPlaylist();
-
-    // Filtra playlists: "Músicas Favoritas" só aparece se tiver faixas
-    const visiblePlaylists = playlists.filter(p => {
-      if (p.id === WATCH_LATER_PLAYLIST_ID) {
-        return p.tracks?.length > 0;
-      }
-      return true;
-    });
-
-    if (!visiblePlaylists.length) {
+    if (!state.playlists || state.playlists.length === 0) {
       ui.playlistsContainer.innerHTML = '';
       updatePlaylistEmptyState();
       return;
     }
 
-    // Ordena para garantir que "Músicas Favoritas" fique primeiro
-    const sortedPlaylists = [...visiblePlaylists].sort((a, b) => {
-      if (a.id === WATCH_LATER_PLAYLIST_ID) return -1;
-      if (b.id === WATCH_LATER_PLAYLIST_ID) return 1;
-      return 0;
-    });
-
-    ui.playlistsContainer.innerHTML = sortedPlaylists.map(playlist => {
-      const isWatchLater = playlist.id === WATCH_LATER_PLAYLIST_ID;
-      const trackCount = getPlaylistTrackCount(playlist);
-
-      let imageContent;
+    const itemsHtml = state.playlists.map(playlist => {
+      const isWatchLater = playlist.id === 'watch-later';
+      
+      let imageUrl;
       if (isWatchLater) {
-        // Usa a capa da primeira música
-        const firstTrackCover = playlist.tracks[0]?.thumbnail || getFallbackCover(playlist.name);
-        imageContent = `
-          <img src="${firstTrackCover}" 
-            alt="${playlist.name}">
-        `;
+        imageUrl = playlist.tracks[0]?.thumbnail || getFallbackCover(playlist.name);
       } else {
-        const imageUrl = getPlaylistCover(playlist);
-        imageContent = `
-          <img src="${imageUrl}" 
-            alt="${playlist.name}">
-        `;
+        imageUrl = getPlaylistCover(playlist);
       }
 
+      const isActive = state.currentPlaylist && state.currentPlaylist.id === playlist.id ? 'active' : '';
+
       return `
-      <div class="playlist-item flex-shrink-0 group cursor-pointer" data-playlist-id="${playlist.id}">
-        <div class="carousel-card">
-          <div class="carousel-float-wrapper">
-            <div class="carousel-card-inner">
-              ${imageContent}
-              <div class="carousel-shine"></div>
-              <div class="carousel-hover-overlay">
-                <button class="delete-playlist-btn" aria-label="Excluir playlist">
-                  <i class="ph-bold ph-trash"></i>
-                </button>
-              </div>
-            </div>
-          </div>
+      <div class="playlist-strip-item group ${isActive}" data-playlist-id="${playlist.id}">
+        <div class="relative">
+          <img src="${imageUrl}" class="playlist-strip-cover" alt="${playlist.name}">
+          ${!isWatchLater ? `
+          <button class="delete-playlist-btn absolute -top-1 -right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-500/90" title="Excluir Playlist">
+            <i class="ph-bold ph-trash text-white text-[12px]"></i>
+          </button>
+          ` : ''}
         </div>
-        <div class="carousel-shadow" aria-hidden="true"></div>
-        <p class="carousel-label">${playlist.name}</p>
-        <p class="carousel-sublabel">${trackCount} faixa${trackCount === 1 ? '' : 's'}</p>
+        <div class="playlist-strip-name-wrapper">
+          <span class="playlist-strip-name">${playlist.name}</span>
+        </div>
       </div>
-    `;
+      `;
     }).join('');
 
-    // Inicializa o carrossel 3D
-    initCarousel3D(scrollToFirst);
-    
-    // Atualiza o empty state
+    ui.playlistsContainer.innerHTML = `
+      <h3 class="playlists-strip-title">Playlists</h3>
+      <div class="playlists-strip-scroll">
+        ${itemsHtml}
+      </div>
+    `;
+
+    initStripScroll(scrollToFirst);
+    initPlaylistsMarquee();
     updatePlaylistEmptyState();
   }
 
-  // Carrossel 3D controlado por JS
-  let carouselIndex = 0;
-  let carouselTouchStartX = 0;
-  let carouselTouchDelta = 0;
-  let carouselDragging = false;
+  function initPlaylistsMarquee() {
+    if (!ui.playlistsContainer) return;
+    const items = ui.playlistsContainer.querySelectorAll('.playlist-strip-item');
+    items.forEach(item => {
+      const nameEl = item.querySelector('.playlist-strip-name');
+      const wrapper = item.querySelector('.playlist-strip-name-wrapper');
+      if (!nameEl || !wrapper) return;
 
-  function updateCarouselPositions(dragOffset = 0) {
-    const container = ui.playlistsContainer;
-    if (!container) return;
-    const items = container.querySelectorAll('.playlist-item');
-    if (!items.length) return;
+      const containerWidth = wrapper.clientWidth;
+      const textWidth = nameEl.scrollWidth;
 
-    const spacing = 160;
-    const fractionalOffset = dragOffset / spacing;
-
-    items.forEach((item, i) => {
-      const offset = i - carouselIndex + fractionalOffset;
-      const absOffset = Math.abs(offset);
-      const sign = Math.sign(offset);
-
-      // Curvas ultra-refinadas com easing natural
-      const t = Math.min(absOffset, 4); // clamp
-      const translateX = offset * spacing;
-      const translateZ = absOffset < 0.5 ? 35 - absOffset * 70 : -(t * 38 + Math.pow(t, 1.9) * 10);
-      const rotateY = sign * (t * 26 / (1 + t * 0.15)) * -1; // curva logarítmica
-      const translateY = absOffset < 0.5 ? -14 + absOffset * 28 : Math.min(t * 2.5, 8);
-      const scale = absOffset < 0.5 ? 1.06 - absOffset * 0.12 : Math.max(0.58, 1 - t * 0.1);
-      const opacity = absOffset < 0.5 ? 1 : Math.max(0.08, 1 - t * 0.34);
-      const blur = t > 1.3 ? Math.min((t - 1.3) * 2.2, 4.5) : 0;
-
-      if (carouselDragging) {
-        item.style.transition = 'none';
-      } else {
-        item.style.transition = '';
+      if (textWidth > containerWidth) {
+        nameEl.classList.add('marquee');
+        // Usar a propriedade para passar a distância calculada pro CSS
+        const distance = nameEl.scrollWidth - containerWidth;
+        nameEl.style.setProperty('--scroll-dist', `-${distance}px`);
+        
+        // Duração proporcional ao tamanho extra, para manter a mesma velocidade legível
+        const duration = Math.max(3, distance * 0.08); // Ex: se passar 50px, dura 4s
+        nameEl.style.animationDuration = `${duration}s`;
       }
-
-      item.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
-      item.style.opacity = opacity;
-      item.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
-      item.style.zIndex = 100 - Math.round(absOffset);
-
-      item.classList.toggle('carousel-active', Math.abs(offset) < 0.5 && !carouselDragging);
     });
   }
 
-  function carouselGoTo(index) {
-    const container = ui.playlistsContainer;
-    if (!container) return;
-    const items = container.querySelectorAll('.playlist-item');
-    if (!items.length) return;
-
-    carouselIndex = Math.max(0, Math.min(index, items.length - 1));
-    updateCarouselPositions();
-
-    const activeItem = items[carouselIndex];
-    const playlistId = activeItem?.dataset.playlistId;
-    if (playlistId) {
-      const playlist = state.playlists.find(p => p.id === playlistId);
-      if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlistId)) {
-        selectPlaylist(playlist, false);
-      }
-    }
-  }
-
-  function initCarousel3D(scrollToFirst = false) {
+  function initStripScroll(scrollToFirst = false) {
     const container = ui.playlistsContainer;
     if (!container) return;
 
-    container.replaceWith(container.cloneNode(true));
-    const newContainer = document.getElementById('playlists-container');
-    ui.playlistsContainer = newContainer;
-    if (!newContainer) return;
+    const scrollArea = container.querySelector('.playlists-strip-scroll');
+    if (!scrollArea) return;
 
-    if (scrollToFirst) {
-      carouselIndex = 0;
-    } else if (state.currentPlaylist) {
-      const items = newContainer.querySelectorAll('.playlist-item');
-      items.forEach((item, i) => {
-        if (item.dataset.playlistId === state.currentPlaylist.id) {
-          carouselIndex = i;
-        }
-      });
-    }
+    // Restaura o drag-to-scroll para usuários usando mouse em computadores
+    enableDragScroll(scrollArea);
 
-    // Touch
-    newContainer.addEventListener('touchstart', (e) => {
-      if (newContainer.style.pointerEvents === 'none') return;
-      carouselTouchStartX = e.touches[0].clientX;
-      carouselDragging = true;
-      carouselTouchDelta = 0;
-    }, { passive: true });
-
-    newContainer.addEventListener('touchmove', (e) => {
-      if (!carouselDragging) return;
-      carouselTouchDelta = e.touches[0].clientX - carouselTouchStartX;
-      updateCarouselPositions(carouselTouchDelta);
-    }, { passive: true });
-
-    newContainer.addEventListener('touchend', () => {
-      if (!carouselDragging) return;
-      carouselDragging = false;
-      if (Math.abs(carouselTouchDelta) > 40) {
-        carouselGoTo(carouselIndex + (carouselTouchDelta < 0 ? 1 : -1));
-      } else {
-        updateCarouselPositions();
+    container.querySelectorAll('.playlist-strip-item').forEach(item => {
+      const deleteBtn = item.querySelector('.delete-playlist-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Previne que o card seja clicado (selecionado)
+          const playlistId = item.dataset.playlistId;
+          
+          deletePlaylist(playlistId);
+        });
       }
-      carouselTouchDelta = 0;
-    });
-
-    // Mouse
-    let mouseStartX = 0;
-    let mouseDelta = 0;
-    let mouseDragging = false;
-
-    newContainer.addEventListener('mousedown', (e) => {
-      if (newContainer.style.pointerEvents === 'none') return;
-      mouseStartX = e.clientX;
-      mouseDragging = true;
-      carouselDragging = true;
-      mouseDelta = 0;
-      e.preventDefault();
-    });
-
-    const onMouseMove = (e) => {
-      if (!mouseDragging) return;
-      mouseDelta = e.clientX - mouseStartX;
-      updateCarouselPositions(mouseDelta);
-    };
-
-    const onMouseUp = () => {
-      if (!mouseDragging) return;
-      mouseDragging = false;
-      carouselDragging = false;
-      if (Math.abs(mouseDelta) > 40) {
-        carouselGoTo(carouselIndex + (mouseDelta < 0 ? 1 : -1));
-      } else {
-        updateCarouselPositions();
-      }
-      mouseDelta = 0;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-
-    // Click nos itens + auto-hide do botão de excluir
-    let deleteHideTimer = null;
-
-    newContainer.querySelectorAll('.playlist-item').forEach((item, i) => {
-      const overlay = item.querySelector('.carousel-hover-overlay');
 
       item.addEventListener('click', (e) => {
-        if (Math.abs(carouselTouchDelta) > 10 || Math.abs(mouseDelta) > 10) return;
-        if (e.target.closest('.delete-playlist-btn')) return;
-        if (i !== carouselIndex) {
-          carouselGoTo(i);
+        const playlistId = e.currentTarget.dataset.playlistId;
+        if (playlistId) {
+          const playlist = state.playlists.find(p => p.id === playlistId);
+          if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlist.id)) {
+            selectPlaylist(playlist, false);
+            container.querySelectorAll('.playlist-strip-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
         }
-      });
-
-      item.querySelector('.delete-playlist-btn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const playlistId = item.dataset.playlistId;
-        if (playlistId) deletePlaylist(playlistId);
-      });
-
-      // Mostra o botão e agenda auto-hide em 4s
-      const showDeleteBtn = () => {
-        if (!overlay) return;
-        overlay.style.opacity = '';
-        overlay.style.pointerEvents = '';
-        if (deleteHideTimer) clearTimeout(deleteHideTimer);
-        deleteHideTimer = setTimeout(() => {
-          overlay.style.opacity = '0';
-          overlay.style.pointerEvents = 'none';
-        }, 4000);
-      };
-
-      item.addEventListener('mouseenter', showDeleteBtn);
-      item.addEventListener('mousemove', showDeleteBtn);
-
-      item.addEventListener('mouseleave', () => {
-        if (!overlay) return;
-        if (deleteHideTimer) clearTimeout(deleteHideTimer);
-        overlay.style.opacity = '';
-        overlay.style.pointerEvents = '';
       });
     });
 
-    // Scroll do mouse (wheel) - registrado no modal com capture para interceptar antes dos outros handlers
-    let wheelThrottle = false;
-    const playerModal = document.getElementById('player-modal');
-    if (playerModal) {
-      playerModal.addEventListener('wheel', (e) => {
-        // Não intercepta se o carrossel está desabilitado (tracks scrolladas por cima)
-        if (newContainer.style.pointerEvents === 'none') return;
-        
-        // Só intercepta se o cursor está sobre o carrossel
-        const rect = newContainer.getBoundingClientRect();
-        if (e.clientY < rect.top || e.clientY > rect.bottom) return;
-        
-        // Verifica se o tracks-container está scrollado
-        const tracksContainer = document.getElementById('tracks-container');
-        if (tracksContainer && tracksContainer.scrollTop > 20) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        if (wheelThrottle) return;
-        wheelThrottle = true;
-        
-        const direction = Math.sign(e.deltaX || e.deltaY);
-        if (direction !== 0) {
-          carouselGoTo(carouselIndex + direction);
-        }
-        
-        setTimeout(() => { wheelThrottle = false; }, 300);
-      }, { passive: false, capture: true });
+    if (scrollToFirst) {
+      scrollArea.scrollLeft = 0;
+    } else if (state.currentPlaylist) {
+      const activeItem = container.querySelector(`.playlist-strip-item[data-playlist-id="${state.currentPlaylist.id}"]`);
+      if (activeItem) {
+        activeItem.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+      }
     }
-
-    updateCarouselPositions();
   }
 
   async function selectPlaylist(playlist, autoPlay = false, options = {}) {
@@ -6475,10 +6302,8 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
-    // Adiciona espaçador no topo para a lista começar abaixo da grid
-    // pointer-events: none permite que eventos passem para o playlists-container abaixo
-    const spacerHtml = '<div class="tracks-top-spacer" style="height: 230px; flex-shrink: 0; pointer-events: none;"></div>';
-    ui.tracksContainer.insertAdjacentHTML('beforeend', spacerHtml);
+    // O espaçamento superior agora é resolvido 100% pelo padding-top do #tracks-container
+    // garantindo que as faixas sempre iniciem exatamente abaixo da faixa de playlists.
 
     const isWatchLaterPlaylist = state.currentPlaylist?.id === WATCH_LATER_PLAYLIST_ID;
     const watchLaterPlaylist = getWatchLaterPlaylist();
@@ -6645,60 +6470,43 @@ const MUSIC_PLAYER = (() => {
     const playerScreen = document.getElementById('player-screen-playlist');
     if (!playerScreen || !ui.tracksContainer || !ui.playlistsContainer) return;
     
-    // Wheel event no playerScreen redireciona para o tracks-container
-    playerScreen.addEventListener('wheel', function(e) {
-      if (e.deltaY !== 0 && ui.tracksContainer.style.pointerEvents === 'none') {
-        ui.tracksContainer.scrollTop += e.deltaY;
-      }
-    }, { passive: true });
-    
-    // Touch vertical no carrossel redireciona scroll para o tracks-container
-    let touchStartY = 0;
-    let touchStartScrollTop = 0;
-    
-    ui.playlistsContainer.addEventListener('touchstart', function(e) {
-      if (!e.touches.length) return;
-      touchStartY = e.touches[0].clientY;
-      touchStartScrollTop = ui.tracksContainer.scrollTop;
-    }, { passive: true });
-    
-    ui.playlistsContainer.addEventListener('touchmove', function(e) {
-      if (!e.touches.length) return;
-      const deltaY = touchStartY - e.touches[0].clientY;
-      // Só redireciona scroll vertical para baixo (para revelar tracks)
-      if (deltaY > 0) {
-        ui.tracksContainer.scrollTop = touchStartScrollTop + deltaY;
-      }
-    }, { passive: true });
+    // O novo layout compacto não requer redirecionamento complexo de scroll
+    ui.tracksContainer.style.pointerEvents = 'auto';
+    ui.playlistsContainer.style.pointerEvents = 'auto';
   }
 
   function handleTracksScroll() {
     if (!ui.tracksContainer || !ui.playlistsContainer) return;
     
     const scrollTop = ui.tracksContainer.scrollTop;
-    const maxScroll = 150;
+    
+    // Curva de animação e profundidade (Z-axis recede)
+    const maxScroll = 140; // Distância para completar a animação
     const progress = Math.min(scrollTop / maxScroll, 1);
     
-    // Efeito progressivo na grid
-    const opacity = 0.85 - (progress * 0.75);
-    const scale = 1 - (progress * 0.08);
-    const blur = progress * 4;
-    const translateY = -(progress * 15);
+    // Easing out cubic: inicia rápido e suaviza no final (interpolação fluida)
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+
+    // LIMITES: Não desaparece completamente, apenas recua para o fundo
+    const opacity = Math.max(1 - (easeOut * 0.6), 0.4); // Desvanece apenas até 40%
+    const scale = 1 - (easeOut * 0.05); // Encolhe muito sutilmente (até 0.95)
+    const blur = easeOut * 4; // Desfoque suave, no máximo 4px
     
-    ui.playlistsContainer.style.opacity = Math.max(opacity, 0.1);
-    ui.playlistsContainer.style.transform = `scale(${scale}) translateY(${translateY}px)`;
-    ui.playlistsContainer.style.filter = `blur(${blur}px)`;
+    // Em vez de subir (o que o esconde sob a máscara de blur do topo),
+    // empurramos levemente para baixo para manter no campo de visão e dar efeito de profundidade
+    const translateY = easeOut * 8; 
+
+    ui.playlistsContainer.style.opacity = opacity.toFixed(3);
+    ui.playlistsContainer.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
+    ui.playlistsContainer.style.filter = `blur(${blur.toFixed(1)}px)`;
     
-    // Controle de interação: carrossel por cima no topo, tracks por cima ao scrollar
-    const threshold = 50;
-    if (scrollTop < threshold) {
-      ui.playlistsContainer.style.zIndex = '25';
-      ui.playlistsContainer.style.pointerEvents = 'auto';
-      ui.tracksContainer.style.pointerEvents = 'none';
-    } else {
-      ui.tracksContainer.style.pointerEvents = 'auto';
+    // Garante que o playlists-container fique ATRÁS do tracks-container
+    if (scrollTop > 0) {
       ui.playlistsContainer.style.zIndex = '5';
       ui.playlistsContainer.style.pointerEvents = 'none';
+    } else {
+      ui.playlistsContainer.style.zIndex = '30';
+      ui.playlistsContainer.style.pointerEvents = 'auto';
     }
   }
   
