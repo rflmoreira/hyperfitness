@@ -2625,27 +2625,6 @@ const MUSIC_PLAYER = (() => {
       artistEl: ui.ctrlArtist,
       coverEl: ui.ctrlCover
     }, track);
-    
-    // Toggle 4shared logo visibility
-    const powered4shared = document.getElementById('powered-by-4shared');
-    if (powered4shared) {
-      let show4shared = false;
-      if (track) {
-        const key = getTrackKey(track);
-        const cached = getCacheEntry(state.searchCache, key);
-        if (cached && cached.instance === '4shared-fallback') {
-          show4shared = true;
-        }
-      }
-      
-      if (show4shared) {
-        powered4shared.classList.remove('opacity-0', 'invisible');
-        powered4shared.classList.add('opacity-100', 'visible');
-      } else {
-        powered4shared.classList.add('opacity-0', 'invisible');
-        powered4shared.classList.remove('opacity-100', 'visible');
-      }
-    }
 
     syncExpandedCover();
     updateMiniPlayerBar();
@@ -2732,6 +2711,16 @@ const MUSIC_PLAYER = (() => {
 
     currentTabIndex = newIndex;
     
+    // Oculta a logo do 4shared na aba de rádio
+    const powered4shared = document.getElementById('powered-by-4shared');
+    if (powered4shared) {
+      if (isRadio) {
+        powered4shared.style.display = 'none';
+      } else {
+        powered4shared.style.display = 'flex';
+      }
+    }
+
     // Sempre esconde a barra de busca ao trocar de aba
     hideElementWithFade(ui.youtubeSearchBarWrapper);
     

@@ -400,12 +400,12 @@
       <button id="ctrl-volume-btn" aria-label="Mudo"><i class="ph-bold ph-speaker-high"></i></button>
     </div>
   </div>
-</div>
 
-<!-- Powered by 4shared (visível apenas quando tocando do 4shared) -->
-<div id="powered-by-4shared" class="fixed left-0 right-0 flex justify-center items-center gap-1.5 opacity-0 invisible transition-all duration-300" style="bottom: 76px; z-index: 53; pointer-events: none;">
-  <span class="text-[10px] text-white/40 font-medium tracking-wide uppercase">Powered by</span>
-  <img src="https://static.4shared.com/images/logo.png" alt="4shared" class="h-3 opacity-60 grayscale" style="filter: brightness(2) contrast(0.8) grayscale(1);">
+  <!-- Powered by 4shared (Ancorado à barra, só aparece no player) -->
+  <div id="powered-by-4shared" class="absolute left-0 right-0 flex justify-center items-center gap-1.5" style="top: calc(100% + 6px); pointer-events: none; filter: drop-shadow(0 4px 8px rgba(180, 180, 180, 0.4));">
+    <span class="text-[10px] text-white/40 font-medium tracking-wide uppercase">Powered by</span>
+    <img src="https://static.4shared.com/images/logo.png" alt="4shared" class="h-3 opacity-60 grayscale" style="filter: brightness(2) contrast(0.8) grayscale(1);">
+  </div>
 </div>
 
 <!-- Modal de seleção de playlist para músicas do YouTube -->
