@@ -293,6 +293,33 @@ export const handler = async (event) => {
       let targetEnd = end !== '' ? end : start + MAX_CHUNK - 1;
 
       try {
+        // Probe file size to prevent requesting out-of-bounds ranges
+        // 4shared CDN returns 400 Bad Request if range end > file size.
+        const headRes = await fetch(streamUrl, {
+          method: 'HEAD',
+          headers: {
+             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+          }
+        });
+        
+        const contentLength = parseInt(headRes.headers.get('content-length') || '0', 10);
+        
+        if (contentLength > 0) {
+          if (start >= contentLength) {
+             return {
+               statusCode: 416,
+               headers: {
+                 ...CORS_HEADERS,
+                 'Content-Range': `bytes */${contentLength}`
+               },
+               body: ''
+             };
+          }
+          if (targetEnd >= contentLength) {
+            targetEnd = contentLength - 1;
+          }
+        }
+
         const proxyRes = await fetch(streamUrl, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
