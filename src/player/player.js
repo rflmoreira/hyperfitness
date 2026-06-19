@@ -2711,16 +2711,6 @@ const MUSIC_PLAYER = (() => {
 
     currentTabIndex = newIndex;
     
-    // Oculta a logo do 4shared na aba de rádio
-    const powered4shared = document.getElementById('powered-by-4shared');
-    if (powered4shared) {
-      if (isRadio) {
-        powered4shared.style.display = 'none';
-      } else {
-        powered4shared.style.display = 'flex';
-      }
-    }
-
     // Sempre esconde a barra de busca ao trocar de aba
     hideElementWithFade(ui.youtubeSearchBarWrapper);
     
