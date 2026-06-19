@@ -1,0 +1,25 @@
+{
+  "name": "hyperfitness",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test-out-of-bounds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rflmoreira/hyperfitness.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rflmoreira/hyperfitness/issues"
+  },
+  "homepage": "https://github.com/rflmoreira/hyperfitness#readme",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "node-fetch": "^3.3.2"
+  }
+}
