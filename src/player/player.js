@@ -797,8 +797,7 @@ const MUSIC_PLAYER = (() => {
     if (!icon) return;
     
     icon.className = isFavorite ? 'ph-fill ph-heart text-base' : 'ph-bold ph-heart text-base';
-    button.classList.toggle('text-orange-400', isFavorite);
-    button.classList.toggle('text-white/50', !isFavorite);
+    button.classList.toggle('is-favorite', isFavorite);
     button.setAttribute('aria-label', isFavorite ? 'Já nos favoritos' : 'Adicionar aos favoritos');
     button.setAttribute('title', isFavorite ? 'Já nos favoritos' : 'Adicionar aos favoritos');
   }
@@ -6309,13 +6308,13 @@ const MUSIC_PLAYER = (() => {
 
       // Botão de ação: remover se estiver nos favoritos, senão adicionar
       const actionButton = isWatchLaterPlaylist
-        ? `<button class="track-remove-watch-later-btn w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors" 
+        ? `<button class="track-remove-watch-later-btn" 
             data-remove-index="${index}" 
             aria-label="Remover dos favoritos" 
             title="Remover dos favoritos">
             <i class="ph-bold ph-trash text-base"></i>
           </button>`
-        : `<button class="track-add-watch-later-btn w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isInFavorites ? 'text-orange-400' : 'text-white/50'} hover:text-orange-400 hover:bg-orange-500/10 transition-colors" 
+        : `<button class="track-add-watch-later-btn ${isInFavorites ? 'is-favorite' : ''}" 
             data-add-index="${index}" 
             aria-label="${isInFavorites ? 'Já nos favoritos' : 'Adicionar aos favoritos'}" 
             title="${isInFavorites ? 'Já nos favoritos' : 'Adicionar aos favoritos'}">
