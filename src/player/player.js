@@ -3822,9 +3822,9 @@ const MUSIC_PLAYER = (() => {
                 <div class="sound-wave-bar"></div>
               </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="search-item-title text-sm text-white font-medium line-clamp-2">${escapeHTML(video.title)}</p>
-              <p class="text-xs text-white/50 truncate mt-0.5">${escapeHTML(video.author)}</p>
+            <div class="flex-1 min-w-0 flex flex-col justify-center">
+              <p class="search-item-title text-sm text-white font-medium line-clamp-2 leading-tight m-0 p-0">${escapeHTML(video.title)}</p>
+              <p class="text-xs text-white/50 truncate leading-tight m-0 p-0 mt-0.5">${escapeHTML(video.author)}</p>
             </div>
             <span class="search-item-duration text-xs text-white/40 flex-shrink-0">${duration}</span>
             <button class="add-to-playlist-btn flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
@@ -6341,9 +6341,9 @@ const MUSIC_PLAYER = (() => {
             <i class="ph-bold ph-arrow-clockwise text-white text-lg"></i>
           </div>` : ''}
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-white font-medium truncate track-title">${track.name}</p>
-          <p class="text-white/70 text-xs truncate">${artists}</p>
+        <div class="flex-1 min-w-0 flex flex-col justify-center">
+          <p class="text-white font-medium truncate track-title leading-tight m-0 p-0">${track.name}</p>
+          <p class="text-white/70 text-xs truncate leading-tight m-0 p-0 mt-0.5">${artists}</p>
         </div>
         ${actionButton}
         <div class="text-white/70 text-sm track-duration whitespace-nowrap">${duration}</div>
