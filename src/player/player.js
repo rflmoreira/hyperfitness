@@ -5825,7 +5825,7 @@ const MUSIC_PLAYER = (() => {
     }).join('');
 
     ui.playlistsContainer.innerHTML = `
-      <h3 class="playlists-strip-title">Playlists</h3>
+      <h3 class="playlists-strip-title">MINHAS PLAYLISTS</h3>
       <div class="playlists-strip-scroll">
         ${itemsHtml}
       </div>
