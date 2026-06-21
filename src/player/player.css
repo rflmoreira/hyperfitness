@@ -804,8 +804,8 @@
 #player-controls-bar .expanded-cover-wrapper img {
   width: 100%;
   aspect-ratio: 1;
-  max-height: calc(100vh - 200px);
-  max-width: calc(100vh - 200px);
+  max-height: min(calc(100vh - 200px), 380px);
+  max-width: min(calc(100vh - 200px), 380px);
   object-fit: cover;
   border-radius: 16px;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.8), 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 20px rgba(255, 255, 255, 0.04), 0 0 40px rgba(255, 255, 255, 0.02);
@@ -1519,17 +1519,17 @@
 #player-screen-playlist::before {
   content: '';
   position: absolute;
-  top: -160px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%) translateZ(0);
   width: 100vw;
-  height: 420px;
+  height: 500px;
   background: var(--playlist-header-bg, transparent) center top / cover no-repeat;
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
-  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
   transition: background-image 0.5s ease-in-out;
 }
 
@@ -1546,18 +1546,18 @@
 #player-screen-radio::before {
   content: '';
   position: absolute;
-  top: -160px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%) translateZ(0);
   width: 100vw;
-  height: 420px;
+  height: 500px;
   background:
     url('../imagens/radio/Sunshine_Live_90er_2024.jpg') center top / cover no-repeat;
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
-  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
 }
 
 #player-screen-radio>* {
