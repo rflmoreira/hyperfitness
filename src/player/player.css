@@ -429,7 +429,7 @@
   flex-shrink: 0;
 }
 
-/* ====== Compact Playlist Header removido (Migrado para aba Descobrir) ====== */
+
 
 /* Containers de conteúdo do player */
 #player-modal .player-scroll-surface,
@@ -443,13 +443,23 @@
   width: 100%;
   box-sizing: border-box;
   contain: layout style;
-  will-change: scroll-position;
+  will-change: transform, scroll-position;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   scroll-padding-bottom: max(var(--quick-actions-reserved-bottom, 0px), 5.5rem);
-  -webkit-mask-image: none !important;
-  mask-image: none !important;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.01) 0%, black 145px, black 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.01) 0%, black 145px, black 100%);
+  transform: translateZ(0);
+}
+
+.player-scroll-surface::after {
+  content: '';
+  display: block;
+  height: calc(180px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 #player-modal .player-scroll-surface {
@@ -473,6 +483,25 @@
 
 #youtube-search-content::-webkit-scrollbar {
   display: none;
+}
+
+#tracks-container::before {
+  content: '';
+  display: block;
+  height: 220px;
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+#youtube-search-content::before,
+#radio-channels-container::before {
+  content: '';
+  display: block;
+  height: 190px;
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 #tracks-container .tracks-top-spacer {
@@ -508,7 +537,6 @@
 }
 
 /* Player Modal e Screens */
-#player-modal>header,
 #player-modal>.player-screen {
   position: relative;
   z-index: 1;
@@ -524,7 +552,7 @@
 }
 
 #player-modal>.player-screen {
-  padding-top: 55px;
+  padding-top: 0;
 }
 
 /* Animação de transição lateral para as telas do player */
@@ -709,7 +737,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Volume slider styles removed — mute button only */
+
 
 /* Player Controls Bar */
 #player-controls-bar {
@@ -954,11 +982,12 @@
   right: 0;
   height: 420px;
   z-index: 30;
-  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
-  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  pointer-events: none;
   -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  pointer-events: none;
+  backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+  transform: translateZ(0);
 }
 
 #player-tabs-bar .tabs-container {
@@ -1052,12 +1081,10 @@
 /* Responsividade Mobile */
 @media (max-width: 480px) {
   #player-modal>.player-screen {
-    padding-top: 50px;
+    padding-top: 0;
   }
 
-  #player-screen-playlist {
-    overflow: hidden !important;
-  }
+
 
 
 
@@ -1168,7 +1195,7 @@
 /* ====== Discover Banner Carousel ====== */
 .discover-carousel-wrapper {
   position: relative;
-  padding: 30px 16px 0;
+  padding: 220px 16px 0;
   transition: opacity 0.15s ease, transform 0.15s ease, filter 0.15s ease;
   transform-origin: center top;
 }
@@ -1348,10 +1375,6 @@
 
 /* Desktop */
 @media (min-width: 640px) {
-  .discover-carousel-wrapper {
-    padding-top: 40px;
-  }
-
   .discover-carousel-slide {
     flex: 0 0 65%;
     margin-right: 14px;
@@ -1500,7 +1523,7 @@
   position: absolute;
   top: -160px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   width: 100vw;
   height: 420px;
   background: var(--playlist-header-bg, transparent) center top / cover no-repeat;
@@ -1527,7 +1550,7 @@
   position: absolute;
   top: -160px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   width: 100vw;
   height: 420px;
   background:
@@ -1682,15 +1705,6 @@
   padding-bottom: 0 !important;
 }
 
-#player-modal .player-scroll-surface,
-#discover-container,
-#tracks-container,
-#youtube-search-content,
-#radio-channels-container {
-  bottom: 0 !important;
-  -webkit-mask-image: none !important;
-  mask-image: none !important;
-}
 
 #youtube-search-content {
   --youtube-search-top-clearance: 60px;
@@ -1698,14 +1712,7 @@
   scroll-padding-bottom: var(--youtube-search-bottom-clearance) !important;
 }
 
-#youtube-search-content::after {
-  content: '';
-  display: block;
-  height: var(--youtube-search-bottom-clearance);
-  width: 100%;
-  pointer-events: none;
-  flex-shrink: 0;
-}
+
 
 #youtube-empty-state {
   min-height: max(280px, calc(100% - var(--youtube-search-top-clearance) - var(--youtube-search-bottom-clearance))) !important;
@@ -1737,14 +1744,7 @@
   scroll-padding-bottom: var(--playlist-empty-bottom-clearance) !important;
 }
 
-#tracks-container::after {
-  content: '';
-  display: block;
-  height: var(--playlist-empty-bottom-clearance);
-  width: 100%;
-  pointer-events: none;
-  flex-shrink: 0;
-}
+
 
 #playlist-empty-state {
   top: var(--playlist-empty-top-clearance);

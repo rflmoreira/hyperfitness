@@ -2747,7 +2747,6 @@ const MUSIC_PLAYER = (() => {
     if (isPlaylist) {
       requestAnimationFrame(() => {
         initPlaylistsMarquee();
-        setupTracksScrollEffect();
       });
     } else if (isDiscover) {
       requestAnimationFrame(() => {
@@ -6420,23 +6419,9 @@ const MUSIC_PLAYER = (() => {
     });
 
     updateTrackHighlight();
-    setupTracksScrollEffect();
   }
 
-  function setupTracksScrollEffect() {
-    if (!ui.tracksContainer) return;
-    
-    // O conteúdo deve continuar visível sob as camadas fixas, sem máscara
-    // aplicada no container de scroll.
-    requestAnimationFrame(() => {
-      setupTracksMask();
-    });
-    
-    // Recalcula mask no resize
-    window.removeEventListener('resize', setupTracksMask);
-    window.addEventListener('resize', setupTracksMask, { passive: true });
-  }
-  
+
   // Handler de scroll do YouTube - infinite scroll
   function handleYoutubeScroll() {
     if (!ui.youtubeSearchContent) return;
@@ -6451,13 +6436,6 @@ const MUSIC_PLAYER = (() => {
     }
   }
   
-  // Garante que as faixas rolem sob o footer fixo em vez de parar antes dele.
-  function setupTracksMask() {
-    if (!ui.tracksContainer) return;
-
-    ui.tracksContainer.style.maskImage = 'none';
-    ui.tracksContainer.style.webkitMaskImage = 'none';
-  }
 
   function markTrackUnavailable(index) {
     const track = state.tracks[index];
