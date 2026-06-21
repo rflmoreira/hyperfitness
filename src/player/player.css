@@ -1494,6 +1494,29 @@
   }
 }
 
+/* Playlist Screen Background (Dynamic) */
+#player-screen-playlist::before {
+  content: '';
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 420px;
+  background: var(--playlist-header-bg, transparent) center top / cover no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0, 0, 0, 0.4) 30%, black 50%, black 65%, transparent 100%);
+  transition: background-image 0.5s ease-in-out;
+}
+
+#player-screen-playlist > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Radio Screen Background */
 #player-screen-radio {
   position: relative;

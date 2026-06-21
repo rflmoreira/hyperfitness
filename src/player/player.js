@@ -2625,6 +2625,13 @@ const MUSIC_PLAYER = (() => {
       coverEl: ui.ctrlCover
     }, track);
 
+    // Atualiza a capa de fundo da aba Biblioteca (igual à aba Rádio)
+    const coverUrl = track ? getTrackImage(track) : getFallbackCover();
+    const playlistScreen = document.getElementById('player-screen-playlist');
+    if (playlistScreen) {
+      playlistScreen.style.setProperty('--playlist-header-bg', `url('${coverUrl}')`);
+    }
+
     syncExpandedCover();
     updateMiniPlayerBar();
   }
