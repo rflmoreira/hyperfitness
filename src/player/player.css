@@ -429,116 +429,7 @@
   flex-shrink: 0;
 }
 
-/* ====== Compact Playlist Header ====== */
-
-#playlists-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  position: relative;
-  z-index: 25;
-  padding: 6px 0 0 0;
-  box-sizing: border-box;
-}
-
-@media (min-width: 481px) {
-  #player-modal #playlists-container {
-    margin-top: 56px;
-  }
-  #player-screen-playlist #tracks-container {
-    padding-top: 230px !important;
-  }
-}
-
-.playlists-strip-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0 0 6px 16px;
-  letter-spacing: 0.02em;
-}
-
-.playlists-strip-scroll {
-  display: flex;
-  overflow-x: auto;
-  width: 100%;
-  max-width: 100%;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 0 16px 8px 16px;
-  gap: 12px;
-  align-items: flex-start;
-  touch-action: pan-x;
-}
-
-.playlists-strip-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.playlist-strip-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 0 0 64px;
-  max-width: 64px;
-  min-width: 0;
-  cursor: pointer;
-  gap: 6px;
-}
-
-.playlist-strip-cover {
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
-  object-fit: cover;
-  transition: border-color 0.2s ease;
-  border: 1px solid transparent;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-}
-
-.playlist-strip-item.active .playlist-strip-cover {
-  border-color: rgba(255, 122, 31, 0.8);
-}
-
-.playlist-strip-name-wrapper {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-}
-
-.playlist-strip-name {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
-  width: 100%;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all 0.2s ease;
-}
-
-.playlist-strip-item.active .playlist-strip-name {
-  color: #fff;
-  font-weight: 700;
-}
-
-.playlist-strip-name.marquee {
-  display: inline-block;
-  width: auto;
-  min-width: 100%;
-  text-overflow: clip;
-  overflow: visible;
-  text-align: left;
-  padding-right: 8px;
-  animation: marquee-scroll 4s ease-in-out infinite alternate;
-}
-
-@keyframes marquee-scroll {
-  0%, 25% { transform: translateX(0); }
-  75%, 100% { transform: translateX(var(--scroll-dist)); }
-}
+/* ====== Compact Playlist Header removido (Migrado para aba Descobrir) ====== */
 
 /* Containers de conteúdo do player */
 #player-modal .player-scroll-surface,
@@ -1168,14 +1059,7 @@
     overflow: hidden !important;
   }
 
-  #player-modal #playlists-container {
-    margin-top: 24px;
-  }
 
-  #player-screen-playlist #tracks-container {
-    overflow-y: auto !important;
-    padding-top: 204px;
-  }
 
   #player-tabs-bar {
     top: 140px;
@@ -1581,7 +1465,7 @@
   }
 
   #player-modal #tracks-container {
-    padding: 130px 0.5rem 0 !important;
+    padding: 90px 0.5rem 0 !important;
   }
 }
 

@@ -887,7 +887,8 @@ const MUSIC_PLAYER = (() => {
 
   const ui = {
     playerModal: null,
-    playlistsContainer: null,
+    myPlaylistsSection: null,
+    myPlaylistsGrid: null,
     tracksContainer: null,
     playlistEmptyState: null,
     emptyStateImportBtn: null,
@@ -963,7 +964,8 @@ const MUSIC_PLAYER = (() => {
   // Função para popular o objeto ui após o HTML ser injetado
   function populateUiElements() {
     ui.playerModal = document.getElementById('player-modal');
-    ui.playlistsContainer = document.getElementById('playlists-container');
+    ui.myPlaylistsSection = document.getElementById('my-playlists-section');
+    ui.myPlaylistsGrid = document.getElementById('my-playlists-grid');
     ui.tracksContainer = document.getElementById('tracks-container');
     ui.playlistEmptyState = document.getElementById('playlist-empty-state');
     ui.emptyStateImportBtn = document.getElementById('empty-state-import-btn');
@@ -2109,9 +2111,6 @@ const MUSIC_PLAYER = (() => {
     ui.playerModal?.addEventListener('click', (event) => {
       if (event.target === ui.playerModal) closePlayerModal();
     });
-    // Captura eventos wheel na fase de captura para redirecionar ao playlists-container
-    setupPlaylistsWheelCapture();
-    enableDragScroll(ui.playlistsContainer);
 
     // Tabs do player
     ui.tabDiscover?.addEventListener('click', () => switchPlayerTab('discover'));
@@ -3299,7 +3298,7 @@ const MUSIC_PLAYER = (() => {
 
   function updatePlaylistEmptyState() {
     // Verifica se há playlists visíveis no container
-    const hasVisiblePlaylists = ui.playlistsContainer && ui.playlistsContainer.children.length > 0;
+    const hasVisiblePlaylists = ui.myPlaylistsGrid && ui.myPlaylistsGrid.children.length > 0;
     if (ui.playlistEmptyState) {
       ui.playlistEmptyState.classList.toggle('hidden', hasVisiblePlaylists);
     }
@@ -5050,8 +5049,8 @@ const MUSIC_PLAYER = (() => {
   }
 
   function updatePlaylistCardCover(playlistId, coverUrl) {
-    if (!ui.playlistsContainer || !playlistId) return;
-    const img = ui.playlistsContainer.querySelector(`.playlist-item[data-playlist-id="${playlistId}"] img`);
+    if (!ui.myPlaylistsGrid || !playlistId) return;
+    const img = ui.myPlaylistsGrid.querySelector(`.my-playlist-card[data-playlist-id="${playlistId}"] img`);
     if (!img) return;
 
     const currentSrc = img.getAttribute('src');
@@ -5787,16 +5786,19 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  function renderPlaylists(scrollToFirst = false) {
-    if (!ui.playlistsContainer) return;
+  function renderPlaylists() {
+    if (!ui.myPlaylistsGrid || !ui.myPlaylistsSection) return;
 
     if (!state.playlists || state.playlists.length === 0) {
-      ui.playlistsContainer.innerHTML = '';
+      ui.myPlaylistsSection.style.display = 'none';
       updatePlaylistEmptyState();
       return;
     }
 
-    const itemsHtml = state.playlists.map(playlist => {
+    ui.myPlaylistsSection.style.display = 'block';
+
+    ui.myPlaylistsGrid.innerHTML = state.playlists.map(playlist => {
+      const trackCount = getPlaylistTrackCount(playlist);
       const isWatchLater = playlist.id === 'watch-later';
       
       let imageUrl;
@@ -5806,104 +5808,74 @@ const MUSIC_PLAYER = (() => {
         imageUrl = getPlaylistCover(playlist);
       }
 
-      const isActive = state.currentPlaylist && state.currentPlaylist.id === playlist.id ? 'active' : '';
-
       return `
-      <div class="playlist-strip-item group ${isActive}" data-playlist-id="${playlist.id}">
-        <div class="relative">
-          <img src="${imageUrl}" class="playlist-strip-cover" alt="${playlist.name}">
-          ${!isWatchLater ? `
-          <button class="delete-playlist-btn absolute -top-1 -right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-500/90" title="Excluir Playlist">
-            <i class="ph-bold ph-trash text-white text-[12px]"></i>
-          </button>
-          ` : ''}
+        <div class="my-playlist-card special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] ring-1 ring-white/10 relative" 
+             data-playlist-id="${playlist.id}">
+          <div class="relative aspect-square">
+            <img src="${imageUrl}" 
+                 alt="${playlist.name}" 
+                 class="w-full h-full object-cover"
+                 onerror="this.src='src/imagens/genericCover.png'">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            ${!isWatchLater ? `
+            <button class="delete-playlist-btn absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
+              <i class="ph-bold ph-trash text-white text-[14px]"></i>
+            </button>
+            ` : `
+            <div class="absolute top-2 right-2">
+              <i class="ph-fill ph-heart text-red-500 text-lg drop-shadow-lg"></i>
+            </div>
+            `}
+            <div class="discover-play-wrapper">
+              <button class="my-playlist-play-btn discover-play-circle" style="--btn-color: #f97316;">
+                <i class="ph-fill ph-play discover-play-icon"></i>
+              </button>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-3">
+              <p class="text-white font-semibold text-sm truncate">${playlist.name}</p>
+              <p class="text-white/60 text-xs">${trackCount} músicas</p>
+            </div>
+          </div>
         </div>
-        <div class="playlist-strip-name-wrapper">
-          <span class="playlist-strip-name">${playlist.name}</span>
-        </div>
-      </div>
       `;
     }).join('');
 
-    ui.playlistsContainer.innerHTML = `
-      <h3 class="playlists-strip-title">MINHAS PLAYLISTS</h3>
-      <div class="playlists-strip-scroll">
-        ${itemsHtml}
-      </div>
-    `;
+    // Event listeners para as playlists
+    ui.myPlaylistsGrid.querySelectorAll('.my-playlist-card').forEach(card => {
+      const playlistId = card.dataset.playlistId;
+      const playlist = state.playlists.find(p => p.id === playlistId);
 
-    initStripScroll(scrollToFirst);
-    initPlaylistsMarquee();
-    updatePlaylistEmptyState();
-  }
+      if (!playlist) return;
 
-  function initPlaylistsMarquee() {
-    if (!ui.playlistsContainer) return;
-    const items = ui.playlistsContainer.querySelectorAll('.playlist-strip-item');
-    items.forEach(item => {
-      const nameEl = item.querySelector('.playlist-strip-name');
-      const wrapper = item.querySelector('.playlist-strip-name-wrapper');
-      if (!nameEl || !wrapper) return;
-
-      const containerWidth = wrapper.clientWidth;
-      const textWidth = nameEl.scrollWidth;
-
-      if (textWidth > containerWidth) {
-        nameEl.classList.add('marquee');
-        // Usar a propriedade para passar a distância calculada pro CSS
-        const distance = nameEl.scrollWidth - containerWidth;
-        nameEl.style.setProperty('--scroll-dist', `-${distance}px`);
-        
-        // Duração proporcional ao tamanho extra, para manter a mesma velocidade legível
-        const duration = Math.max(3, distance * 0.08); // Ex: se passar 50px, dura 4s
-        nameEl.style.animationDuration = `${duration}s`;
-      }
-    });
-  }
-
-  function initStripScroll(scrollToFirst = false) {
-    const container = ui.playlistsContainer;
-    if (!container) return;
-
-    const scrollArea = container.querySelector('.playlists-strip-scroll');
-    if (!scrollArea) return;
-
-    // Restaura o drag-to-scroll para usuários usando mouse em computadores
-    enableDragScroll(scrollArea);
-
-    container.querySelectorAll('.playlist-strip-item').forEach(item => {
-      const deleteBtn = item.querySelector('.delete-playlist-btn');
+      const deleteBtn = card.querySelector('.delete-playlist-btn');
       if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Previne que o card seja clicado (selecionado)
-          const playlistId = item.dataset.playlistId;
-          
+          e.stopPropagation();
           deletePlaylist(playlistId);
         });
       }
 
-      item.addEventListener('click', (e) => {
-        const playlistId = e.currentTarget.dataset.playlistId;
-        if (playlistId) {
-          const playlist = state.playlists.find(p => p.id === playlistId);
-          if (playlist && (!state.currentPlaylist || state.currentPlaylist.id !== playlist.id)) {
-            selectPlaylist(playlist, false);
-            container.querySelectorAll('.playlist-strip-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-          }
+      // Clique no card ou no play - seleciona e vai para a tela de biblioteca
+      const clickHandler = (e) => {
+        e.stopPropagation();
+        
+        // Se clicou no botão play
+        const isPlayBtn = e.target.closest('.my-playlist-play-btn');
+        
+        // Vai para a aba biblioteca (que mostrará as tracks da playlist selecionada)
+        if (ui.tabPlaylist) {
+          ui.tabPlaylist.click();
         }
-      });
+        
+        if (isPlayBtn || (!state.currentPlaylist || state.currentPlaylist.id !== playlist.id)) {
+          selectPlaylist(playlist, isPlayBtn);
+        }
+      };
+
+      card.addEventListener('click', clickHandler);
     });
 
-    if (scrollToFirst) {
-      scrollArea.scrollLeft = 0;
-    } else if (state.currentPlaylist) {
-      const activeItem = container.querySelector(`.playlist-strip-item[data-playlist-id="${state.currentPlaylist.id}"]`);
-      if (activeItem) {
-        activeItem.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-      }
-    }
+    updatePlaylistEmptyState();
   }
 
   async function selectPlaylist(playlist, autoPlay = false, options = {}) {
@@ -6436,14 +6408,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function setupTracksScrollEffect() {
-    if (!ui.tracksContainer || !ui.playlistsContainer) return;
-    
-    // Remove listener anterior se existir
-    ui.tracksContainer.removeEventListener('scroll', handleTracksScroll);
-    ui.tracksContainer.addEventListener('scroll', handleTracksScroll, { passive: true });
-    
-    // Configura interação entre grid e tracks
-    setupGridTracksInteraction();
+    if (!ui.tracksContainer) return;
     
     // O conteúdo deve continuar visível sob as camadas fixas, sem máscara
     // aplicada no container de scroll.
@@ -6454,54 +6419,6 @@ const MUSIC_PLAYER = (() => {
     // Recalcula mask no resize
     window.removeEventListener('resize', setupTracksMask);
     window.addEventListener('resize', setupTracksMask, { passive: true });
-    
-    // Reset inicial
-    handleTracksScroll();
-  }
-  
-  // Configura a interação entre grid e tracks
-  function setupGridTracksInteraction() {
-    const playerScreen = document.getElementById('player-screen-playlist');
-    if (!playerScreen || !ui.tracksContainer || !ui.playlistsContainer) return;
-    
-    // O novo layout compacto não requer redirecionamento complexo de scroll
-    ui.tracksContainer.style.pointerEvents = 'auto';
-    ui.playlistsContainer.style.pointerEvents = 'auto';
-  }
-
-  function handleTracksScroll() {
-    if (!ui.tracksContainer || !ui.playlistsContainer) return;
-    
-    const scrollTop = ui.tracksContainer.scrollTop;
-    
-    // Curva de animação e profundidade (Z-axis recede)
-    const maxScroll = 140; // Distância para completar a animação
-    const progress = Math.min(scrollTop / maxScroll, 1);
-    
-    // Easing out cubic: inicia rápido e suaviza no final (interpolação fluida)
-    const easeOut = 1 - Math.pow(1 - progress, 3);
-
-    // LIMITES: Não desaparece completamente, apenas recua para o fundo
-    const opacity = Math.max(1 - (easeOut * 0.6), 0.4); // Desvanece apenas até 40%
-    const scale = 1 - (easeOut * 0.05); // Encolhe muito sutilmente (até 0.95)
-    const blur = easeOut * 4; // Desfoque suave, no máximo 4px
-    
-    // Em vez de subir (o que o esconde sob a máscara de blur do topo),
-    // empurramos levemente para baixo para manter no campo de visão e dar efeito de profundidade
-    const translateY = easeOut * 8; 
-
-    ui.playlistsContainer.style.opacity = opacity.toFixed(3);
-    ui.playlistsContainer.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
-    ui.playlistsContainer.style.filter = `blur(${blur.toFixed(1)}px)`;
-    
-    // Garante que o playlists-container fique ATRÁS do tracks-container
-    if (scrollTop > 0) {
-      ui.playlistsContainer.style.zIndex = '5';
-      ui.playlistsContainer.style.pointerEvents = 'none';
-    } else {
-      ui.playlistsContainer.style.zIndex = '30';
-      ui.playlistsContainer.style.pointerEvents = 'auto';
-    }
   }
   
   // Handler de scroll do YouTube - infinite scroll
@@ -7579,49 +7496,6 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  // === Funções de Scroll/Drag do Player ===
-  
-  function setupPlaylistsWheelCapture() {
-    // Desativado - carrossel 3D usa seu próprio wheel handler
-  }
-
-  function enableDragScroll(element) {
-    if (!element) return;
-    const playerModal = document.getElementById('player-modal');
-    if (!playerModal) return;
-
-    let isDown = false, startX, scrollLeft;
-    element.style.cursor = 'grab';
-
-    const isOverElement = (e) => {
-      const rect = element.getBoundingClientRect();
-      return e.clientX >= rect.left && e.clientX <= rect.right && 
-             e.clientY >= rect.top && e.clientY <= rect.bottom;
-    };
-
-    playerModal.addEventListener('mousedown', (e) => {
-      if (element.style.pointerEvents === 'none') return;
-      if (!isOverElement(e)) return;
-      if (e.target.closest('button.delete-playlist-btn, .delete-playlist-btn button')) return;
-      isDown = true;
-      element.style.cursor = 'grabbing';
-      startX = e.clientX;
-      scrollLeft = element.scrollLeft;
-    }, { capture: true });
-
-    const resetDrag = () => { if (isDown) { isDown = false; element.style.cursor = 'grab'; } };
-    document.addEventListener('mouseleave', resetDrag);
-    document.addEventListener('mouseup', resetDrag);
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      const walk = e.clientX - startX;
-      if (Math.abs(walk) > 5) {
-        e.preventDefault();
-        element.scrollLeft = scrollLeft - (walk * 1.5);
-      }
-    });
-  }
 
   // === RÁDIO SUNSHINE LIVE — Multi-canal ===
   const RADIO_CHANNELS = [

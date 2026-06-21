@@ -61,6 +61,16 @@
       <!-- Spacer para o carrossel -->
       <div id="discover-top-spacer" style="pointer-events: none;"></div>
 
+      <!-- Minhas Playlists -->
+      <div id="my-playlists-section" class="py-4" style="display: none;">
+        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <i class="ph-bold ph-playlist text-orange-500/80"></i>
+          Playlists Recentes e Favoritos
+        </h3>
+        <div id="my-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        </div>
+      </div>
+
       <!-- Playlists em Destaque -->
       <div class="py-4">
         <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
@@ -85,11 +95,8 @@
 
   <!-- TELA 1: Playlist (Biblioteca) -->
   <div id="player-screen-playlist" class="player-screen flex-1 flex flex-col hidden relative" style="overflow: visible !important;">
-    <!-- Playlists (scroll horizontal) -->
-    <div id="playlists-container" class="scrollbar-hide" style="z-index: 30;">
-    </div>
     <!-- Tracks (scroll vertical) -->
-    <div id="tracks-container" class="player-scroll-surface absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[130px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
+    <div id="tracks-container" class="player-scroll-surface absolute inset-0 overflow-y-auto px-3 sm:px-5 pt-[90px] scrollbar-hide" style="-webkit-overflow-scrolling: touch; z-index: 20;">
       <!-- Empty state com passo a passo de importação -->
       <div id="playlist-empty-state"
         class="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
