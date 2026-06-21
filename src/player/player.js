@@ -1041,7 +1041,16 @@ const MUSIC_PLAYER = (() => {
   }
 
   const createAudioElement = (existing = null) => {
-    const el = existing || new Audio();
+    let el = existing;
+    if (!el) {
+      el = new Audio();
+      el.style.display = 'none';
+      if (document.body) {
+        document.body.appendChild(el);
+      } else {
+        window.addEventListener('DOMContentLoaded', () => document.body.appendChild(el));
+      }
+    }
     el.preload = 'auto';
     el.playsInline = true;
     return el;
