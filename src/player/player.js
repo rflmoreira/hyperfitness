@@ -66,6 +66,7 @@ const MUSIC_PLAYER = (() => {
   
   // Formatação de tempo (ms para mm:ss ou hh:mm:ss)
   function formatDuration(ms) {
+    if (ms == null || !Number.isFinite(ms) || ms < 0) return '--:--';
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -3107,8 +3108,8 @@ const MUSIC_PLAYER = (() => {
       trackCount: playlist.tracks.length
     });
 
-    // Pré-carrega as faixas em background
-    preloadTracksInBackground(state.tracks);
+    // Dispara preload em background com limitador
+    preloadTracksInBackground(state.tracks, playlist.id);
 
     // Enriquece com capas
     enrichTracksWithCovers(state.tracks);
@@ -5762,7 +5763,7 @@ const MUSIC_PLAYER = (() => {
 
       if (normalizedTracks.length) {
         const tracksToPreload = state.tracks.length ? state.tracks : normalizedTracks;
-        preloadTracksInBackground(tracksToPreload);
+        preloadTracksInBackground(tracksToPreload, state.currentPlaylist?.id);
       }
 
       const importedPlaylist = state.playlists[1] || state.playlists[0];
@@ -5977,7 +5978,7 @@ const MUSIC_PLAYER = (() => {
       .catch(() => { });
 
     if (preloadAudio && !state.preloadedPlaylists.has(playlist.id)) {
-      preloadTracksInBackground(state.tracks).then(() => {
+      preloadTracksInBackground(state.tracks, playlist.id).then(() => {
         state.preloadedPlaylists.add(playlist.id);
       });
     }
@@ -5988,12 +5989,16 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Pré-carrega faixas em segundo plano com rate limiting
-  async function preloadTracksInBackground(tracks) {
+  async function preloadTracksInBackground(tracks, playlistId) {
     // Rate limit: 2 requests por segundo para evitar 429
     const delayBetweenRequests = 600;
     const results = [];
 
     for (let i = 0; i < tracks.length; i++) {
+      if (state.currentPlaylist?.id !== playlistId) {
+        // Se a playlist mudou durante o preload, interrompe para não atualizar a UI errada
+        break;
+      }
       const result = await preloadSingleTrack(tracks[i], i);
       results.push(result);
 
@@ -6229,18 +6234,18 @@ const MUSIC_PLAYER = (() => {
 
     const track = state.tracks[activeIndex];
     const durationMs = getTrackDurationMs(track);
-    if (!Number.isFinite(durationMs)) {
-      playbackCountdownRaf = null;
-      return;
-    }
-
     const currentMs = audio.currentTime * 1000;
-    const remainingMs = Math.max(0, durationMs - currentMs);
-    setTrackDurationLabel(activeIndex, remainingMs);
 
-    // Atualiza a barra de progresso
-    const progress = Math.min(100, (currentMs / durationMs) * 100);
-    updateTrackProgress(activeIndex, progress);
+    if (!Number.isFinite(durationMs)) {
+      // Se não temos duração total, exibe o tempo decorrido e zera o progresso visual
+      setTrackDurationLabel(activeIndex, currentMs);
+      updateTrackProgress(activeIndex, 0);
+    } else {
+      const remainingMs = Math.max(0, durationMs - currentMs);
+      setTrackDurationLabel(activeIndex, remainingMs);
+      const progress = Math.min(100, (currentMs / durationMs) * 100);
+      updateTrackProgress(activeIndex, progress);
+    }
 
     playbackCountdownRaf = requestAnimationFrame(updatePlaybackCountdown);
   }
