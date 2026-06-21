@@ -980,11 +980,11 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 420px;
+  height: 280px;
   z-index: 30;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
   backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
   -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
   transform: translateZ(0);
@@ -1093,9 +1093,7 @@
     padding: 5px 6px;
   }
 
-  #player-tabs-blur {
-    height: 380px;
-  }
+
 
   #player-tabs-bar .tabs-container {
     gap: 3px;
@@ -1722,6 +1720,7 @@
 }
 
 #manual-search-results:not(.hidden) {
+  padding-top: 220px;
   padding-bottom: var(--youtube-search-bottom-clearance);
   scroll-margin-bottom: var(--youtube-search-bottom-clearance);
 }
