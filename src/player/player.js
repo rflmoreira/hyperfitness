@@ -6157,18 +6157,18 @@ const MUSIC_PLAYER = (() => {
 
     const toNumber = (value) => {
       const num = Number(value);
-      return Number.isFinite(num) ? num : null;
+      return Number.isFinite(num) && num > 0 ? num : null;
     };
 
     const durationMs = toNumber(source.duration_ms) ?? toNumber(source.durationMs);
-    if (Number.isFinite(durationMs)) return durationMs;
+    if (durationMs) return durationMs;
 
     const seconds =
       toNumber(source.lengthSeconds) ??
       toNumber(source.length) ??
       toNumber(source.duration);
 
-    if (Number.isFinite(seconds)) return seconds * 1000;
+    if (seconds) return seconds * 1000;
     return null;
   }
 
@@ -6189,7 +6189,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function getTrackDurationMs(track) {
-    return extractDurationMs(track) ?? (Number.isFinite(audio.duration) ? audio.duration * 1000 : null);
+    return extractDurationMs(track) ?? (Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration * 1000 : null);
   }
 
   function setTrackDurationLabel(index, ms) {
