@@ -498,7 +498,7 @@
 #radio-channels-container::before {
   content: '';
   display: block;
-  height: 190px;
+  height: 220px;
   width: 100%;
   flex-shrink: 0;
   pointer-events: none;
@@ -1720,7 +1720,6 @@
 }
 
 #manual-search-results:not(.hidden) {
-  padding-top: 220px;
   padding-bottom: var(--youtube-search-bottom-clearance);
   scroll-margin-bottom: var(--youtube-search-bottom-clearance);
 }
