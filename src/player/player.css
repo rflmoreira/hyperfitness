@@ -952,12 +952,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 310px;
+  height: 420px;
   z-index: 30;
   backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
   -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
-  -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   pointer-events: none;
 }
 
@@ -1067,7 +1067,7 @@
   }
 
   #player-tabs-blur {
-    height: 290px;
+    height: 380px;
   }
 
   #player-tabs-bar .tabs-container {
