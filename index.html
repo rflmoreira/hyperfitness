@@ -3800,6 +3800,8 @@
       backdrop-filter: blur(3px);
       opacity: 0;
       will-change: opacity;
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
     .hf-week-sheet__panel {
@@ -3905,14 +3907,16 @@
       max-width: none;
     }
 
-    @media (max-width: 640px), (pointer: coarse) {
-      .hf-week-sheet .workout-card,
-      .hf-week-sheet .exercise-stat-button,
-      .hf-week-sheet .completion-toggle-wrapper,
-      .hf-week-sheet .exercise-method-pill {
-        -webkit-backdrop-filter: blur(18px) saturate(160%) contrast(1.04) brightness(1.03);
-        backdrop-filter: blur(18px) saturate(160%) contrast(1.04) brightness(1.03);
-      }
+    /* OPTIMIZATION: Remove backdrop-filter from all repeating elements inside the sheet.
+       The sheet background is already blurred. Blurring dozens of small buttons inside it
+       causes GPU Out-Of-Memory crashes on mobile devices. */
+    .hf-week-sheet__panel #workout-details .workout-card,
+    .hf-week-sheet__panel #workout-details .exercise-stat-button,
+    .hf-week-sheet__panel #workout-details .completion-toggle-wrapper,
+    .hf-week-sheet__panel #workout-details .exercise-method-pill,
+    .hf-week-sheet__panel #workout-details .glass-effect {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
     }
 
     .hf-week-sheet__panel #day-selector {
@@ -3958,11 +3962,11 @@
 
     @keyframes hf-sheet-slide-up {
       from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+      to { transform: translateY(0%); }
     }
 
     @keyframes hf-sheet-slide-down {
-      from { transform: translateY(0); }
+      from { transform: translateY(0%); }
       to { transform: translateY(100%); }
     }
 
@@ -4009,6 +4013,7 @@
       border-radius: 999px;
       background: rgba(205, 214, 244, 0.25);
       pointer-events: auto;
+      touch-action: none;
     }
 
     .hf-week-sheet__nav {
