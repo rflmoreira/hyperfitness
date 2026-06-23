@@ -3814,8 +3814,6 @@
       background: transparent;
       border: 1.5px solid var(--glass-border);
       box-shadow: var(--elev-1), var(--elev-2);
-      scrollbar-width: none;
-      -ms-overflow-style: none;
       overscroll-behavior: contain;
       animation: hf-sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
@@ -3844,20 +3842,35 @@
       border-radius: 2rem 2rem 0 0;
     }
 
+    .hf-back-to-top {
+      color: var(--subtext-0);
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      font-weight: 300;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
     .hf-back-to-top:active {
-      color: #FF7A1F !important;
-      transform: translateY(-0.25rem) !important;
-      transition: all 0.1s ease !important;
+      color: #FF7A1F;
+      transform: translateY(-0.25rem);
+      transition: all 0.1s ease;
     }
 
     @media (hover: hover) {
       .hf-back-to-top:hover {
-        color: white !important;
+        color: white;
         transform: translateY(-0.25rem);
       }
     }
 
-    .hf-week-sheet__panel::-webkit-scrollbar,
     .hf-week-sheet__body::-webkit-scrollbar {
       display: none;
     }
@@ -3942,14 +3955,8 @@
       width: 100%;
       height: 4rem;
       z-index: 21;
-      flex: 0 0 auto;
       padding-top: 0.75rem;
       padding-bottom: 0.7rem;
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
       pointer-events: none;
     }
 
@@ -3964,10 +3971,6 @@
       -webkit-backdrop-filter: blur(8px) brightness(1.2) saturate(180%) contrast(1.08);
       -webkit-mask-image: linear-gradient(to bottom, black 15%, transparent 100%);
       mask-image: linear-gradient(to bottom, black 15%, transparent 100%);
-      transform: translate3d(0, 0, 0);
-      will-change: transform, opacity;
-      opacity: 0.99;
-      isolation: isolate;
       pointer-events: none;
     }
 
@@ -8548,8 +8551,6 @@
     .phase-dashboard__goal,
     .phase-stats,
     .hf-week-summary__main,
-    .hf-week-sheet__panel,
-    .hf-week-sheet__nav,
     .hf-workout-progress,
     .modal-card,
     #builder-screen .builder-name-section,
@@ -8621,7 +8622,6 @@
     .phase-dashboard__hero::before,
     .phase-stats::before,
     .hf-week-summary__main::before,
-    .hf-week-sheet__panel::before,
     .hf-workout-progress::before,
     .modal-card::before,
     #builder-screen .builder-name-section::before,
@@ -11519,7 +11519,7 @@
       const backToTopBtn = document.createElement('div');
       backToTopBtn.className = 'col-span-full flex justify-center mt-8 mb-4';
       backToTopBtn.innerHTML = `
-        <button ontouchstart="" onclick="const body = this.closest('.hf-week-sheet__body'); if(body) body.scrollTo({top: 0, behavior: 'smooth'}); else window.scrollTo({top: 0, behavior: 'smooth'});" class="hf-back-to-top px-6 py-3 font-light transition-all duration-300 transform flex items-center gap-2 bg-transparent border-none outline-none" style="color: var(--subtext-0); background: transparent !important; border: none !important; box-shadow: none !important; appearance: none !important;">
+        <button ontouchstart="" onclick="const body = this.closest('.hf-week-sheet__body'); if(body) body.scrollTo({top: 0, behavior: 'smooth'}); else window.scrollTo({top: 0, behavior: 'smooth'});" class="hf-back-to-top">
           <i class="ph-light ph-arrow-up text-lg"></i>
           Voltar ao Topo
         </button>
