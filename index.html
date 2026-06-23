@@ -3782,7 +3782,8 @@
       overflow: hidden;
     }
 
-    .hf-week-sheet.is-open {
+    .hf-week-sheet.is-open,
+    .hf-week-sheet.is-closing {
       display: block;
     }
 
@@ -3798,7 +3799,6 @@
       -webkit-backdrop-filter: blur(3px);
       backdrop-filter: blur(3px);
       opacity: 0;
-      animation: hf-sheet-fade 240ms ease forwards;
     }
 
     .hf-week-sheet__panel {
@@ -3815,7 +3815,22 @@
       border: 1.5px solid var(--glass-border);
       box-shadow: var(--elev-1), var(--elev-2);
       overscroll-behavior: contain;
-      animation: hf-sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .hf-week-sheet.is-open .hf-week-sheet__overlay {
+      animation: hf-sheet-fade-in 240ms ease forwards;
+    }
+
+    .hf-week-sheet.is-open .hf-week-sheet__panel {
+      animation: hf-sheet-slide-up 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .hf-week-sheet.is-closing .hf-week-sheet__overlay {
+      animation: hf-sheet-fade-out 200ms ease forwards;
+    }
+
+    .hf-week-sheet.is-closing .hf-week-sheet__panel {
+      animation: hf-sheet-slide-down 250ms ease forwards;
     }
 
     .hf-week-sheet__panel-bg {
@@ -3928,16 +3943,24 @@
       height: var(--quick-action-size);
     }
 
-    @keyframes hf-sheet-fade {
-      to {
-        opacity: 1;
-      }
+    @keyframes hf-sheet-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    @keyframes hf-sheet-up {
-      to {
-        bottom: 0;
-      }
+    @keyframes hf-sheet-fade-out {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @keyframes hf-sheet-slide-up {
+      from { bottom: -100%; }
+      to { bottom: 0; }
+    }
+
+    @keyframes hf-sheet-slide-down {
+      from { bottom: 0; }
+      to { bottom: -100%; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -11016,11 +11039,19 @@
 
     function closeWeekSheet() {
       const sheet = document.getElementById("week-sheet");
-      if (!sheet) return;
+      if (!sheet || (!sheet.classList.contains("is-open") && !sheet.classList.contains("is-closing"))) return;
+      
+      if (sheet.classList.contains("is-closing")) return;
+
       sheet.classList.remove("is-open");
-      sheet.setAttribute("aria-hidden", "true");
+      sheet.classList.add("is-closing");
       document.body.classList.remove("week-sheet-open");
       document.body.style.overflow = "";
+
+      setTimeout(() => {
+        sheet.classList.remove("is-closing");
+        sheet.setAttribute("aria-hidden", "true");
+      }, 250);
     }
 
     function createWeekMarker(weekNumber, options = {}) {
