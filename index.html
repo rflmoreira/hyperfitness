@@ -3799,13 +3799,15 @@
       -webkit-backdrop-filter: blur(3px);
       backdrop-filter: blur(3px);
       opacity: 0;
+      will-change: opacity;
     }
 
     .hf-week-sheet__panel {
       position: absolute;
       left: 0;
       right: 0;
-      bottom: -100%;
+      bottom: 0;
+      transform: translateY(100%);
       max-height: min(86vh, 52rem);
       display: flex;
       flex-direction: column;
@@ -3815,6 +3817,7 @@
       border: 1.5px solid var(--glass-border);
       box-shadow: var(--elev-1), var(--elev-2);
       overscroll-behavior: contain;
+      will-change: transform;
     }
 
     .hf-week-sheet.is-open .hf-week-sheet__overlay {
@@ -3954,13 +3957,13 @@
     }
 
     @keyframes hf-sheet-slide-up {
-      from { bottom: -100%; }
-      to { bottom: 0; }
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
     }
 
     @keyframes hf-sheet-slide-down {
-      from { bottom: 0; }
-      to { bottom: -100%; }
+      from { transform: translateY(0); }
+      to { transform: translateY(100%); }
     }
 
     @media (prefers-reduced-motion: reduce) {
