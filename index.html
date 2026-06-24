@@ -4011,7 +4011,8 @@
     .hf-week-sheet__nav {
       position: relative;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       justify-content: center;
       width: calc(100% + 0.8rem);
       max-width: 44rem;
@@ -4250,6 +4251,99 @@
       opacity: 0.9;
       background: rgba(255, 255, 255, 0.045);
       border-color: rgba(205, 214, 244, 0.08);
+    }
+
+    .hf-week-sheet__nav .hf-day-edit.is-active {
+      opacity: 1;
+      color: rgba(255, 168, 102, 0.98);
+      background: rgba(255, 122, 31, 0.2);
+      border-color: rgba(255, 154, 82, 0.5);
+    }
+
+    @keyframes hf-edit-nav-pulse {
+      0%, 100% {
+        box-shadow:
+          0 0 0 1px rgba(255, 122, 31, 0.4),
+          0 0 16px -4px rgba(255, 122, 31, 0.32),
+          inset 0 1px 1px rgba(255, 255, 255, 0.16);
+      }
+      50% {
+        box-shadow:
+          0 0 0 2px rgba(255, 154, 82, 0.92),
+          0 0 26px 0 rgba(255, 122, 31, 0.62),
+          inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    @keyframes hf-edit-pill-pulse {
+      0%, 100% {
+        border-color: rgba(255, 122, 31, 0.45);
+        box-shadow: 0 0 0 1px rgba(255, 122, 31, 0.16);
+      }
+      50% {
+        border-color: rgba(255, 168, 102, 0.95);
+        box-shadow:
+          0 0 12px -2px rgba(255, 122, 31, 0.6),
+          0 0 0 1px rgba(255, 154, 82, 0.55);
+      }
+    }
+
+    .hf-week-sheet__nav.is-editing {
+      animation: hf-edit-nav-pulse 1.8s ease-in-out infinite;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill {
+      cursor: pointer;
+      opacity: 1;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill__card {
+      animation: hf-edit-pill-pulse 1.6s ease-in-out infinite;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(2) .hf-day-pill__card {
+      animation-delay: 0.08s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(3) .hf-day-pill__card {
+      animation-delay: 0.16s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(4) .hf-day-pill__card {
+      animation-delay: 0.24s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(5) .hf-day-pill__card {
+      animation-delay: 0.32s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(6) .hf-day-pill__card {
+      animation-delay: 0.4s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:nth-child(7) .hf-day-pill__card {
+      animation-delay: 0.48s;
+    }
+
+    .hf-week-sheet__nav.is-editing .hf-day-pill:focus-visible {
+      outline: 2px solid rgba(255, 154, 82, 0.9);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .hf-week-sheet__nav.is-editing,
+      .hf-week-sheet__nav.is-editing .hf-day-pill__card {
+        animation: none;
+      }
+
+      .hf-week-sheet__nav.is-editing {
+        box-shadow: 0 0 0 2px rgba(255, 154, 82, 0.85), 0 0 22px -2px rgba(255, 122, 31, 0.5);
+      }
+
+      .hf-week-sheet__nav.is-editing .hf-day-pill__card {
+        border-color: rgba(255, 154, 82, 0.85);
+      }
     }
 
     .hf-week-sheet__current {
@@ -6431,7 +6525,6 @@
 
     .program-overlay,
     #program-delete-modal,
-    #edit-schedule-modal,
     #exercise-image-modal,
     #timer-modal,
     #notepad-modal,
@@ -7410,115 +7503,6 @@
     @media (max-width:480px) {
       .timer-controls {
         grid-template-columns: 1fr
-      }
-    }
-
-    #edit-schedule-card {
-      max-height: min(90vh, 650px);
-      display: flex;
-      flex-direction: column
-    }
-
-    @supports (height:100dvh) {
-      #edit-schedule-card {
-        max-height: min(90dvh, 650px)
-      }
-    }
-
-    .edit-header h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--primary-color);
-      text-transform: uppercase
-    }
-
-    .edit-header p {
-      color: rgba(226, 232, 240, 0.8);
-      font-size: 0.95rem;
-      margin-top: 0.35rem
-    }
-
-    #edit-schedule-list {
-      overflow-y: auto;
-      flex: 1;
-      min-height: 0
-    }
-
-    #edit-schedule-list::-webkit-scrollbar {
-      width: 6px
-    }
-
-    #edit-schedule-list::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 9999px
-    }
-
-    @media (max-height:700px) {
-      #edit-schedule-card {
-        padding: 1.25rem 1.5rem 1.5rem
-      }
-
-      .edit-header {
-        margin-bottom: 1.25rem !important
-      }
-
-      .edit-header h2 {
-        font-size: 1.25rem
-      }
-
-      .edit-header p {
-        font-size: 0.85rem;
-        margin-top: 0.25rem
-      }
-
-      #edit-schedule-list {
-        margin-bottom: 1.25rem !important
-      }
-
-      #edit-schedule-card .flex.justify-end.gap-3 button {
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem
-      }
-
-      #edit-schedule-card .mt-8:last-child {
-        margin-top: 1rem !important
-      }
-    }
-
-    @media (max-height:600px) {
-      #edit-schedule-card {
-        padding: 1rem 1.25rem 1.25rem
-      }
-
-      .edit-header {
-        margin-bottom: 1rem !important
-      }
-
-      .edit-header h2 {
-        font-size: 1.1rem
-      }
-
-      .edit-header p {
-        font-size: 0.8rem
-      }
-
-      #edit-schedule-list {
-        margin-bottom: 1rem !important
-      }
-
-      #edit-schedule-card .flex.justify-end.gap-3 {
-        gap: 0.5rem !important
-      }
-
-      #edit-schedule-card .flex.justify-end.gap-3 button {
-        padding: 0.45rem 0.9rem;
-        font-size: 0.8rem
-      }
-
-      #edit-schedule-card .text-\[0\.7rem\]:last-child {
-        margin-top: 0.75rem !important;
-        font-size: 0.65rem !important
       }
     }
 
@@ -9443,40 +9427,6 @@
   <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[100]"
     aria-hidden="true"></canvas>
 
-  <div id="edit-schedule-modal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-[150] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
-    role="dialog" aria-labelledby="edit-title" aria-hidden="true" style="display:none">
-    <div id="edit-schedule-card"
-      class="modal-card relative w-full max-w-sm glass-effect rounded-3xl p-7 pt-9 transform scale-95 transition-all duration-300 overflow-hidden"
-      tabindex="-1">
-
-      <button id="close-edit-schedule-btn"
-        class="absolute top-4 right-4 glass-effect text-white/90 w-11 h-11 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90 shadow-lg"
-        aria-label="Fechar edição">
-        <i class="ph-bold ph-x text-lg" aria-hidden="true"></i>
-      </button>
-
-      <div class="edit-header text-center mb-8">
-        <h2 id="edit-title">Editar Treinos</h2>
-        <p class="modal-subtitle">Personalize sua rotina para alcançar resultados máximos.</p>
-      </div>
-
-      <div id="edit-schedule-list" class="space-y-3 mb-8"></div>
-
-      <div class="flex justify-end gap-3">
-        <button id="cancel-edit-btn"
-          class="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-lg font-semibold transition-all text-sm border border-white/5"
-          aria-label="Cancelar edição">Cancelar</button>
-        <button id="save-edit-btn"
-          class="px-5 py-2.5 bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] hover:shadow-lg rounded-lg font-bold text-white transition-all text-sm"
-          aria-label="Salvar alterações">Salvar</button>
-      </div>
-
-      <div class="mt-8 text-[0.7rem] text-center uppercase tracking-[0.55em]" style="color:var(--overlay-1);">planeje
-        com precisão</div>
-    </div>
-  </div>
-
   <div id="exercise-image-modal"
     class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-[150] flex items-center justify-center opacity-0 invisible transition-opacity duration-300"
     role="dialog" aria-labelledby="exercise-image-title" aria-hidden="true" style="display:none">
@@ -11345,6 +11295,20 @@
       const dayKeys = Object.keys(phaseData.schedule);
       DOM_ELEMENTS.daySelector.innerHTML = "";
 
+      const nav = getNavContainer();
+
+      if (scheduleEditMode && scheduleDraft) {
+        nav?.classList.add("is-editing");
+        dayKeys.forEach((day, index) => {
+          DOM_ELEMENTS.daySelector.appendChild(createEditableDayButton(day, index, phaseData));
+        });
+        DOM_ELEMENTS.daySelector.appendChild(createEditButton());
+        renderWeekSheetCurrentWorkoutHeader();
+        return;
+      }
+
+      nav?.classList.remove("is-editing");
+
       // Identifica o próximo treino (primeiro dia de treino após o dia atual, ainda não concluído)
       const currentIdx = dayKeys.indexOf(APP_STATE.currentDay);
       const nextWorkoutDayIndex = dayKeys.findIndex((day, index) => {
@@ -11498,13 +11462,55 @@
       return button;
     }
 
+    function createEditableDayButton(day, index, phaseData) {
+      const workouts = phaseData.workouts || {};
+      const value = scheduleDraft[day];
+      const off = isRestValue(value, workouts);
+      const dayKeys = Object.keys(phaseData.schedule);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "hf-day-pill";
+      button.dataset.status = off ? "off" : "pending";
+      button.dataset.editable = "true";
+      button.dataset.day = day;
+      if (index === dayKeys.length - 1) {
+        button.dataset.edge = "last";
+      }
+
+      const planLabel = off ? "Descanso" : `Treino ${value}`;
+      const focus = off ? "Folga" : getWorkoutFocusLabel(workouts[value]?.name, value);
+      const badgeContent = off
+        ? '<i class="ph-fill ph-moon-stars" aria-hidden="true"></i>'
+        : escapeHTML(value);
+      const fullName = SCHEDULE_DAY_FULL_NAMES[day] || day;
+
+      button.innerHTML = `
+          <span class="hf-day-pill__card">
+            <span class="hf-day-pill__top">
+            <span class="hf-day-pill__day">${escapeHTML(day)}</span>
+          </span>
+          <span class="hf-day-pill__badge">${badgeContent}</span>
+        </span>
+      `;
+      button.setAttribute("aria-label", `${fullName}: ${off ? "Descanso" : `${planLabel} - ${focus}`}. Toque para alterar o treino`);
+      button.title = "Toque para alterar o treino";
+
+      addEventListenerSafe(button, "click", () => cycleScheduleDay(day));
+      return button;
+    }
+
     function createEditButton() {
       const editButton = document.createElement("button");
       editButton.type = "button";
-      editButton.className = "hf-day-edit";
-      editButton.innerHTML = '<i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>';
-      editButton.title = "Editar treinos da semana";
-      addEventListenerSafe(editButton, "click", openEditModal);
+      editButton.className = scheduleEditMode ? "hf-day-edit is-active" : "hf-day-edit";
+      editButton.innerHTML = scheduleEditMode
+        ? '<i class="ph-bold ph-check" aria-hidden="true"></i>'
+        : '<i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>';
+      editButton.title = scheduleEditMode ? "Concluir edição e salvar" : "Editar treinos da semana";
+      editButton.setAttribute("aria-pressed", scheduleEditMode ? "true" : "false");
+      editButton.setAttribute("aria-label", scheduleEditMode ? "Concluir edição dos treinos da semana" : "Editar treinos da semana");
+      addEventListenerSafe(editButton, "click", toggleScheduleEditMode);
       return editButton;
     }
 
@@ -13138,27 +13144,141 @@
       }, 300);
     }
 
-    function openEditModal() {
-      const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
-      if (!phaseData) return;
-      const { schedule, workouts } = phaseData;
-      const workoutOptions = Object.keys(workouts);
-      const dayNames = { Seg: "Segunda", Ter: "Terça", Qua: "Quarta", Qui: "Quinta", Sex: "Sexta", Sáb: "Sábado", Dom: "Domingo" };
-
-      DOM_ELEMENTS.editScheduleList.innerHTML = Object.keys(schedule).map(dayKey => `
-          <div class="grid grid-cols-5 items-center gap-2 px-2 py-1.5 rounded-lg" style="background: var(--surface-0);">
-              <label class="font-semibold text-white text-sm col-span-2">${dayNames[dayKey]}</label>
-              <select id="edit-day-${dayKey}" class="text-white text-sm rounded-lg focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] block w-full col-span-3 py-1 px-2" style="background: var(--surface-1); border: 1px solid var(--surface-2);">
-                  <option value="OFF">Dia de Descanso</option>
-                  ${workoutOptions.map(woKey => `<option value="${woKey}" ${schedule[dayKey] === woKey ? 'selected' : ''}>Treino ${woKey}</option>`).join('')}
-              </select>
-          </div>
-      `).join('');
-      toggleModal(DOM_ELEMENTS.editScheduleModal, DOM_ELEMENTS.editScheduleCard, true);
+    function getNavContainer() {
+      return DOM_ELEMENTS.daySelector?.closest(".hf-week-sheet__nav") || null;
     }
 
-    function closeEditModal() {
-      toggleModal(DOM_ELEMENTS.editScheduleModal, DOM_ELEMENTS.editScheduleCard, false);
+    function getActiveEditButton() {
+      return DOM_ELEMENTS.daySelector?.querySelector(".hf-day-edit") || null;
+    }
+
+    const SCHEDULE_DAY_FULL_NAMES = {
+      Seg: "Segunda-feira", Ter: "Terça-feira", Qua: "Quarta-feira",
+      Qui: "Quinta-feira", Sex: "Sexta-feira", Sáb: "Sábado", Dom: "Domingo"
+    };
+
+    let scheduleEditMode = false;
+    let scheduleDraft = null;
+
+    function isScheduleEditMode() {
+      return scheduleEditMode;
+    }
+
+    function isRestValue(value, workouts) {
+      return value === "OFF" || !workouts || !workouts[value];
+    }
+
+    function getScheduleOptions(workouts) {
+      return ["OFF", ...Object.keys(workouts || {})];
+    }
+
+    function cycleScheduleDay(day) {
+      if (!scheduleEditMode || !scheduleDraft) return;
+      const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
+      if (!phaseData) return;
+      const options = getScheduleOptions(phaseData.workouts);
+      let idx = options.indexOf(scheduleDraft[day]);
+      if (idx < 0) idx = 0;
+      scheduleDraft[day] = options[(idx + 1) % options.length];
+      renderDaySelector();
+      const pill = DOM_ELEMENTS.daySelector?.querySelector(`.hf-day-pill[data-day="${CSS.escape(day)}"]`);
+      if (pill) {
+        try { pill.focus({ preventScroll: true }); } catch (_) { }
+      }
+    }
+
+    function enterScheduleEditMode() {
+      if (scheduleEditMode) return;
+      const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
+      if (!phaseData) return;
+      scheduleDraft = { ...phaseData.schedule };
+      scheduleEditMode = true;
+      renderDaySelector();
+      const firstPill = DOM_ELEMENTS.daySelector?.querySelector('.hf-day-pill[data-editable="true"]');
+      if (firstPill) {
+        try { firstPill.focus({ preventScroll: true }); } catch (_) { }
+      }
+    }
+
+    function commitScheduleDraft() {
+      const phaseKey = getPhaseKeyByWeek(APP_STATE.currentWeekNumber);
+      if (!phaseKey || !scheduleDraft) {
+        scheduleDraft = null;
+        renderDaySelector();
+        return;
+      }
+
+      const phase = getActivePhases()[phaseKey];
+      const newSchedule = {};
+      let firstActiveDay = null;
+
+      Object.keys(phase.schedule).forEach(dayKey => {
+        const value = (dayKey in scheduleDraft) ? scheduleDraft[dayKey] : phase.schedule[dayKey];
+        newSchedule[dayKey] = value;
+
+        if (value === "OFF") {
+          delete APP_STATE.allCompletions[getCompletionKey(APP_STATE.currentWeekNumber, dayKey)];
+        }
+        if (value !== "OFF" && !firstActiveDay) {
+          firstActiveDay = dayKey;
+        }
+      });
+
+      phase.schedule = newSchedule;
+
+      if (newSchedule[APP_STATE.currentDay] === "OFF") {
+        APP_STATE.currentDay = firstActiveDay || Object.keys(newSchedule)[0];
+      }
+
+      scheduleDraft = null;
+      updateProgressAfterScheduleChange();
+      saveApplicationState();
+      renderAllComponents();
+    }
+
+    function exitScheduleEditMode({ save = true, restoreFocus = false } = {}) {
+      if (!scheduleEditMode) return;
+      scheduleEditMode = false;
+
+      if (save) {
+        commitScheduleDraft();
+      } else {
+        scheduleDraft = null;
+        renderDaySelector();
+      }
+
+      if (restoreFocus) {
+        const editButton = getActiveEditButton();
+        if (editButton) {
+          try { editButton.focus({ preventScroll: true }); } catch (_) { }
+        }
+      }
+    }
+
+    function toggleScheduleEditMode() {
+      if (scheduleEditMode) {
+        exitScheduleEditMode({ save: true, restoreFocus: true });
+      } else {
+        enterScheduleEditMode();
+      }
+    }
+
+    function handleDaySelectorEditKeydown(event) {
+      if (!scheduleEditMode) return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const pills = Array.from(DOM_ELEMENTS.daySelector.querySelectorAll('.hf-day-pill[data-editable="true"]'));
+      if (!pills.length) return;
+      event.preventDefault();
+      const currentIdx = pills.indexOf(document.activeElement);
+      let idx;
+      if (currentIdx < 0) {
+        idx = 0;
+      } else {
+        idx = event.key === "ArrowLeft"
+          ? (currentIdx - 1 + pills.length) % pills.length
+          : (currentIdx + 1) % pills.length;
+      }
+      pills[idx].focus({ preventScroll: true });
     }
 
     // ===================================================================
@@ -15188,39 +15308,6 @@
 
     }
 
-    function saveScheduleChanges() {
-      const phaseKey = getPhaseKeyByWeek(APP_STATE.currentWeekNumber);
-      if (!phaseKey) return;
-
-      const phase = getActivePhases()[phaseKey];
-      const newSchedule = {};
-      let firstActiveDay = null;
-
-      Object.keys(phase.schedule).forEach(dayKey => {
-        const select = document.getElementById(`edit-day-${dayKey}`);
-        newSchedule[dayKey] = select.value;
-
-        if (newSchedule[dayKey] === "OFF") {
-          delete APP_STATE.allCompletions[getCompletionKey(APP_STATE.currentWeekNumber, dayKey)];
-        }
-
-        if (newSchedule[dayKey] !== "OFF" && !firstActiveDay) {
-          firstActiveDay = dayKey;
-        }
-      });
-
-      phase.schedule = newSchedule;
-
-      if (newSchedule[APP_STATE.currentDay] === "OFF") {
-        APP_STATE.currentDay = firstActiveDay || Object.keys(newSchedule)[0];
-      }
-
-      updateProgressAfterScheduleChange();
-      saveApplicationState();
-      renderAllComponents();
-      closeEditModal();
-    }
-
     const STORAGE_KEYS = {
       notepad: "hyperfitness-notepad"
     };
@@ -15316,7 +15403,7 @@
         if (typeof closeDeleteModal === 'function' && isDialogOpen(DOM_ELEMENTS.deleteModal)) closeDeleteModal();
         if (typeof closeExerciseFormModal === 'function' && isDialogOpen(document.getElementById('exercise-edit-modal'))) closeExerciseFormModal();
         if (typeof closeProgramDeleteModal === 'function' && isDialogOpen(DOM_ELEMENTS.programDeleteModal)) closeProgramDeleteModal();
-        if (typeof closeEditModal === 'function' && isDialogOpen(DOM_ELEMENTS.editScheduleModal)) closeEditModal();
+        if (typeof exitScheduleEditMode === 'function' && isScheduleEditMode()) exitScheduleEditMode({ save: true });
         if (typeof closeTimerModal === 'function' && isDialogOpen(DOM_ELEMENTS.timerModal)) closeTimerModal();
         if (typeof closeNotepadModal === 'function' && isDialogOpen(DOM_ELEMENTS.notepadModal)) closeNotepadModal();
         if (typeof closeExerciseImageModal === 'function' && isDialogOpen(document.getElementById('exercise-image-modal'))) closeExerciseImageModal();
@@ -17429,12 +17516,6 @@
         headerBackground: document.querySelector('.header-background'),
         footer: document.getElementById("footer-container"),
         completeWorkoutBtn: document.getElementById("complete-workout-btn"),
-        editScheduleModal: document.getElementById("edit-schedule-modal"),
-        editScheduleCard: document.getElementById("edit-schedule-card"),
-        editScheduleList: document.getElementById("edit-schedule-list"),
-        closeEditScheduleBtn: document.getElementById("close-edit-schedule-btn"),
-        cancelEditBtn: document.getElementById("cancel-edit-btn"),
-        saveEditBtn: document.getElementById("save-edit-btn"),
         timerModal: document.getElementById("timer-modal"),
         timerCard: document.getElementById("timer-card"),
         timerDisplay: document.getElementById("timer-display"),
@@ -17555,18 +17636,13 @@
     function setupEventListeners() {
       const eventBindings = [
         [DOM_ELEMENTS.completeWorkoutBtn, 'click', handleWorkoutCompletion],
-        [DOM_ELEMENTS.closeEditScheduleBtn, 'click', closeEditModal],
-        [DOM_ELEMENTS.cancelEditBtn, 'click', closeEditModal],
-        [DOM_ELEMENTS.saveEditBtn, 'click', saveScheduleChanges],
+        [DOM_ELEMENTS.daySelector, 'keydown', handleDaySelectorEditKeydown],
         [DOM_ELEMENTS.workoutDetails, 'click', handleExerciseToggle],
         [DOM_ELEMENTS.openProgramScreenBtn, 'click', () => openProgramScreen(false)],
         [DOM_ELEMENTS.backToTrainingBtn, 'click', closeProgramScreen],
         [DOM_ELEMENTS.programDeleteConfirmBtn, 'click', confirmProgramDelete],
         [DOM_ELEMENTS.programDeleteCancelBtn, 'click', closeProgramDeleteModal],
-        [DOM_ELEMENTS.closeProgramDeleteBtn, 'click', closeProgramDeleteModal],
-        [DOM_ELEMENTS.editScheduleModal, 'click', (e) => {
-          if (e.target === DOM_ELEMENTS.editScheduleModal) closeEditModal();
-        }]
+        [DOM_ELEMENTS.closeProgramDeleteBtn, 'click', closeProgramDeleteModal]
       ];
 
       eventBindings.forEach(([element, event, handler]) => {
@@ -17586,8 +17662,19 @@
           closeWeekSheet();
         }
       });
+      document.addEventListener('click', (event) => {
+        if (!isScheduleEditMode()) return;
+        if (!document.contains(event.target)) return;
+        if (event.target.closest('.hf-week-sheet__nav')) return;
+        exitScheduleEditMode({ save: true });
+      });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
+          if (isScheduleEditMode()) {
+            event.preventDefault();
+            exitScheduleEditMode({ save: true, restoreFocus: true });
+            return;
+          }
           const sheet = document.getElementById('week-sheet');
           if (sheet && sheet.classList.contains('is-open')) {
             event.preventDefault();
