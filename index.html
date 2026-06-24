@@ -3858,6 +3858,15 @@
       pointer-events: none;
     }
 
+    /* Durante o slide do painel, desligar o backdrop-filter mantém a transição de
+       transform suave no WebKit/iOS (animar transform com backdrop-filter descendente
+       faz o Safari abortar a animação). Um fundo sólido cobre a ausência do blur. */
+    .hf-week-sheet.is-animating .hf-week-sheet__panel-bg {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background: rgba(12, 10, 16, 0.92);
+    }
+
     .hf-week-sheet__body {
       position: relative;
       flex: 1 1 auto;
@@ -10060,10 +10069,12 @@
     let scrollObserver;
     let weekSheetImageLazyObserver = null;
     let workoutDetailsDirty = true;
+    const WEEK_SHEET_OPEN_MS = 320;
+    const WEEK_SHEET_CLOSE_MS = 250;
+    const WEEK_SHEET_OPEN_FALLBACK_MS = 420;
     const WEEK_SHEET_CLOSE_FALLBACK_MS = 340;
     let weekSheetCloseTimeoutId = null;
-    let weekSheetOpenRafId = null;
-    let weekSheetOpenRafNestedId = null;
+    let weekSheetOpenTimeoutId = null;
 
     // ===== Background ambiental com GSAP ScrollTrigger =====
     // O controller do GSAP foi removido pois a estrutura do background 
@@ -11063,20 +11074,10 @@
       weekSheetCloseTimeoutId = null;
     }
 
-    function clearWeekSheetOpenFrames() {
-      if (typeof window.cancelAnimationFrame !== "function") {
-        weekSheetOpenRafId = null;
-        weekSheetOpenRafNestedId = null;
-        return;
-      }
-      if (weekSheetOpenRafId !== null) {
-        window.cancelAnimationFrame(weekSheetOpenRafId);
-        weekSheetOpenRafId = null;
-      }
-      if (weekSheetOpenRafNestedId !== null) {
-        window.cancelAnimationFrame(weekSheetOpenRafNestedId);
-        weekSheetOpenRafNestedId = null;
-      }
+    function clearWeekSheetOpenTimeout() {
+      if (weekSheetOpenTimeoutId === null) return;
+      window.clearTimeout(weekSheetOpenTimeoutId);
+      weekSheetOpenTimeoutId = null;
     }
 
     function openWeekSheet() {
@@ -11086,29 +11087,44 @@
 
       renderWorkoutDetailsIfNeeded();
       clearWeekSheetCloseTimeout();
-      clearWeekSheetOpenFrames();
+      clearWeekSheetOpenTimeout();
+
+      const panel = sheet.querySelector(".hf-week-sheet__panel");
 
       sheet.classList.remove("is-closing");
       sheet.classList.add("is-display");
+      // Suspende o backdrop-filter durante o gesto: animar transform com um descendente
+      // com backdrop-filter faz o WebKit (iOS) cancelar/pular a transição.
+      sheet.classList.add("is-animating");
       sheet.setAttribute("aria-hidden", "false");
       document.body.classList.add("week-sheet-open");
       lockBodyScroll();
 
-      const activateOpenState = () => {
-        weekSheetOpenRafNestedId = null;
-        sheet.classList.add("is-open");
+      // Reflow SÍNCRONO: garante que o estado fechado (translateY 104%) seja
+      // confirmado antes de adicionar is-open. É o padrão confiável no iOS Safari,
+      // onde a abordagem baseada em requestAnimationFrame às vezes não dispara a transição.
+      void (panel || sheet).getBoundingClientRect();
+
+      sheet.classList.add("is-open");
+
+      const finalizeOpen = () => {
+        if (!sheet.classList.contains("is-open")) return;
+        sheet.classList.remove("is-animating");
       };
 
-      // Dois RAFs deixam o browser aplicar o estado base antes da transição em mobile.
-      if (typeof window.requestAnimationFrame === "function") {
-        weekSheetOpenRafId = window.requestAnimationFrame(() => {
-          weekSheetOpenRafId = null;
-          void sheet.offsetWidth;
-          weekSheetOpenRafNestedId = window.requestAnimationFrame(activateOpenState);
-        });
-      } else {
-        window.setTimeout(activateOpenState, 16);
-      }
+      const handleOpenTransitionEnd = (event) => {
+        if (event.target !== panel || event.propertyName !== "transform") return;
+        panel?.removeEventListener("transitionend", handleOpenTransitionEnd);
+        clearWeekSheetOpenTimeout();
+        finalizeOpen();
+      };
+
+      panel?.addEventListener("transitionend", handleOpenTransitionEnd);
+      weekSheetOpenTimeoutId = window.setTimeout(() => {
+        panel?.removeEventListener("transitionend", handleOpenTransitionEnd);
+        weekSheetOpenTimeoutId = null;
+        finalizeOpen();
+      }, WEEK_SHEET_OPEN_FALLBACK_MS);
 
       const setupImages = () => setupWeekSheetImageLazyLoading();
       if (typeof window.requestAnimationFrame === "function") {
@@ -11122,18 +11138,25 @@
       const sheet = document.getElementById("week-sheet");
       if (!sheet || (!sheet.classList.contains("is-open") && !sheet.classList.contains("is-closing"))) return;
       if (sheet.classList.contains("is-closing")) return;
-      clearWeekSheetOpenFrames();
+      clearWeekSheetOpenTimeout();
       clearWeekSheetCloseTimeout();
+
+      const panel = sheet.querySelector(".hf-week-sheet__panel");
+
+      // Confirma o estado aberto atual antes de animar para fechado, evitando que o
+      // WebKit agrupe as duas mudanças e pule a transição.
+      void (panel || sheet).getBoundingClientRect();
 
       sheet.classList.remove("is-open");
       sheet.classList.add("is-closing");
+      sheet.classList.add("is-animating");
       document.body.classList.remove("week-sheet-open");
       unlockBodyScroll();
 
-      const panel = sheet.querySelector(".hf-week-sheet__panel");
       const finalizeClose = () => {
         if (sheet.classList.contains("is-open")) return;
         sheet.classList.remove("is-closing");
+        sheet.classList.remove("is-animating");
         sheet.classList.remove("is-display");
         sheet.setAttribute("aria-hidden", "true");
       };
