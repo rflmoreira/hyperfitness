@@ -3782,8 +3782,7 @@
       overflow: hidden;
     }
 
-    .hf-week-sheet.is-open,
-    .hf-week-sheet.is-closing {
+    .hf-week-sheet.is-display {
       display: block;
     }
 
@@ -11025,6 +11024,10 @@
 
       renderWorkoutDetailsIfNeeded();
 
+      sheet.classList.add("is-display");
+      // Força o navegador a calcular o layout antes de animar (corrige bug crítico do Safari no iOS)
+      void sheet.offsetWidth;
+
       sheet.classList.add("is-open");
       sheet.setAttribute("aria-hidden", "false");
       document.body.classList.add("week-sheet-open");
@@ -11051,6 +11054,7 @@
 
       setTimeout(() => {
         sheet.classList.remove("is-closing");
+        sheet.classList.remove("is-display");
         sheet.setAttribute("aria-hidden", "true");
       }, 250);
     }
