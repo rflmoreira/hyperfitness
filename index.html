@@ -4330,6 +4330,83 @@
       outline-offset: 2px;
     }
 
+    .hf-edit-actions {
+      display: grid;
+      grid-template-rows: 0fr;
+      width: 100%;
+      opacity: 0;
+      margin-top: 0;
+      transition: grid-template-rows 0.34s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.26s ease, margin-top 0.34s ease;
+      will-change: grid-template-rows, opacity;
+    }
+
+    .hf-edit-actions.is-visible {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 0.45rem;
+    }
+
+    .hf-edit-actions__inner {
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: stretch;
+      gap: 0.5rem;
+      padding-top: 0.45rem;
+    }
+
+    .hf-edit-actions__btn {
+      flex: 1 1 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.42rem;
+      padding: 0.5rem 1.05rem;
+      border-radius: 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 760;
+      cursor: pointer;
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      backdrop-filter: blur(14px) saturate(140%);
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .hf-edit-actions__btn i {
+      font-size: 1.02rem;
+    }
+
+    .hf-edit-actions__btn:focus-visible {
+      outline: 2px solid rgba(255, 154, 82, 0.9);
+      outline-offset: 2px;
+    }
+
+    .hf-edit-actions__btn:active {
+      transform: scale(0.96);
+    }
+
+    .hf-edit-actions__btn--cancel {
+      color: rgba(235, 238, 248, 0.92);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(205, 214, 244, 0.16);
+    }
+
+    .hf-edit-actions__btn--cancel:hover {
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(205, 214, 244, 0.24);
+    }
+
+    .hf-edit-actions__btn--confirm {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+      border: 1px solid rgba(255, 203, 166, 0.4);
+      box-shadow: 0 8px 18px -10px rgba(255, 122, 31, 0.85);
+    }
+
+    .hf-edit-actions__btn--confirm:hover {
+      box-shadow: 0 11px 24px -10px rgba(255, 122, 31, 0.98);
+      transform: translateY(-1px);
+    }
+
     @media (prefers-reduced-motion: reduce) {
 
       .hf-week-sheet__nav.is-editing,
@@ -4343,6 +4420,10 @@
 
       .hf-week-sheet__nav.is-editing .hf-day-pill__card {
         border-color: rgba(255, 154, 82, 0.85);
+      }
+
+      .hf-edit-actions {
+        transition: opacity 0.2s ease;
       }
     }
 
@@ -9335,6 +9416,21 @@
             <nav id="day-selector"
               class="flex gap-1 mb-8 glass-effect backdrop-blur-20 p-2 rounded-xl content-enter-animation"
               aria-label="Progresso semanal e seleção de treino"></nav>
+            <div id="schedule-edit-actions" class="hf-edit-actions" role="group"
+              aria-label="Confirmar ou cancelar edição dos treinos" aria-hidden="true" inert>
+              <div class="hf-edit-actions__inner">
+                <button id="schedule-edit-cancel" class="hf-edit-actions__btn hf-edit-actions__btn--cancel"
+                  type="button" aria-label="Cancelar edição e descartar alterações">
+                  <i class="ph-bold ph-x" aria-hidden="true"></i>
+                  <span>Cancelar</span>
+                </button>
+                <button id="schedule-edit-confirm" class="hf-edit-actions__btn hf-edit-actions__btn--confirm"
+                  type="button" aria-label="Confirmar e salvar alterações">
+                  <i class="ph-bold ph-check" aria-hidden="true"></i>
+                  <span>Confirmar</span>
+                </button>
+              </div>
+            </div>
           </div>
           <section id="workout-details" class="grid grid-cols-1 md:grid-cols-2 gap-6"></section>
           <div class="hf-week-sheet__controls">
@@ -11302,7 +11398,6 @@
         dayKeys.forEach((day, index) => {
           DOM_ELEMENTS.daySelector.appendChild(createEditableDayButton(day, index, phaseData));
         });
-        DOM_ELEMENTS.daySelector.appendChild(createEditButton());
         renderWeekSheetCurrentWorkoutHeader();
         return;
       }
@@ -11504,13 +11599,11 @@
       const editButton = document.createElement("button");
       editButton.type = "button";
       editButton.className = scheduleEditMode ? "hf-day-edit is-active" : "hf-day-edit";
-      editButton.innerHTML = scheduleEditMode
-        ? '<i class="ph-bold ph-check" aria-hidden="true"></i>'
-        : '<i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>';
-      editButton.title = scheduleEditMode ? "Concluir edição e salvar" : "Editar treinos da semana";
+      editButton.innerHTML = '<i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>';
+      editButton.title = "Editar treinos da semana";
       editButton.setAttribute("aria-pressed", scheduleEditMode ? "true" : "false");
-      editButton.setAttribute("aria-label", scheduleEditMode ? "Concluir edição dos treinos da semana" : "Editar treinos da semana");
-      addEventListenerSafe(editButton, "click", toggleScheduleEditMode);
+      editButton.setAttribute("aria-label", "Editar treinos da semana");
+      addEventListenerSafe(editButton, "click", enterScheduleEditMode);
       return editButton;
     }
 
@@ -13187,6 +13280,31 @@
       }
     }
 
+    function getScheduleEditActions() {
+      return DOM_ELEMENTS.scheduleEditActions || document.getElementById("schedule-edit-actions");
+    }
+
+    function showScheduleEditActions() {
+      const bar = getScheduleEditActions();
+      if (!bar) return;
+      bar.removeAttribute("inert");
+      bar.setAttribute("aria-hidden", "false");
+      void bar.offsetWidth;
+      bar.classList.add("is-visible");
+    }
+
+    function hideScheduleEditActions() {
+      const bar = getScheduleEditActions();
+      if (!bar) return;
+      const active = document.activeElement;
+      if (active && bar.contains(active) && active instanceof HTMLElement) {
+        active.blur();
+      }
+      bar.classList.remove("is-visible");
+      bar.setAttribute("aria-hidden", "true");
+      bar.setAttribute("inert", "");
+    }
+
     function enterScheduleEditMode() {
       if (scheduleEditMode) return;
       const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
@@ -13194,6 +13312,7 @@
       scheduleDraft = { ...phaseData.schedule };
       scheduleEditMode = true;
       renderDaySelector();
+      showScheduleEditActions();
       const firstPill = DOM_ELEMENTS.daySelector?.querySelector('.hf-day-pill[data-editable="true"]');
       if (firstPill) {
         try { firstPill.focus({ preventScroll: true }); } catch (_) { }
@@ -13239,6 +13358,7 @@
     function exitScheduleEditMode({ save = true, restoreFocus = false } = {}) {
       if (!scheduleEditMode) return;
       scheduleEditMode = false;
+      hideScheduleEditActions();
 
       if (save) {
         commitScheduleDraft();
@@ -13252,14 +13372,6 @@
         if (editButton) {
           try { editButton.focus({ preventScroll: true }); } catch (_) { }
         }
-      }
-    }
-
-    function toggleScheduleEditMode() {
-      if (scheduleEditMode) {
-        exitScheduleEditMode({ save: true, restoreFocus: true });
-      } else {
-        enterScheduleEditMode();
       }
     }
 
@@ -15403,7 +15515,7 @@
         if (typeof closeDeleteModal === 'function' && isDialogOpen(DOM_ELEMENTS.deleteModal)) closeDeleteModal();
         if (typeof closeExerciseFormModal === 'function' && isDialogOpen(document.getElementById('exercise-edit-modal'))) closeExerciseFormModal();
         if (typeof closeProgramDeleteModal === 'function' && isDialogOpen(DOM_ELEMENTS.programDeleteModal)) closeProgramDeleteModal();
-        if (typeof exitScheduleEditMode === 'function' && isScheduleEditMode()) exitScheduleEditMode({ save: true });
+        if (typeof exitScheduleEditMode === 'function' && isScheduleEditMode()) exitScheduleEditMode({ save: false });
         if (typeof closeTimerModal === 'function' && isDialogOpen(DOM_ELEMENTS.timerModal)) closeTimerModal();
         if (typeof closeNotepadModal === 'function' && isDialogOpen(DOM_ELEMENTS.notepadModal)) closeNotepadModal();
         if (typeof closeExerciseImageModal === 'function' && isDialogOpen(document.getElementById('exercise-image-modal'))) closeExerciseImageModal();
@@ -17516,6 +17628,9 @@
         headerBackground: document.querySelector('.header-background'),
         footer: document.getElementById("footer-container"),
         completeWorkoutBtn: document.getElementById("complete-workout-btn"),
+        scheduleEditActions: document.getElementById("schedule-edit-actions"),
+        scheduleEditCancel: document.getElementById("schedule-edit-cancel"),
+        scheduleEditConfirm: document.getElementById("schedule-edit-confirm"),
         timerModal: document.getElementById("timer-modal"),
         timerCard: document.getElementById("timer-card"),
         timerDisplay: document.getElementById("timer-display"),
@@ -17637,6 +17752,8 @@
       const eventBindings = [
         [DOM_ELEMENTS.completeWorkoutBtn, 'click', handleWorkoutCompletion],
         [DOM_ELEMENTS.daySelector, 'keydown', handleDaySelectorEditKeydown],
+        [DOM_ELEMENTS.scheduleEditCancel, 'click', () => exitScheduleEditMode({ save: false, restoreFocus: true })],
+        [DOM_ELEMENTS.scheduleEditConfirm, 'click', () => exitScheduleEditMode({ save: true, restoreFocus: true })],
         [DOM_ELEMENTS.workoutDetails, 'click', handleExerciseToggle],
         [DOM_ELEMENTS.openProgramScreenBtn, 'click', () => openProgramScreen(false)],
         [DOM_ELEMENTS.backToTrainingBtn, 'click', closeProgramScreen],
@@ -17665,14 +17782,14 @@
       document.addEventListener('click', (event) => {
         if (!isScheduleEditMode()) return;
         if (!document.contains(event.target)) return;
-        if (event.target.closest('.hf-week-sheet__nav')) return;
-        exitScheduleEditMode({ save: true });
+        if (event.target.closest('.hf-week-sheet__nav') || event.target.closest('#schedule-edit-actions')) return;
+        exitScheduleEditMode({ save: false });
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           if (isScheduleEditMode()) {
             event.preventDefault();
-            exitScheduleEditMode({ save: true, restoreFocus: true });
+            exitScheduleEditMode({ save: false, restoreFocus: true });
             return;
           }
           const sheet = document.getElementById('week-sheet');
