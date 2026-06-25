@@ -3774,17 +3774,30 @@
       flex-shrink: 0;
     }
 
+    /* ============================================================
+       WEEK SHEET (bottom sheet) — animação reescrita do zero.
+
+       Princípios para uma transição fluida (inclusive iOS/WebKit):
+       1) O elemento NUNCA usa display:none. Fica sempre na árvore, com o
+          painel posicionado fora da tela (translateY 100%). Assim o WebKit
+          mantém uma camada composta já rasterizada e a 1ª abertura não trava.
+       2) A animação é 100% CSS (transition de transform/opacity), disparada
+          apenas por toggle de classe. Nenhum trabalho de layout pesado
+          (lock do body via position:fixed) acontece no mesmo frame do
+          toggle — isso é o que fazia o iOS "pular" a animação.
+       3) backdrop-filter só é ligado com o painel JÁ parado (.is-settled).
+          Animar transform com backdrop-filter num descendente faz o WebKit
+          abortar a transição.
+       ============================================================ */
     .hf-week-sheet {
       position: fixed;
       inset: 0;
       z-index: 120;
-      display: none;
       overflow: hidden;
       pointer-events: none;
     }
 
-    .hf-week-sheet.is-display {
-      display: block;
+    .hf-week-sheet.is-open {
       pointer-events: auto;
     }
 
@@ -3797,13 +3810,20 @@
       position: absolute;
       inset: 0;
       background: rgba(8, 8, 14, 0.62);
-      -webkit-backdrop-filter: blur(3px);
-      backdrop-filter: blur(3px);
       opacity: 0;
-      transition: opacity 240ms ease;
-      will-change: opacity;
+      transition: opacity var(--hf-sheet-close-ms, 280ms) ease;
       overscroll-behavior: none;
       touch-action: none;
+    }
+
+    .hf-week-sheet.is-open .hf-week-sheet__overlay {
+      opacity: 1;
+      transition-duration: var(--hf-sheet-open-ms, 360ms);
+    }
+
+    .hf-week-sheet.is-settled .hf-week-sheet__overlay {
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px);
     }
 
     .hf-week-sheet__panel {
@@ -3811,8 +3831,8 @@
       left: 0;
       right: 0;
       bottom: 0;
-      transform: translate3d(0, 104%, 0);
-      transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translate3d(0, 100%, 0);
+      transition: transform var(--hf-sheet-close-ms, 280ms) cubic-bezier(0.4, 0, 0.2, 1);
       max-height: min(86vh, 52rem);
       display: flex;
       flex-direction: column;
@@ -3823,60 +3843,53 @@
       box-shadow: var(--elev-1), var(--elev-2);
       overscroll-behavior: contain;
       will-change: transform;
-      backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
       touch-action: pan-y;
-    }
-
-    .hf-week-sheet.is-open .hf-week-sheet__overlay {
-      opacity: 1;
     }
 
     .hf-week-sheet.is-open .hf-week-sheet__panel {
       transform: translate3d(0, 0, 0);
-    }
-
-    .hf-week-sheet.is-closing .hf-week-sheet__overlay {
-      opacity: 0;
-      transition-duration: 200ms;
-    }
-
-    .hf-week-sheet.is-closing .hf-week-sheet__panel {
-      transform: translate3d(0, 104%, 0);
-      transition-duration: 250ms;
-      transition-timing-function: ease;
+      transition-duration: var(--hf-sheet-open-ms, 360ms);
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .hf-week-sheet__panel-bg {
       position: absolute;
       inset: 0;
       z-index: -2;
-      background: rgba(12, 10, 16, 0.65);
-      -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
-      backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
+      /* Fundo sólido durante o gesto (sem blur, para não abortar a animação). */
+      background: rgba(12, 10, 16, 0.92);
       border-radius: 2rem 2rem 0 0;
       pointer-events: none;
     }
 
-    /* Durante o slide do painel, desligar o backdrop-filter mantém a transição de
-       transform suave no WebKit/iOS (animar transform com backdrop-filter descendente
-       faz o Safari abortar a animação). Um fundo sólido cobre a ausência do blur. */
-    .hf-week-sheet.is-animating .hf-week-sheet__panel-bg {
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-      background: rgba(12, 10, 16, 0.92);
+    /* Blur ativado só com o painel parado (aberto e sem animar). */
+    .hf-week-sheet.is-settled .hf-week-sheet__panel-bg {
+      background: rgba(12, 10, 16, 0.65);
+      -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
+      backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
     }
 
-    /* Aquecimento: painel revelado apenas para o navegador pintar/decodificar a primeira
-       vez, mas invisível e inerte para o usuário (e sem transição, para não animar). */
-    .hf-week-sheet.is-warmup {
+    /* Pré-aquecimento (uma única vez, no idle): o painel é revelado on-screen porém
+       invisível e sem transição, apenas para o WebKit rasterizar as tiles do conteúdo.
+       Como o sheet nunca usa display:none, essa camada permanece rasterizada depois,
+       então a 1ª abertura real do usuário desliza sem travar. */
+    .hf-week-sheet.is-prewarm {
       opacity: 0 !important;
       pointer-events: none !important;
     }
 
-    .hf-week-sheet.is-warmup .hf-week-sheet__panel,
-    .hf-week-sheet.is-warmup .hf-week-sheet__overlay {
+    .hf-week-sheet.is-prewarm .hf-week-sheet__panel,
+    .hf-week-sheet.is-prewarm .hf-week-sheet__overlay {
       transition: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hf-week-sheet__overlay,
+      .hf-week-sheet__panel {
+        transition: none !important;
+      }
     }
 
     .hf-week-sheet__body {
@@ -9413,7 +9426,7 @@
       </main>
     </div>
 
-    <div id="week-sheet" class="hf-week-sheet" aria-hidden="true">
+    <div id="week-sheet" class="hf-week-sheet" aria-hidden="true" inert>
       <div class="hf-week-sheet__overlay" data-action="close-week-sheet"></div>
       <div class="hf-week-sheet__panel" role="dialog" aria-modal="true" aria-label="Progresso semanal e treino atual">
         <div class="hf-week-sheet__panel-bg"></div>
@@ -10081,15 +10094,14 @@
     let scrollObserver;
     let weekSheetImageLazyObserver = null;
     let workoutDetailsDirty = true;
-    const WEEK_SHEET_OPEN_MS = 320;
-    const WEEK_SHEET_CLOSE_MS = 250;
-    const WEEK_SHEET_OPEN_FALLBACK_MS = 420;
-    const WEEK_SHEET_CLOSE_FALLBACK_MS = 340;
-    let weekSheetCloseTimeoutId = null;
-    let weekSheetOpenTimeoutId = null;
+    const WEEK_SHEET_OPEN_MS = 360;
+    const WEEK_SHEET_CLOSE_MS = 280;
+    let weekSheetState = "closed"; // "closed" | "open"
+    let weekSheetTransitionTimer = null;
+    let weekSheetSettleCleanup = null;
     let weekSheetBodyLocked = false;
-    let weekSheetWarmedUp = false;
-    let weekSheetWarmupTimeoutId = null;
+    let weekSheetPrepared = false;
+    let weekSheetPrewarming = false;
 
     // ===== Background ambiental com GSAP ScrollTrigger =====
     // O controller do GSAP foi removido pois a estrutura do background 
@@ -11055,12 +11067,7 @@
     }
 
     function isWeekSheetOpen() {
-      const sheet = document.getElementById("week-sheet");
-      if (!sheet) return false;
-      // Durante o aquecimento o painel recebe is-open temporariamente, mas não está
-      // de fato aberto para o usuário.
-      if (sheet.classList.contains("is-warmup")) return false;
-      return sheet.classList.contains("is-open");
+      return weekSheetState === "open";
     }
 
     function markWorkoutDetailsDirty() {
@@ -11088,24 +11095,11 @@
       workoutDetailsDirty = false;
     }
 
-    function clearWeekSheetCloseTimeout() {
-      if (weekSheetCloseTimeoutId === null) return;
-      window.clearTimeout(weekSheetCloseTimeoutId);
-      weekSheetCloseTimeoutId = null;
-    }
-
-    function clearWeekSheetOpenTimeout() {
-      if (weekSheetOpenTimeoutId === null) return;
-      window.clearTimeout(weekSheetOpenTimeoutId);
-      weekSheetOpenTimeoutId = null;
-    }
-
     // O lock de scroll do body usa position:fixed (e a classe week-sheet-open esconde o
-    // footer). Isso invalida o layout da página inteira. No WebKit/iOS, se essa
-    // invalidação ocorre no mesmo frame em que a transição de transform começa, a
-    // animação passa a rodar na thread principal (que está ocupada com o relayout) e
-    // "pula" para o estado final. Por isso o lock/unlock é aplicado FORA do intervalo
-    // da animação (depois de abrir, antes nunca; ao fechar, só após terminar).
+    // footer). Isso invalida o layout da página inteira. No WebKit/iOS, se ocorrer no
+    // mesmo frame em que a transição de transform começa, a animação roda na thread
+    // principal (ocupada com o relayout) e "pula". Por isso o lock/unlock fica SEMPRE
+    // fora do intervalo da animação: ao abrir, só depois de terminar; ao fechar, idem.
     function lockWeekSheetBody() {
       if (weekSheetBodyLocked) return;
       weekSheetBodyLocked = true;
@@ -11120,165 +11114,142 @@
       unlockBodyScroll();
     }
 
-    function runAfterTwoFrames(callback) {
-      if (typeof window.requestAnimationFrame !== "function") {
-        window.setTimeout(callback, 32);
-        return;
+    // Executa o callback quando a transição de transform do painel terminar, com um
+    // fallback por tempo (caso o transitionend não dispare). Garante que apenas um
+    // observador esteja ativo por vez (importante em toques rápidos de abrir/fechar).
+    function onWeekSheetPanelSettled(panel, durationMs, callback) {
+      if (weekSheetSettleCleanup) weekSheetSettleCleanup();
+
+      let done = false;
+      const onTransitionEnd = (event) => {
+        if (event.target !== panel || event.propertyName !== "transform") return;
+        finish();
+      };
+      const cleanup = () => {
+        panel?.removeEventListener("transitionend", onTransitionEnd);
+        if (weekSheetTransitionTimer !== null) {
+          window.clearTimeout(weekSheetTransitionTimer);
+          weekSheetTransitionTimer = null;
+        }
+        if (weekSheetSettleCleanup === cleanup) weekSheetSettleCleanup = null;
+      };
+      function finish() {
+        if (done) return;
+        done = true;
+        cleanup();
+        callback();
       }
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(callback);
-      });
+
+      weekSheetSettleCleanup = cleanup;
+      panel?.addEventListener("transitionend", onTransitionEnd);
+      weekSheetTransitionTimer = window.setTimeout(finish, durationMs + 80);
     }
 
-    function clearWeekSheetWarmUp() {
-      if (weekSheetWarmupTimeoutId !== null) {
-        window.clearTimeout(weekSheetWarmupTimeoutId);
-        weekSheetWarmupTimeoutId = null;
-      }
-      const sheet = document.getElementById("week-sheet");
-      if (sheet && sheet.classList.contains("is-warmup")) {
-        sheet.classList.remove("is-warmup");
-        sheet.classList.remove("is-open");
-        sheet.classList.remove("is-display");
-      }
-    }
-
-    function warmUpWeekSheet() {
-      if (weekSheetWarmedUp) return;
-      const sheet = document.getElementById("week-sheet");
-      if (!sheet) return;
-      // Não aquecer se o usuário já abriu/está abrindo.
-      if (sheet.classList.contains("is-display") || sheet.classList.contains("is-warmup")) return;
-      weekSheetWarmedUp = true;
-
+    // Encerra o pré-aquecimento (se ativo), devolvendo o sheet ao estado fechado.
+    function endWeekSheetPrewarm(sheet) {
+      if (!weekSheetPrewarming) return;
+      weekSheetPrewarming = false;
+      sheet.classList.remove("is-open");
+      sheet.classList.remove("is-prewarm");
       const panel = sheet.querySelector(".hf-week-sheet__panel");
-      try { renderWorkoutDetailsIfNeeded(); } catch (e) {}
+      // Confirma o estado fechado para que a próxima mudança de classe anime.
+      void (panel || sheet).getBoundingClientRect();
+    }
 
-      // Revela o painel na posição aberta porém totalmente invisível e inerte, só para
-      // forçar a primeira pintura e a decodificação das imagens (is-warmup desativa a
-      // transição e zera a opacidade — ver CSS).
-      sheet.classList.add("is-warmup");
-      sheet.classList.add("is-display");
+    // Renderiza o conteúdo do painel e força uma rasterização inicial fora do caminho
+    // do usuário, para que a primeira abertura no iOS deslize sem travar.
+    function prepareWeekSheet() {
+      if (weekSheetPrepared) return;
+      const sheet = document.getElementById("week-sheet");
+      if (!sheet || weekSheetState !== "closed") return;
+      weekSheetPrepared = true;
+
+      try { renderWorkoutDetailsIfNeeded(); } catch (e) {}
+      const panel = sheet.querySelector(".hf-week-sheet__panel");
+
+      weekSheetPrewarming = true;
+      sheet.classList.add("is-prewarm");
       sheet.classList.add("is-open");
       try { setupWeekSheetImageLazyLoading(); } catch (e) {}
       void (panel || sheet).getBoundingClientRect();
 
-      weekSheetWarmupTimeoutId = window.setTimeout(() => {
-        weekSheetWarmupTimeoutId = null;
-        if (!sheet.classList.contains("is-warmup")) return;
+      const finishPrewarm = () => {
+        if (!weekSheetPrewarming) return;
+        weekSheetPrewarming = false;
         sheet.classList.remove("is-open");
-        sheet.classList.remove("is-display");
-        sheet.classList.remove("is-warmup");
-      }, 500);
+        sheet.classList.remove("is-prewarm");
+      };
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() =>
+          window.requestAnimationFrame(() => window.setTimeout(finishPrewarm, 250))
+        );
+      } else {
+        window.setTimeout(finishPrewarm, 300);
+      }
     }
 
-    function scheduleWeekSheetWarmUp() {
-      const run = () => warmUpWeekSheet();
+    function scheduleWeekSheetPrepare() {
+      const run = () => prepareWeekSheet();
       if (typeof window.requestIdleCallback === "function") {
         window.requestIdleCallback(run, { timeout: 2000 });
       } else {
-        window.setTimeout(run, 800);
+        window.setTimeout(run, 600);
       }
     }
 
     function openWeekSheet() {
       const sheet = document.getElementById("week-sheet");
-      if (!sheet) return;
-      if (sheet.classList.contains("is-open") && !sheet.classList.contains("is-closing") && !sheet.classList.contains("is-warmup")) return;
+      if (!sheet || weekSheetState === "open") return;
 
-      clearWeekSheetWarmUp();
+      // Se o pré-aquecimento estiver ativo, cancela-o e volta ao estado fechado
+      // (confirmando o reflow) para que a abertura real deslize normalmente.
+      endWeekSheetPrewarm(sheet);
+
+      weekSheetState = "open";
+
       renderWorkoutDetailsIfNeeded();
-      clearWeekSheetCloseTimeout();
-      clearWeekSheetOpenTimeout();
 
       const panel = sheet.querySelector(".hf-week-sheet__panel");
 
-      sheet.classList.remove("is-closing");
-      sheet.classList.add("is-display");
-      // Suspende o backdrop-filter durante o gesto (animar transform com descendente
-      // que tem backdrop-filter prejudica a composição no WebKit/iOS).
-      sheet.classList.add("is-animating");
+      sheet.removeAttribute("inert");
       sheet.setAttribute("aria-hidden", "false");
-      // IMPORTANTE: NÃO travar o body aqui. O relayout mataria a animação no iOS.
 
-      const finalizeOpen = () => {
-        clearWeekSheetOpenTimeout();
-        if (!sheet.classList.contains("is-open")) return;
-        sheet.classList.remove("is-animating");
-        // Trava o scroll só depois da animação terminar.
-        lockWeekSheetBody();
-      };
+      // Dispara a transição apenas com um toggle de classe. Nada de layout pesado aqui.
+      sheet.classList.add("is-open");
 
-      const handleOpenTransitionEnd = (event) => {
-        if (event.target !== panel || event.propertyName !== "transform") return;
-        panel?.removeEventListener("transitionend", handleOpenTransitionEnd);
-        finalizeOpen();
-      };
-
-      // Dois frames para o navegador pintar o estado fechado (e qualquer render pesado
-      // já feito) antes de iniciar a transição, garantindo composição na GPU.
-      runAfterTwoFrames(() => {
-        if (!sheet.classList.contains("is-display") || sheet.classList.contains("is-closing")) return;
-        void (panel || sheet).getBoundingClientRect();
-        sheet.classList.add("is-open");
-
-        panel?.addEventListener("transitionend", handleOpenTransitionEnd);
-        weekSheetOpenTimeoutId = window.setTimeout(() => {
-          panel?.removeEventListener("transitionend", handleOpenTransitionEnd);
-          weekSheetOpenTimeoutId = null;
-          finalizeOpen();
-        }, WEEK_SHEET_OPEN_FALLBACK_MS);
-      });
-
-      const setupImages = () => setupWeekSheetImageLazyLoading();
+      // Carrega as imagens dos exercícios fora do frame da animação.
       if (typeof window.requestAnimationFrame === "function") {
-        window.requestAnimationFrame(setupImages);
+        window.requestAnimationFrame(() => setupWeekSheetImageLazyLoading());
       } else {
-        window.setTimeout(setupImages, 0);
+        window.setTimeout(() => setupWeekSheetImageLazyLoading(), 0);
       }
+
+      onWeekSheetPanelSettled(panel, WEEK_SHEET_OPEN_MS, () => {
+        if (weekSheetState !== "open") return;
+        // Com o painel já parado: liga o blur e trava o scroll do fundo.
+        sheet.classList.add("is-settled");
+        lockWeekSheetBody();
+      });
     }
 
     function closeWeekSheet() {
       const sheet = document.getElementById("week-sheet");
-      if (!sheet || (!sheet.classList.contains("is-open") && !sheet.classList.contains("is-closing"))) return;
-      if (sheet.classList.contains("is-closing")) return;
-      clearWeekSheetOpenTimeout();
-      clearWeekSheetCloseTimeout();
+      if (!sheet || weekSheetState === "closed") return;
+      weekSheetState = "closed";
 
       const panel = sheet.querySelector(".hf-week-sheet__panel");
 
-      // Confirma o estado aberto atual antes de animar para fechado.
-      void (panel || sheet).getBoundingClientRect();
-
+      // Desliga o blur ANTES de animar (backdrop-filter ativo em descendente faz o
+      // WebKit abortar a transição de transform) e dispara o slide para baixo.
+      sheet.classList.remove("is-settled");
       sheet.classList.remove("is-open");
-      sheet.classList.add("is-closing");
-      sheet.classList.add("is-animating");
-      // IMPORTANTE: NÃO destravar o body aqui (o relayout do position:fixed mataria
-      // a animação de fechamento no iOS). O unlock acontece no finalize.
+      sheet.setAttribute("aria-hidden", "true");
 
-      const finalizeClose = () => {
-        clearWeekSheetCloseTimeout();
-        if (sheet.classList.contains("is-open")) return;
-        sheet.classList.remove("is-closing");
-        sheet.classList.remove("is-animating");
-        sheet.classList.remove("is-display");
-        sheet.setAttribute("aria-hidden", "true");
-        // Destrava o scroll só depois que a animação terminou.
+      onWeekSheetPanelSettled(panel, WEEK_SHEET_CLOSE_MS, () => {
+        if (weekSheetState !== "closed") return;
+        sheet.setAttribute("inert", "");
         unlockWeekSheetBody();
-      };
-
-      const handlePanelTransitionEnd = (event) => {
-        if (event.target !== panel || event.propertyName !== "transform") return;
-        panel?.removeEventListener("transitionend", handlePanelTransitionEnd);
-        finalizeClose();
-      };
-
-      panel?.addEventListener("transitionend", handlePanelTransitionEnd);
-      weekSheetCloseTimeoutId = window.setTimeout(() => {
-        panel?.removeEventListener("transitionend", handlePanelTransitionEnd);
-        weekSheetCloseTimeoutId = null;
-        finalizeClose();
-      }, WEEK_SHEET_CLOSE_FALLBACK_MS);
+      });
     }
 
     function createWeekMarker(weekNumber, options = {}) {
@@ -17879,10 +17850,9 @@
       window.addEventListener('pagehide', handleGsapScrollPageHide);
       window.addEventListener('pageshow', handleGsapScrollPageShow);
 
-      // Aquece o bottom sheet (primeira pintura/decode de imagens) fora do caminho do
-      // usuário. Sem isso, a 1ª abertura no iOS salta porque a pintura inicial bloqueia
-      // a thread durante a transição.
-      scheduleWeekSheetWarmUp();
+      // Pré-renderiza o conteúdo do bottom sheet (fora da tela) durante o idle, para que
+      // a primeira abertura não precise pintar conteúdo pesado durante a animação.
+      scheduleWeekSheetPrepare();
     }
 
     // Função unificada para scroll horizontal via wheel
