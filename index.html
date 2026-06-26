@@ -6585,6 +6585,29 @@
     #top-bar {
       position: fixed;
       overflow: visible;
+      opacity: 0;
+      transform: translate3d(0, -10px, 0);
+      transition: opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1),
+                  transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+    }
+
+    /* Estado visível: o fade/slide de entrada e saída é controlado por esta classe
+       (não pelo display:none da classe .hidden, que causava o efeito "seco"). */
+    #top-bar.top-bar-visible {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #top-bar {
+        transition: opacity 0.2s linear;
+        transform: none;
+      }
+      #top-bar.top-bar-visible {
+        transform: none;
+      }
     }
 
     #top-bar-logo {
@@ -12072,6 +12095,42 @@
       createBtn?.addEventListener("click", () => openBuilder({ mode: "create" }));
     }
 
+    /**
+     * Exibe o top-bar com uma animação suave de fade + slide.
+     * Remove o display:none e, após forçar um reflow (para o navegador registrar o
+     * estado oculto), ativa a classe de transição. Isso evita o "aparecer seco" e o
+     * flickering, de forma consistente em mobile e desktop.
+     */
+    function showTopBar() {
+      const tb = DOM_ELEMENTS.topBar;
+      if (!tb) return;
+      if (tb._topBarHideTimer) {
+        clearTimeout(tb._topBarHideTimer);
+        tb._topBarHideTimer = null;
+      }
+      if (!tb.classList.contains("hidden") && tb.classList.contains("top-bar-visible")) return;
+      tb.classList.remove("hidden");
+      // Força o reflow para que a transição parta do estado oculto (opacity 0 / slide).
+      void tb.offsetWidth;
+      tb.classList.add("top-bar-visible");
+    }
+
+    /**
+     * Oculta o top-bar de forma suave: dispara o fade/slide de saída e só aplica
+     * display:none ao término da transição, mantendo a animação completa.
+     */
+    function hideTopBar() {
+      const tb = DOM_ELEMENTS.topBar;
+      if (!tb) return;
+      if (tb.classList.contains("hidden")) return;
+      tb.classList.remove("top-bar-visible");
+      if (tb._topBarHideTimer) clearTimeout(tb._topBarHideTimer);
+      tb._topBarHideTimer = setTimeout(() => {
+        tb.classList.add("hidden");
+        tb._topBarHideTimer = null;
+      }, 360);
+    }
+
     function openProgramScreen(force = false) {
       const screen = DOM_ELEMENTS.programScreen;
       if (!screen || !screen.classList.contains("hidden")) return;
@@ -12081,7 +12140,7 @@
       lockBodyScroll();
       screen.classList.remove("hidden");
       screen.setAttribute("aria-hidden", "false");
-      DOM_ELEMENTS.topBar?.classList.add("hidden");
+      hideTopBar();
       renderProgramScreen();
     }
 
@@ -12091,7 +12150,7 @@
       screen.classList.add("hidden");
       screen.setAttribute("aria-hidden", "true");
       DOM_ELEMENTS.mainContent?.classList.remove("hidden");
-      DOM_ELEMENTS.topBar?.classList.remove("hidden");
+      showTopBar();
       gsapScrollController.refresh();
       unlockBodyScroll();
       localStorage.setItem(PROGRAM_PICK_KEY, "1");
@@ -14048,7 +14107,7 @@
       BUILDER_STATE.cameFromProgramScreen = programScreenWasOpen;
 
       DOM_ELEMENTS.mainContent?.classList.add("hidden");
-      DOM_ELEMENTS.topBar?.classList.add("hidden");
+      hideTopBar();
       screen.classList.remove("hidden");
 
       renderBuilder();
@@ -14077,7 +14136,7 @@
         }
       } else {
         DOM_ELEMENTS.mainContent?.classList.remove("hidden");
-        DOM_ELEMENTS.topBar?.classList.remove("hidden");
+        showTopBar();
         gsapScrollController.refresh();
       }
     }
@@ -14942,7 +15001,7 @@
           renderProgramScreen();
         } else {
           DOM_ELEMENTS.mainContent?.classList.remove("hidden");
-          DOM_ELEMENTS.topBar?.classList.remove("hidden");
+          showTopBar();
           gsapScrollController.refresh();
         }
         renderAllComponents();
@@ -14950,7 +15009,7 @@
         // Em create: troca para o programa recém-criado e mostra
         if (cameFromProgramScreen) unlockBodyScroll();
         DOM_ELEMENTS.mainContent?.classList.remove("hidden");
-        DOM_ELEMENTS.topBar?.classList.remove("hidden");
+        showTopBar();
         gsapScrollController.refresh();
         switchProgram(program.id);
         localStorage.setItem(PROGRAM_PICK_KEY, "1");
@@ -15716,7 +15775,7 @@
         }
 
         DOM_ELEMENTS.mainContent?.classList.remove('hidden', 'blur-sm', 'scale-105');
-        DOM_ELEMENTS.topBar?.classList.remove('hidden');
+        showTopBar();
         if (DOM_ELEMENTS.footer) DOM_ELEMENTS.footer.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
         window.setTimeout(() => {
