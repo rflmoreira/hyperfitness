@@ -6622,6 +6622,16 @@
       background: rgba(0, 0, 0, 0.45);
     }
 
+    /* O top-bar (z-31) fica acima do conteúdo durante a abertura do week-sheet; ao final
+       da animação a troca de z-index do #main-content o cobriria de forma abrupta. Para
+       evitar esse corte, fazemos o top-bar desvanecer em sincronia com a abertura do
+       sheet (e reaparecer no fechamento). Quando o z-index troca, ele já está invisível. */
+    body.week-sheet-active #top-bar {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 460ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     #footer-container .container {
       width: 100%;
       max-width: none;
@@ -11232,6 +11242,10 @@
       sheet.removeAttribute("inert");
       sheet.setAttribute("aria-hidden", "false");
 
+      // Sincroniza o fade-out do top-bar com a abertura (evita o corte abrupto causado
+      // pela troca de z-index do #main-content ao final da animação).
+      document.body.classList.add("week-sheet-active");
+
       // Dispara a transição apenas com um toggle de classe. Nada de layout pesado aqui.
       sheet.classList.add("is-open");
 
@@ -11262,6 +11276,9 @@
       sheet.classList.remove("is-settled");
       sheet.classList.remove("is-open");
       sheet.setAttribute("aria-hidden", "true");
+
+      // Reaparece o top-bar em sincronia com o fechamento.
+      document.body.classList.remove("week-sheet-active");
 
       onWeekSheetPanelSettled(panel, WEEK_SHEET_CLOSE_MS, () => {
         if (weekSheetState !== "closed") return;
