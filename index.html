@@ -3832,12 +3832,12 @@
       transition-timing-function: var(--hf-sheet-ease-open);
     }
 
+    /* Blur do overlay aplicado de forma INSTANTÂNEA (sem transição). Animar
+       backdrop-filter no iOS recalcula o desfoque a cada frame e estoura a memória da
+       GPU, derrubando o processo do Safari (a aba "recarrega"). */
     .hf-week-sheet.is-settled .hf-week-sheet__overlay {
       -webkit-backdrop-filter: blur(3px);
       backdrop-filter: blur(3px);
-      transition: opacity var(--hf-sheet-open-ms) var(--hf-sheet-ease-open),
-                  -webkit-backdrop-filter var(--hf-sheet-settle-ms) ease,
-                  backdrop-filter var(--hf-sheet-settle-ms) ease;
     }
 
     .hf-week-sheet__panel {
@@ -3878,16 +3878,15 @@
       pointer-events: none;
     }
 
-    /* Blur ativado só com o painel parado (aberto e sem animar). O fade do blur só vale
-       na ENTRADA (regra em .is-settled). Ao fechar, .is-settled é removida e o blur some
-       instantaneamente — evitando animar backdrop-filter junto com o transform no iOS. */
+    /* Blur ativado só com o painel parado (aberto e sem animar) e SEMPRE de forma
+       instantânea. NUNCA animar backdrop-filter: no iOS isso recalcula o desfoque a cada
+       frame, estoura a memória da GPU e faz o Safari recarregar a página. Apenas a cor de
+       fundo (barata) recebe um leve easing para suavizar a entrada. */
     .hf-week-sheet.is-settled .hf-week-sheet__panel-bg {
       background: rgba(12, 10, 16, 0.65);
       -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
       backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
-      transition: background-color var(--hf-sheet-settle-ms) ease,
-                  -webkit-backdrop-filter var(--hf-sheet-settle-ms) ease,
-                  backdrop-filter var(--hf-sheet-settle-ms) ease;
+      transition: background-color var(--hf-sheet-settle-ms) ease;
     }
 
     /* Pré-aquecimento (uma única vez, no idle): o painel é revelado on-screen porém
