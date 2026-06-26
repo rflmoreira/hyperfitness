@@ -3797,6 +3797,16 @@
       pointer-events: none;
     }
 
+    /* Tempos e curvas centralizados. Easing de abertura no estilo de bottom sheet do
+       iOS (desaceleração suave); fechamento com ease padrão, sem brusquidão. */
+    .hf-week-sheet {
+      --hf-sheet-open-ms: 520ms;
+      --hf-sheet-close-ms: 440ms;
+      --hf-sheet-settle-ms: 360ms;
+      --hf-sheet-ease-open: cubic-bezier(0.32, 0.72, 0, 1);
+      --hf-sheet-ease-close: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     .hf-week-sheet.is-open {
       pointer-events: auto;
     }
@@ -3811,19 +3821,23 @@
       inset: 0;
       background: rgba(8, 8, 14, 0.62);
       opacity: 0;
-      transition: opacity var(--hf-sheet-close-ms, 280ms) ease;
+      transition: opacity var(--hf-sheet-close-ms) var(--hf-sheet-ease-close);
       overscroll-behavior: none;
       touch-action: none;
     }
 
     .hf-week-sheet.is-open .hf-week-sheet__overlay {
       opacity: 1;
-      transition-duration: var(--hf-sheet-open-ms, 360ms);
+      transition-duration: var(--hf-sheet-open-ms);
+      transition-timing-function: var(--hf-sheet-ease-open);
     }
 
     .hf-week-sheet.is-settled .hf-week-sheet__overlay {
       -webkit-backdrop-filter: blur(3px);
       backdrop-filter: blur(3px);
+      transition: opacity var(--hf-sheet-open-ms) var(--hf-sheet-ease-open),
+                  -webkit-backdrop-filter var(--hf-sheet-settle-ms) ease,
+                  backdrop-filter var(--hf-sheet-settle-ms) ease;
     }
 
     .hf-week-sheet__panel {
@@ -3832,7 +3846,7 @@
       right: 0;
       bottom: 0;
       transform: translate3d(0, 100%, 0);
-      transition: transform var(--hf-sheet-close-ms, 280ms) cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform var(--hf-sheet-close-ms) var(--hf-sheet-ease-close);
       max-height: min(86vh, 52rem);
       display: flex;
       flex-direction: column;
@@ -3850,8 +3864,8 @@
 
     .hf-week-sheet.is-open .hf-week-sheet__panel {
       transform: translate3d(0, 0, 0);
-      transition-duration: var(--hf-sheet-open-ms, 360ms);
-      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+      transition-duration: var(--hf-sheet-open-ms);
+      transition-timing-function: var(--hf-sheet-ease-open);
     }
 
     .hf-week-sheet__panel-bg {
@@ -3864,11 +3878,16 @@
       pointer-events: none;
     }
 
-    /* Blur ativado só com o painel parado (aberto e sem animar). */
+    /* Blur ativado só com o painel parado (aberto e sem animar). O fade do blur só vale
+       na ENTRADA (regra em .is-settled). Ao fechar, .is-settled é removida e o blur some
+       instantaneamente — evitando animar backdrop-filter junto com o transform no iOS. */
     .hf-week-sheet.is-settled .hf-week-sheet__panel-bg {
       background: rgba(12, 10, 16, 0.65);
       -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
       backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
+      transition: background-color var(--hf-sheet-settle-ms) ease,
+                  -webkit-backdrop-filter var(--hf-sheet-settle-ms) ease,
+                  backdrop-filter var(--hf-sheet-settle-ms) ease;
     }
 
     /* Pré-aquecimento (uma única vez, no idle): o painel é revelado on-screen porém
@@ -10094,8 +10113,8 @@
     let scrollObserver;
     let weekSheetImageLazyObserver = null;
     let workoutDetailsDirty = true;
-    const WEEK_SHEET_OPEN_MS = 360;
-    const WEEK_SHEET_CLOSE_MS = 280;
+    const WEEK_SHEET_OPEN_MS = 520;
+    const WEEK_SHEET_CLOSE_MS = 440;
     let weekSheetState = "closed"; // "closed" | "open"
     let weekSheetTransitionTimer = null;
     let weekSheetSettleCleanup = null;
