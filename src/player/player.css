@@ -1040,11 +1040,14 @@
 }
 
 /* Mini Player Bar */
+/* Largura/centralização compartilhadas com o .home-dashboard-shell via as variáveis
+   --app-shell-* (definidas no :root do index.html). Fallbacks mantêm o comportamento
+   caso o player seja usado isoladamente. */
 #mini-player-bar {
   bottom: 100px;
-  left: 1rem;
-  right: 1rem;
-  max-width: 56rem;
+  left: var(--app-shell-gutter, 1rem);
+  right: var(--app-shell-gutter, 1rem);
+  max-width: var(--app-shell-max-width, 56rem);
   margin: 0 auto;
   z-index: 31;
   opacity: 0;
@@ -1181,7 +1184,8 @@
   #mini-player-bar {
     left: 50%;
     right: auto;
-    width: calc(100% - 2rem);
+    width: calc(100% - 2 * var(--app-shell-gutter, 1rem));
+    max-width: var(--app-shell-max-width, 56rem);
     transform: translateX(-50%) translateY(20px);
   }
 

@@ -2274,6 +2274,11 @@
     }
 
     :root {
+      /* Fonte ÚNICA de layout para as barras de largura fixa (home-dashboard-shell e
+         #mini-player-bar). Ambos derivam a largura de min(100% - 2*gutter, max-width)
+         e ficam centralizados, garantindo sincronia em todos os breakpoints. */
+      --app-shell-max-width: 56rem;
+      --app-shell-gutter: 1rem;
       --quick-action-size: 64px;
       --quick-actions-z-index: 260;
       --quick-actions-footer-padding: 1rem;
@@ -3811,10 +3816,9 @@
       pointer-events: auto;
     }
 
-    body.week-sheet-open #main-content {
-      z-index: 140;
-      overflow: visible;
-    }
+    /* O #week-sheet agora vive no nível do <body>, então não é mais preciso elevar o
+       #main-content para cobrir o top-bar ao final da animação (o que causava a troca
+       abrupta de camada / "piscar" do painel). Mantido apenas o necessário abaixo. */
 
     .hf-week-sheet__overlay {
       position: absolute;
@@ -6476,6 +6480,10 @@
       overflow-y: visible !important;
       height: auto !important;
       max-height: none !important;
+      /* O recuo horizontal é o mesmo gutter do mini-player-bar, para que o conteúdo
+         (home-dashboard-shell) tenha exatamente a largura útil que o player usa. O
+         recuo vertical continua vindo das classes utilitárias (p-4/md:p-6). */
+      padding-inline: var(--app-shell-gutter);
     }
 
     /* Espaço no topo para revelar o header fixo (logo + imagem) atrás do
@@ -6582,32 +6590,17 @@
       pointer-events: none;
     }
 
+    /* IMPORTANTE: o #top-bar NÃO pode receber transform / opacity / filter /
+       will-change. Qualquer uma dessas propriedades o tornaria um "backdrop root",
+       fazendo o backdrop-filter do ::before (descendente) parar de amostrar a página
+       atrás dele — o blur some no mobile — e força a re-rasterização do blur a cada
+       frame (travamento). Por isso o fade de entrada/saída é animado diretamente nas
+       camadas que possuem o blur (::before e #user-avatar-btn), cuja opacity própria
+       NÃO quebra o próprio backdrop-filter, preservando o efeito durante toda a
+       transição e mantendo a composição na GPU. */
     #top-bar {
       position: fixed;
       overflow: visible;
-      opacity: 0;
-      transform: translate3d(0, -10px, 0);
-      transition: opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1),
-                  transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
-      will-change: opacity, transform;
-      backface-visibility: hidden;
-    }
-
-    /* Estado visível: o fade/slide de entrada e saída é controlado por esta classe
-       (não pelo display:none da classe .hidden, que causava o efeito "seco"). */
-    #top-bar.top-bar-visible {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      #top-bar {
-        transition: opacity 0.2s linear;
-        transform: none;
-      }
-      #top-bar.top-bar-visible {
-        transform: none;
-      }
     }
 
     #top-bar-logo {
@@ -6636,13 +6629,41 @@
       -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
       mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
       pointer-events: none;
-      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+      /* opacity é animada para o fade de entrada/saída do top-bar; como o
+         backdrop-filter está neste mesmo elemento, o blur é mantido durante toda a
+         transição. A composição da opacity ocorre na GPU. */
+      opacity: 0;
+      will-change: opacity;
+      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease,
+                  opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    #top-bar.top-bar-visible::before {
+      opacity: 1;
     }
 
     #top-bar.top-bar-blur-active::before {
       backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
       background: rgba(0, 0, 0, 0.45);
+    }
+
+    /* O avatar tem backdrop-filter próprio; animar a sua opacity preserva o glass
+       durante a transição (a opacity própria não quebra o backdrop-filter do mesmo
+       elemento). */
+    #user-avatar-btn {
+      opacity: 0;
+    }
+
+    #top-bar.top-bar-visible #user-avatar-btn {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #top-bar::before {
+        transition: backdrop-filter 0.2s ease, -webkit-backdrop-filter 0.2s ease,
+                    opacity 0.2s linear;
+      }
     }
 
     /* O top-bar (z-31) fica acima do conteúdo durante a abertura do week-sheet; ao final
@@ -6797,6 +6818,14 @@
     .home-dashboard-shell {
       overflow: visible !important;
       height: auto !important;
+      /* Mesma lógica de dimensionamento do #mini-player-bar (.player-bar):
+         max-width compartilhada + margens automáticas. Como o #main-content já recua
+         exatamente 1 gutter de cada lado, a largura resultante é
+         min(viewport - 2*gutter, max-width), idêntica à do player em todos os
+         breakpoints. */
+      width: 100%;
+      max-width: var(--app-shell-max-width);
+      margin-inline: auto;
     }
 
     @media (min-width:1024px) {
@@ -6807,9 +6836,8 @@
       }
 
       .home-dashboard-shell {
-        width: min(100%, 1220px);
-        max-width: 1220px;
-        margin-inline: auto;
+        /* A largura/centralização vêm da regra base (fonte única de layout); aqui só
+           definimos o comportamento de grid no desktop. */
         display: grid;
         grid-template-columns: minmax(0, 1fr);
         align-items: start;
@@ -6864,13 +6892,6 @@
 
       .phase-stats__legend {
         width: 100%;
-      }
-    }
-
-    @media (min-width:1280px) {
-      .home-dashboard-shell {
-        width: min(100%, 1240px);
-        max-width: 1240px;
       }
     }
 
@@ -9476,8 +9497,15 @@
         <div id="progress-bar-container" class="content-enter-animation"></div>
       </main>
     </div>
+  </div>
 
-    <div id="week-sheet" class="hf-week-sheet" aria-hidden="true" inert>
+  <!-- O week-sheet é filho direto do <body> (fora do #main-content) de propósito:
+       como #main-content é um contexto de empilhamento (position:relative; z-index:0)
+       e tem transition-all, manter o painel fixed aqui dentro o prendia nesse contexto
+       e exigia trocar o z-index do #main-content no fim da animação — o que fazia o
+       painel "piscar/sumir e voltar". No nível do body, o sheet (z-120) fica de forma
+       estável acima do top-bar (z-31), sem troca de camada durante a transição. -->
+  <div id="week-sheet" class="hf-week-sheet" aria-hidden="true" inert>
       <div class="hf-week-sheet__overlay" data-action="close-week-sheet"></div>
       <div class="hf-week-sheet__panel" role="dialog" aria-modal="true" aria-label="Progresso semanal e treino atual">
         <div class="hf-week-sheet__panel-bg"></div>
@@ -9530,8 +9558,6 @@
         </div>
       </div>
     </div>
-
-  </div>
 
   <div id="user-overlay" class="fixed inset-0 z-[35] pointer-events-none overlay-blur"
     style="display:none; transition: opacity 0.25s ease;"></div>
@@ -11200,10 +11226,15 @@
     function endWeekSheetPrewarm(sheet) {
       if (!weekSheetPrewarming) return;
       weekSheetPrewarming = false;
-      sheet.classList.remove("is-open");
-      sheet.classList.remove("is-prewarm");
       const panel = sheet.querySelector(".hf-week-sheet__panel");
-      // Confirma o estado fechado para que a próxima mudança de classe anime.
+      // Remove is-open enquanto is-prewarm (transition:none + opacity:0) ainda está
+      // ativo: o painel volta a translateY(100%) de forma INSTANTÂNEA e invisível, sem
+      // o "slide fantasma" nem mudança brusca de opacidade. Só depois removemos
+      // is-prewarm, com o painel já fora da tela.
+      sheet.classList.remove("is-open");
+      void (panel || sheet).getBoundingClientRect();
+      sheet.classList.remove("is-prewarm");
+      // Confirma o estado fechado como baseline para a próxima abertura animar.
       void (panel || sheet).getBoundingClientRect();
     }
 
@@ -11227,7 +11258,11 @@
       const finishPrewarm = () => {
         if (!weekSheetPrewarming) return;
         weekSheetPrewarming = false;
+        // Fecha o painel SEM animação e sem flash: remove is-open com is-prewarm ainda
+        // ativo (transition:none, opacity:0), confirma o reflow off-screen e só então
+        // remove is-prewarm. Evita o painel "deslizar para baixo" visível após o idle.
         sheet.classList.remove("is-open");
+        void (panel || sheet).getBoundingClientRect();
         sheet.classList.remove("is-prewarm");
       };
       if (typeof window.requestAnimationFrame === "function") {
@@ -11258,19 +11293,18 @@
 
       weekSheetState = "open";
 
-      renderWorkoutDetailsIfNeeded();
-
       const panel = sheet.querySelector(".hf-week-sheet__panel");
 
       sheet.removeAttribute("inert");
       sheet.setAttribute("aria-hidden", "false");
 
-      // Sincroniza o fade-out do top-bar com a abertura (evita o corte abrupto causado
-      // pela troca de z-index do #main-content ao final da animação).
-      document.body.classList.add("week-sheet-active");
-
-      // Dispara a transição apenas com um toggle de classe. Nada de layout pesado aqui.
-      sheet.classList.add("is-open");
+      // Monta/atualiza o conteúdo ANTES de animar, enquanto o painel está fora da tela
+      // (translateY 100%). Forçamos o layout/paint agora — com o conteúdo invisível —
+      // para que o frame em que a transição começa não tenha trabalho pesado. Era a
+      // remontagem do #workout-details no mesmo frame do toggle que descartava os
+      // primeiros frames e fazia o conteúdo "piscar" durante o slide.
+      renderWorkoutDetailsIfNeeded();
+      void (panel || sheet).getBoundingClientRect();
 
       // Carrega as imagens dos exercícios fora do frame da animação.
       if (typeof window.requestAnimationFrame === "function") {
@@ -11279,12 +11313,28 @@
         window.setTimeout(() => setupWeekSheetImageLazyLoading(), 0);
       }
 
-      onWeekSheetPanelSettled(panel, WEEK_SHEET_OPEN_MS, () => {
+      // Dispara a transição no PRÓXIMO frame: o conteúdo já está rasterizado, então o
+      // painel desliza de forma contínua e estável, sem remontagem nem reflow no meio
+      // da animação. O estado do componente é preservado durante toda a transição.
+      const startOpenAnimation = () => {
         if (weekSheetState !== "open") return;
-        // Com o painel já parado: liga o blur e trava o scroll do fundo.
-        sheet.classList.add("is-settled");
-        lockWeekSheetBody();
-      });
+        // Desvanece o top-bar para que ele não apareça através do overlay semitransparente
+        // no topo do sheet (o sheet, no nível do body, já fica acima do top-bar).
+        document.body.classList.add("week-sheet-active");
+        sheet.classList.add("is-open");
+
+        onWeekSheetPanelSettled(panel, WEEK_SHEET_OPEN_MS, () => {
+          if (weekSheetState !== "open") return;
+          // Com o painel já parado: liga o blur e trava o scroll do fundo.
+          sheet.classList.add("is-settled");
+          lockWeekSheetBody();
+        });
+      };
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(startOpenAnimation);
+      } else {
+        startOpenAnimation();
+      }
     }
 
     function closeWeekSheet() {
@@ -12096,10 +12146,10 @@
     }
 
     /**
-     * Exibe o top-bar com uma animação suave de fade + slide.
-     * Remove o display:none e, após forçar um reflow (para o navegador registrar o
-     * estado oculto), ativa a classe de transição. Isso evita o "aparecer seco" e o
-     * flickering, de forma consistente em mobile e desktop.
+     * Exibe o top-bar com um fade suave (GPU-composited via opacity nas camadas de
+     * blur). Remove o display:none e, após forçar um reflow (para o navegador
+     * registrar o estado oculto), ativa a classe de transição. Isso evita o "aparecer
+     * seco" e o flickering, de forma consistente em mobile e desktop.
      */
     function showTopBar() {
       const tb = DOM_ELEMENTS.topBar;
@@ -12110,9 +12160,13 @@
       }
       if (!tb.classList.contains("hidden") && tb.classList.contains("top-bar-visible")) return;
       tb.classList.remove("hidden");
-      // Força o reflow para que a transição parta do estado oculto (opacity 0 / slide).
+      // Força o reflow para que a transição parta do estado oculto (opacity 0).
       void tb.offsetWidth;
       tb.classList.add("top-bar-visible");
+      // O logo é controlado pelo scroll; ao exibir, reflete o estado atual para
+      // acompanhar o fade em vez de "saltar".
+      const logo = document.getElementById("top-bar-logo");
+      if (logo) logo.style.opacity = window.scrollY > 30 ? "1" : "0";
     }
 
     /**
@@ -12124,6 +12178,10 @@
       if (!tb) return;
       if (tb.classList.contains("hidden")) return;
       tb.classList.remove("top-bar-visible");
+      // Desvanece o logo junto (ele é controlado por opacity inline no scroll), para
+      // que a saída seja suave mesmo quando a página está rolada.
+      const logo = document.getElementById("top-bar-logo");
+      if (logo) logo.style.opacity = "0";
       if (tb._topBarHideTimer) clearTimeout(tb._topBarHideTimer);
       tb._topBarHideTimer = setTimeout(() => {
         tb.classList.add("hidden");
