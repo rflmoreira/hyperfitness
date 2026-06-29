@@ -4160,9 +4160,6 @@ const MUSIC_PLAYER = (() => {
     // Salva no localStorage
     savePlaylistsToStorage();
 
-    // Atualiza a UI
-    renderPlaylists();
-
     // Feedback
     const playlistCover = getPlaylistCover(targetPlaylist);
     setFeedback(`${tracksToAdd.length} músicas importadas`, 'success', {
@@ -4171,9 +4168,17 @@ const MUSIC_PLAYER = (() => {
       subtitle: `${targetPlaylist.tracks.length} faixas no total`
     });
 
-    // Muda para a aba de biblioteca exibindo as faixas da playlist recém-importada
+    // Muda para a aba de biblioteca (garante que o container fique visível)
     switchPlayerTab('playlist');
-    selectPlaylist(targetPlaylist);
+
+    // Aguarda um frame para garantir que a aba está visível antes de renderizar
+    await nextFrame();
+
+    // Atualiza a grade de playlists
+    renderPlaylists();
+
+    // Seleciona a playlist recém-importada para exibir apenas as suas faixas
+    await selectPlaylist(targetPlaylist);
   }
 
   // Estado temporário para o track sendo adicionado
