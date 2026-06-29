@@ -889,6 +889,7 @@ const MUSIC_PLAYER = (() => {
     playerModal: null,
     myPlaylistsSection: null,
     myPlaylistsGrid: null,
+    reorderPlaylistsBtn: null,
     tracksContainer: null,
     playlistEmptyState: null,
     emptyStateImportBtn: null,
@@ -966,6 +967,7 @@ const MUSIC_PLAYER = (() => {
     ui.playerModal = document.getElementById('player-modal');
     ui.myPlaylistsSection = document.getElementById('my-playlists-section');
     ui.myPlaylistsGrid = document.getElementById('my-playlists-grid');
+    ui.reorderPlaylistsBtn = document.getElementById('reorder-playlists-btn');
     ui.tracksContainer = document.getElementById('tracks-container');
     ui.playlistEmptyState = document.getElementById('playlist-empty-state');
     ui.emptyStateImportBtn = document.getElementById('empty-state-import-btn');
@@ -2126,6 +2128,9 @@ const MUSIC_PLAYER = (() => {
     ui.tabPlaylist?.addEventListener('click', () => switchPlayerTab('playlist'));
     ui.tabYoutube?.addEventListener('click', () => switchPlayerTab('youtube'));
     ui.tabRadio?.addEventListener('click', () => switchPlayerTab('radio'));
+
+    // Botão de reordenar playlists (modo de edição com drag-and-drop e exclusão)
+    ui.reorderPlaylistsBtn?.addEventListener('click', togglePlaylistsReorderMode);
 
     // Swipe lateral para trocar abas
     setupTabSwipeGesture();
@@ -5995,7 +6000,7 @@ const MUSIC_PLAYER = (() => {
       }
 
       return `
-        <div class="my-playlist-card special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 ring-1 ring-white/10 relative" 
+        <div class="my-playlist-card special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 ring-1 ring-white/10 relative${isWatchLater ? ' playlist-card-fixed' : ''}" 
              data-playlist-id="${playlist.id}">
           <div class="relative aspect-square">
             <img src="${imageUrl}" 
@@ -6043,6 +6048,9 @@ const MUSIC_PLAYER = (() => {
 
       // Clique no card ou no play - seleciona e vai para a tela de biblioteca
       const clickHandler = (e) => {
+        // No modo de reordenação, o clique não navega (evita conflito com arrastar)
+        if (playlistsReorderMode) return;
+
         e.stopPropagation();
         
         // Se clicou no botão play
@@ -6065,6 +6073,125 @@ const MUSIC_PLAYER = (() => {
 
     // Mantém o mural de capas da "Músicas Favoritas" consistente com suas faixas
     refreshWatchLaterCover();
+
+    // Reaplica o modo de reordenação após re-render (ex.: após excluir uma playlist)
+    if (playlistsReorderMode) {
+      applyPlaylistsReorderUi();
+    }
+  }
+
+  // ===== Reordenação das playlists (my-playlists-section) =====
+  let playlistsReorderMode = false;
+  let myPlaylistsSortable = null;
+
+  function togglePlaylistsReorderMode() {
+    if (playlistsReorderMode) {
+      exitPlaylistsReorderMode();
+    } else {
+      enterPlaylistsReorderMode();
+    }
+  }
+
+  function enterPlaylistsReorderMode() {
+    if (playlistsReorderMode) return;
+    // Sem playlists de usuário (apenas favoritos) não há o que reordenar
+    if (!state.playlists || state.playlists.length <= 1) {
+      setFeedback('Nenhuma playlist para reordenar', 'info');
+      return;
+    }
+    playlistsReorderMode = true;
+    applyPlaylistsReorderUi();
+    setFeedback('Arraste para reordenar • toque na lixeira para excluir', 'info');
+  }
+
+  function exitPlaylistsReorderMode() {
+    if (!playlistsReorderMode) return;
+    playlistsReorderMode = false;
+    destroyMyPlaylistsSortable();
+    ui.myPlaylistsSection?.classList.remove('is-editing');
+    if (ui.reorderPlaylistsBtn) {
+      ui.reorderPlaylistsBtn.classList.remove('is-active');
+      ui.reorderPlaylistsBtn.setAttribute('aria-pressed', 'false');
+      const label = ui.reorderPlaylistsBtn.querySelector('.reorder-label');
+      if (label) label.textContent = 'Reordenar';
+    }
+  }
+
+  function applyPlaylistsReorderUi() {
+    ui.myPlaylistsSection?.classList.add('is-editing');
+    if (ui.reorderPlaylistsBtn) {
+      ui.reorderPlaylistsBtn.classList.add('is-active');
+      ui.reorderPlaylistsBtn.setAttribute('aria-pressed', 'true');
+      const label = ui.reorderPlaylistsBtn.querySelector('.reorder-label');
+      if (label) label.textContent = 'Concluir';
+    }
+    setupMyPlaylistsSortable();
+  }
+
+  function setupMyPlaylistsSortable() {
+    if (typeof Sortable === 'undefined' || !ui.myPlaylistsGrid) return;
+    if (myPlaylistsSortable) myPlaylistsSortable.destroy();
+    myPlaylistsSortable = Sortable.create(ui.myPlaylistsGrid, {
+      animation: 320,
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      forceFallback: true,
+      fallbackOnBody: true,
+      fallbackTolerance: 4,
+      draggable: '.my-playlist-card',
+      filter: '.playlist-card-fixed, .delete-playlist-btn, .my-playlist-play-btn',
+      preventOnFilter: false,
+      ghostClass: 'playlist-sortable-ghost',
+      chosenClass: 'playlist-sortable-chosen',
+      dragClass: 'playlist-sortable-drag',
+      onMove: (evt) => {
+        // Não arrasta o card fixo ("Músicas Favoritas") nem permite soltar antes dele
+        if (evt.dragged?.classList.contains('playlist-card-fixed')) return false;
+        if (evt.related?.classList.contains('playlist-card-fixed') && !evt.willInsertAfter) {
+          return false;
+        }
+        return true;
+      },
+      onStart: () => { document.body.classList.add('is-playlists-dragging'); },
+      onEnd: () => {
+        document.body.classList.remove('is-playlists-dragging');
+        persistPlaylistsOrderFromDom();
+      }
+    });
+  }
+
+  function destroyMyPlaylistsSortable() {
+    if (myPlaylistsSortable) {
+      myPlaylistsSortable.destroy();
+      myPlaylistsSortable = null;
+    }
+  }
+
+  // Reconstrói a ordem de state.playlists a partir da ordem dos cards no DOM e persiste
+  function persistPlaylistsOrderFromDom() {
+    if (!ui.myPlaylistsGrid) return;
+    const orderedIds = Array.from(ui.myPlaylistsGrid.querySelectorAll('.my-playlist-card'))
+      .map(card => card.dataset.playlistId)
+      .filter(Boolean);
+    if (!orderedIds.length) return;
+
+    const byId = new Map(state.playlists.map(p => [p.id, p]));
+    const reordered = [];
+    orderedIds.forEach(id => {
+      const pl = byId.get(id);
+      if (pl) { reordered.push(pl); byId.delete(id); }
+    });
+    // Mantém eventuais playlists ausentes do DOM (segurança)
+    byId.forEach(pl => reordered.push(pl));
+
+    // Garante a "Músicas Favoritas" sempre no início
+    const watchIdx = reordered.findIndex(p => p.id === WATCH_LATER_PLAYLIST_ID);
+    if (watchIdx > 0) {
+      const [watch] = reordered.splice(watchIdx, 1);
+      reordered.unshift(watch);
+    }
+
+    state.playlists = reordered;
+    savePlaylistsToStorage();
   }
 
   async function selectPlaylist(playlist, autoPlay = false, options = {}) {

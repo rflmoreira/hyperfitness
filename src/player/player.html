@@ -63,10 +63,17 @@
 
       <!-- Minhas Playlists -->
       <div id="my-playlists-section" class="py-4" style="display: none;">
-        <h3 class="text-white/70 text-xs font-medium mb-4 flex items-center gap-2 uppercase tracking-wider">
-          <i class="ph-bold ph-playlist text-orange-500/80"></i>
-          Playlists Recentes e Favoritos
-        </h3>
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <h3 class="text-white/70 text-xs font-medium flex items-center gap-2 uppercase tracking-wider">
+            <i class="ph-bold ph-playlist text-orange-500/80"></i>
+            Playlists Recentes e Favoritos
+          </h3>
+          <button type="button" id="reorder-playlists-btn" class="my-playlists-reorder-btn" aria-pressed="false"
+            aria-label="Reordenar playlists">
+            <i class="ph-bold ph-arrows-down-up" aria-hidden="true"></i>
+            <span class="reorder-label">Reordenar</span>
+          </button>
+        </div>
         <div id="my-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         </div>
       </div>
