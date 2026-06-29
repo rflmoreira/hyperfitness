@@ -5086,6 +5086,67 @@ const MUSIC_PLAYER = (() => {
     updatePlaylistCardCover(playlist.id, coverUrl);
   }
 
+  // Monta as 4 capas do mural, repetindo as existentes quando houver menos de 4
+  function buildMosaicSources(covers = []) {
+    const unique = [...new Set(covers)];
+    if (!unique.length) return [];
+    if (unique.length >= 4) return unique.slice(0, 4);
+    const filled = [];
+    while (filled.length < 4) {
+      filled.push(unique[filled.length % unique.length]);
+    }
+    return filled;
+  }
+
+  // (Re)gera o mural de capas da playlist "Músicas Favoritas" a partir das faixas atuais,
+  // mantendo-o sempre consistente com o conteúdo da playlist.
+  async function refreshWatchLaterCover() {
+    const watchLater = getWatchLaterPlaylist();
+    if (!watchLater) return;
+
+    const realCovers = (watchLater.tracks || [])
+      .map(track => getTrackCoverUrl(track))
+      .filter(isRealCover);
+    const unique = [...new Set(realCovers)];
+
+    // Assinatura das capas relevantes: evita regerar o mural sem necessidade
+    const signature = `${unique.length}:${unique.slice(0, 4).join('|')}`;
+    if (signature === watchLater._coverSignature) return;
+
+    // Sem capas reais: volta ao fallback
+    if (unique.length === 0) {
+      watchLater._coverSignature = signature;
+      watchLater.images = [];
+      watchLater.coverSources = [];
+      updatePlaylistCardCover(watchLater.id, getFallbackCover(watchLater.name));
+      return;
+    }
+
+    // Apenas uma capa real: usa a própria capa
+    if (unique.length === 1) {
+      watchLater._coverSignature = signature;
+      watchLater.coverSources = unique;
+      setPlaylistCover(watchLater, unique[0]);
+      return;
+    }
+
+    // Mural 2x2 com as capas das faixas
+    try {
+      const mosaic = await gerarCapaPlaylist(buildMosaicSources(unique));
+      if (mosaic) {
+        watchLater._coverSignature = signature;
+        watchLater.coverSources = unique.slice(0, 4);
+        setPlaylistCover(watchLater, mosaic);
+        return;
+      }
+    } catch (error) {
+      console.warn(`⚠️ [COVER] Falha ao gerar mural de favoritos: ${error.message}`);
+    }
+
+    // Fallback se o mosaico falhar (não fixa a assinatura para permitir nova tentativa)
+    setPlaylistCover(watchLater, unique[0]);
+  }
+
   // Helper para verificar se a sessão de importação ainda é válida
   function isImportSessionStale(importSessionId) {
     return importSessionId && importSessionId !== state.currentImportSessionId;
@@ -5143,6 +5204,9 @@ const MUSIC_PLAYER = (() => {
     for (const playlist of playlists) {
       if (!playlist) continue;
       if (isImportSessionStale(importSessionId)) break;
+
+      // A capa da "Músicas Favoritas" é gerenciada por refreshWatchLaterCover (mural das faixas)
+      if (playlist.id === WATCH_LATER_PLAYLIST_ID) continue;
 
       const isPreset = isPresetPlaylistName(playlist.name);
       const currentCover = playlist.images?.[0]?.url || '';
@@ -5820,13 +5884,13 @@ const MUSIC_PLAYER = (() => {
 
     ui.myPlaylistsGrid.innerHTML = state.playlists.map(playlist => {
       const trackCount = getPlaylistTrackCount(playlist);
-      const isWatchLater = playlist.id === 'watch-later';
-      
-      let imageUrl;
-      if (isWatchLater) {
-        imageUrl = playlist.tracks[0]?.thumbnail || getFallbackCover(playlist.name);
-      } else {
-        imageUrl = getPlaylistCover(playlist);
+      const isWatchLater = playlist.id === WATCH_LATER_PLAYLIST_ID;
+
+      // Usa o mural gerado (armazenado em images). Enquanto o mural não estiver pronto,
+      // mostra a capa da primeira faixa como placeholder imediato.
+      let imageUrl = getPlaylistCover(playlist);
+      if (isWatchLater && !playlist.images?.length && playlist.tracks?.[0]) {
+        imageUrl = getTrackCoverUrl(playlist.tracks[0]) || imageUrl;
       }
 
       return `
@@ -5897,6 +5961,9 @@ const MUSIC_PLAYER = (() => {
     });
 
     updatePlaylistEmptyState();
+
+    // Mantém o mural de capas da "Músicas Favoritas" consistente com suas faixas
+    refreshWatchLaterCover();
   }
 
   async function selectPlaylist(playlist, autoPlay = false, options = {}) {
