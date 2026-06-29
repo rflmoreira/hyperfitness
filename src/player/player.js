@@ -4106,12 +4106,8 @@ const MUSIC_PLAYER = (() => {
       confirmBtn.disabled = true;
       confirmBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Importando...';
 
-      // Mostra o progresso da busca de capas no Deezer (resolução antes de exibir)
-      const onProgress = (done, total) => {
-        confirmBtn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Buscando capas... ${done}/${total}`;
-      };
-
-      await importYoutubePlaylistToLibrary(videos, title, onProgress);
+      // Importa imediatamente; as capas são buscadas em segundo plano (preload)
+      await importYoutubePlaylistToLibrary(videos, title);
       modal.remove();
     });
   }
@@ -4136,21 +4132,8 @@ const MUSIC_PLAYER = (() => {
     track._deezerCoverResolved = true;
   }
 
-  // Resolve as capas do Deezer de várias faixas em sequência (respeitando o rate limit dos proxies).
-  async function resolveTracksCoversFromDeezer(tracks = [], onProgress = null) {
-    let done = 0;
-    for (const track of tracks) {
-      await resolveTrackCoverFromDeezer(track);
-      done++;
-      if (typeof onProgress === 'function') onProgress(done, tracks.length);
-      if (done < tracks.length) {
-        await delay(state.coverLastSuccessProxy === 'jina' ? 400 : 250);
-      }
-    }
-  }
-
   // Importa as músicas da playlist para a biblioteca
-  async function importYoutubePlaylistToLibrary(videos, playlistTitle, onProgress = null) {
+  async function importYoutubePlaylistToLibrary(videos, playlistTitle) {
     // Cria uma nova playlist com o nome da playlist do YouTube
     const playlistName = playlistTitle || 'YouTube Playlist';
     
@@ -4186,17 +4169,13 @@ const MUSIC_PLAYER = (() => {
     const existingVideoIds = new Set(targetPlaylist.tracks.filter(t => t._videoId).map(t => t._videoId));
     const tracksToAdd = newTracks.filter(t => !existingVideoIds.has(t._videoId));
 
-    // Resolve as capas no Deezer ANTES de adicionar/renderizar (nunca exibe capa do YouTube)
-    await resolveTracksCoversFromDeezer(tracksToAdd, onProgress);
-
-    // Adiciona as faixas já com as capas resolvidas
+    // Adiciona as faixas com capa genérica. A importação NÃO aguarda as capas:
+    // a busca no Deezer acontece em segundo plano (durante o preload da playlist) e
+    // substitui automaticamente as capas genéricas conforme as correspondências forem encontradas.
     targetPlaylist.tracks.push(...tracksToAdd);
     if (isNewPlaylist) {
       state.playlists.push(targetPlaylist);
     }
-
-    // Monta a capa do card como mosaico das artes de álbum do Deezer (genérica se não houver imagens)
-    await refreshPlaylistMosaicCover(targetPlaylist);
 
     // Salva no localStorage
     savePlaylistsToStorage();
