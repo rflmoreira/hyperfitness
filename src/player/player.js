@@ -5415,6 +5415,13 @@ const MUSIC_PLAYER = (() => {
     for (const playlist of state.playlists) {
       if (!playlist?.tracks?.length) continue;
 
+      // "Músicas Favoritas": mural composto exclusivamente pelas capas das faixas da playlist
+      // (nunca por busca de nome no Deezer, que traz capas que não correspondem às faixas)
+      if (playlist.id === WATCH_LATER_PLAYLIST_ID) {
+        await refreshPlaylistMosaicCover(playlist);
+        continue;
+      }
+
       // Playlists do YouTube: capa sempre montada com as artes de álbum do Deezer (mosaico)
       if (isYoutubeImportedPlaylist(playlist)) {
         await refreshPlaylistMosaicCover(playlist);
