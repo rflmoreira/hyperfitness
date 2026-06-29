@@ -3394,7 +3394,7 @@ const MUSIC_PLAYER = (() => {
     return ['favorite songs', 'favorite albums', 'favorite artists'].includes(normalized);
   }
   function isMosaicCover(url = '') {
-    return typeof url === 'string' && url.trim().startsWith('data:image/png');
+    return typeof url === 'string' && /^data:image\/(png|jpeg)/.test(url.trim());
   }
 
   function getPresetCoverForPlaylist(name = '') {
@@ -4105,52 +4105,98 @@ const MUSIC_PLAYER = (() => {
     confirmBtn?.addEventListener('click', async () => {
       confirmBtn.disabled = true;
       confirmBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Importando...';
-      
-      await importYoutubePlaylistToLibrary(videos, title);
+
+      // Mostra o progresso da busca de capas no Deezer (resolução antes de exibir)
+      const onProgress = (done, total) => {
+        confirmBtn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Buscando capas... ${done}/${total}`;
+      };
+
+      await importYoutubePlaylistToLibrary(videos, title, onProgress);
       modal.remove();
     });
   }
 
+  // Resolve a capa de uma faixa do YouTube no Deezer ANTES de exibi-la.
+  // Nunca mantém a capa do YouTube: usa a capa do Deezer ou a genérica como fallback imediato.
+  async function resolveTrackCoverFromDeezer(track) {
+    if (!track) return;
+    let cover = '';
+    try {
+      const artistLabel = getTrackArtists(track).replace(/, /g, ' ');
+      cover = sanitizeImageUrl(await buscarCapaFaixa(getTrackTitle(track), artistLabel));
+    } catch (_) {
+      cover = '';
+    }
+    const finalCover = isRealCover(cover) ? cover : getFallbackCover(getTrackTitle(track));
+    track.thumbnail = finalCover;
+    track.album = track.album || {};
+    track.album.name = track.album.name || 'YouTube';
+    track.album.images = [{ url: finalCover }];
+    track.generatedCover = !isRealCover(finalCover);
+    track._deezerCoverResolved = true;
+  }
+
+  // Resolve as capas do Deezer de várias faixas em sequência (respeitando o rate limit dos proxies).
+  async function resolveTracksCoversFromDeezer(tracks = [], onProgress = null) {
+    let done = 0;
+    for (const track of tracks) {
+      await resolveTrackCoverFromDeezer(track);
+      done++;
+      if (typeof onProgress === 'function') onProgress(done, tracks.length);
+      if (done < tracks.length) {
+        await delay(state.coverLastSuccessProxy === 'jina' ? 400 : 250);
+      }
+    }
+  }
+
   // Importa as músicas da playlist para a biblioteca
-  async function importYoutubePlaylistToLibrary(videos, playlistTitle) {
+  async function importYoutubePlaylistToLibrary(videos, playlistTitle, onProgress = null) {
     // Cria uma nova playlist com o nome da playlist do YouTube
     const playlistName = playlistTitle || 'YouTube Playlist';
     
     // Verifica se já existe uma playlist com esse nome
     let targetPlaylist = state.playlists.find(p => p.name === playlistName);
-    
+    const isNewPlaylist = !targetPlaylist;
+
     if (!targetPlaylist) {
-      // Cria nova playlist
+      // Cria nova playlist (capa genérica até o Deezer resolver)
       targetPlaylist = {
         id: `yt-${Date.now()}`,
         name: playlistName,
         cover: 'src/imagens/genericCover.png',
+        images: [],
         tracks: []
       };
-      state.playlists.push(targetPlaylist);
     }
 
-    // Converte vídeos para formato de track
+    // Converte vídeos para faixas SEM a capa do YouTube (apenas dados para casar com o Deezer).
+    // A capa começa genérica e é substituída pela do Deezer assim que a correspondência for resolvida.
     const newTracks = videos.map(video => ({
       name: video.title,
       artists: [{ name: video.author }],
       duration_ms: video.lengthSeconds * 1000,
-      album: { 
-        name: 'YouTube', 
-        images: [{ url: video.thumbnail || `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg` }] 
-      },
+      album: { name: 'YouTube', images: [] },
+      thumbnail: getFallbackCover(video.title),
+      generatedCover: true,
       _videoId: video.videoId,
       _fromYoutubePlaylist: true
     }));
 
-    // Adiciona tracks à playlist (evita duplicatas por videoId)
+    // Filtra duplicatas por videoId
     const existingVideoIds = new Set(targetPlaylist.tracks.filter(t => t._videoId).map(t => t._videoId));
     const tracksToAdd = newTracks.filter(t => !existingVideoIds.has(t._videoId));
-    
-    targetPlaylist.tracks.push(...tracksToAdd);
 
-    // A capa do card é montada a partir das capas do Deezer das faixas (via enriquecimento).
-    // Mantém a capa genérica até o enriquecimento resolver as correspondências no Deezer.
+    // Resolve as capas no Deezer ANTES de adicionar/renderizar (nunca exibe capa do YouTube)
+    await resolveTracksCoversFromDeezer(tracksToAdd, onProgress);
+
+    // Adiciona as faixas já com as capas resolvidas
+    targetPlaylist.tracks.push(...tracksToAdd);
+    if (isNewPlaylist) {
+      state.playlists.push(targetPlaylist);
+    }
+
+    // Monta a capa do card como mosaico das artes de álbum do Deezer (genérica se não houver imagens)
+    await refreshPlaylistMosaicCover(targetPlaylist);
 
     // Salva no localStorage
     savePlaylistsToStorage();
@@ -4582,8 +4628,16 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
+    // Resolve a capa no Deezer ANTES de adicionar/exibir (nunca usa a capa do YouTube)
+    await resolveTrackCoverFromDeezer(pendingYouTubeTrack);
+
     // Adiciona a faixa à playlist
     playlist.tracks.unshift(pendingYouTubeTrack);
+
+    // Atualiza a capa do mosaico (artes do Deezer) se for playlist importada do YouTube
+    if (isYoutubeImportedPlaylist(playlist)) {
+      await refreshPlaylistMosaicCover(playlist);
+    }
 
     // Salva no localStorage
     savePlaylistsToStorage();
@@ -4629,6 +4683,9 @@ const MUSIC_PLAYER = (() => {
     const name = ui.newPlaylistName?.value?.trim();
     if (!name || !pendingYouTubeTrack) return;
 
+    // Resolve a capa no Deezer ANTES de criar/exibir (nunca usa a capa do YouTube)
+    await resolveTrackCoverFromDeezer(pendingYouTubeTrack);
+
     // Cria nova playlist com ID único
     const newPlaylist = {
       id: `yt-playlist-${Date.now()}`,
@@ -4641,6 +4698,9 @@ const MUSIC_PLAYER = (() => {
 
     // Adiciona ao início da lista
     state.playlists.unshift(newPlaylist);
+
+    // Monta a capa do mosaico (artes do Deezer); com 1 faixa, usa a capa genérica
+    await refreshPlaylistMosaicCover(newPlaylist);
 
     // Fecha modal picker
     closePlaylistPicker();
@@ -5082,52 +5142,65 @@ const MUSIC_PLAYER = (() => {
     updatePlaylistCardCover(playlist.id, coverUrl);
   }
 
-  // Quantidade mínima de capas para compor o mural 2x2 completo
-  const WATCH_LATER_MOSAIC_MIN = 4;
+  // Quantidade mínima de capas para compor o mosaico 2x2 completo
+  const PLAYLIST_MOSAIC_MIN = 4;
 
-  // (Re)gera o mural de capas da playlist "Músicas Favoritas" a partir das faixas atuais,
-  // mantendo-o sempre consistente com o conteúdo da playlist.
-  // O mosaico só é exibido quando há 4 ou mais capas reais; caso contrário usa a capa genérica.
-  async function refreshWatchLaterCover() {
-    const watchLater = getWatchLaterPlaylist();
-    if (!watchLater) return;
+  // Identifica playlists importadas do YouTube (id começa com "yt-")
+  function isYoutubeImportedPlaylist(playlist) {
+    return typeof playlist?.id === 'string' && playlist.id.startsWith('yt-');
+  }
 
-    const realCovers = (watchLater.tracks || [])
+  // (Re)gera a capa de uma playlist como mosaico 2x2 a partir das capas (artes de álbum) das faixas.
+  // O mosaico só é gerado quando há 4 ou mais capas reais; caso contrário usa a capa genérica.
+  async function refreshPlaylistMosaicCover(playlist) {
+    if (!playlist) return;
+
+    const realCovers = (playlist.tracks || [])
       .map(track => getTrackCoverUrl(track))
       .filter(isRealCover);
     const unique = [...new Set(realCovers)];
 
-    // Assinatura das capas relevantes: evita regerar o mural sem necessidade
-    const signature = `${unique.length}:${unique.slice(0, WATCH_LATER_MOSAIC_MIN).join('|')}`;
-    if (signature === watchLater._coverSignature) return;
+    // Assinatura das capas relevantes: evita regerar o mosaico sem necessidade
+    const signature = `${unique.length}:${unique.slice(0, PLAYLIST_MOSAIC_MIN).join('|')}`;
+    if (signature === playlist._coverSignature) return;
 
     // Menos de 4 capas: usa a capa genérica (evita mosaico incompleto)
-    if (unique.length < WATCH_LATER_MOSAIC_MIN) {
-      watchLater._coverSignature = signature;
-      watchLater.images = [];
-      watchLater.coverSources = [];
-      updatePlaylistCardCover(watchLater.id, getFallbackCover(watchLater.name));
+    if (unique.length < PLAYLIST_MOSAIC_MIN) {
+      playlist._coverSignature = signature;
+      playlist.images = [];
+      playlist.coverSources = [];
+      updatePlaylistCardCover(playlist.id, getFallbackCover(playlist.name));
       return;
     }
 
-    // Mural 2x2 com as 4 primeiras capas das faixas
+    // Mosaico 2x2 com as 4 primeiras capas das faixas
     const mosaicSources = unique.slice(0, 4);
     try {
       const mosaic = await gerarCapaPlaylist(mosaicSources);
       if (mosaic) {
-        watchLater._coverSignature = signature;
-        watchLater.coverSources = mosaicSources;
-        setPlaylistCover(watchLater, mosaic);
+        playlist._coverSignature = signature;
+        playlist.coverSources = mosaicSources;
+        setPlaylistCover(playlist, mosaic);
         return;
       }
     } catch (error) {
-      console.warn(`⚠️ [COVER] Falha ao gerar mural de favoritos: ${error.message}`);
+      console.warn(`⚠️ [COVER] Falha ao gerar mosaico da playlist "${playlist.name}": ${error.message}`);
     }
 
-    // Se o mosaico falhar, usa a capa genérica (não fixa a assinatura para permitir nova tentativa)
-    watchLater.images = [];
-    watchLater.coverSources = [];
-    updatePlaylistCardCover(watchLater.id, getFallbackCover(watchLater.name));
+    // Falha ao gerar (transitória): não fixa a assinatura (permite nova tentativa) e
+    // preserva um mosaico já existente; só usa a genérica se ainda não houver mosaico.
+    if (!isMosaicCover(playlist.images?.[0]?.url)) {
+      playlist.images = [];
+      playlist.coverSources = [];
+      updatePlaylistCardCover(playlist.id, getFallbackCover(playlist.name));
+    }
+  }
+
+  // Mantém o mural de capas da "Músicas Favoritas" consistente com suas faixas
+  async function refreshWatchLaterCover() {
+    const watchLater = getWatchLaterPlaylist();
+    if (!watchLater) return;
+    await refreshPlaylistMosaicCover(watchLater);
   }
 
   // Helper para verificar se a sessão de importação ainda é válida
@@ -5190,6 +5263,12 @@ const MUSIC_PLAYER = (() => {
 
       // A capa da "Músicas Favoritas" é gerenciada por refreshWatchLaterCover (mural das faixas)
       if (playlist.id === WATCH_LATER_PLAYLIST_ID) continue;
+
+      // Playlists do YouTube: capa sempre montada com as artes de álbum do Deezer (mosaico)
+      if (isYoutubeImportedPlaylist(playlist)) {
+        await refreshPlaylistMosaicCover(playlist);
+        continue;
+      }
 
       const isPreset = isPresetPlaylistName(playlist.name);
       const currentCover = playlist.images?.[0]?.url || '';
@@ -5335,6 +5414,12 @@ const MUSIC_PLAYER = (() => {
 
     for (const playlist of state.playlists) {
       if (!playlist?.tracks?.length) continue;
+
+      // Playlists do YouTube: capa sempre montada com as artes de álbum do Deezer (mosaico)
+      if (isYoutubeImportedPlaylist(playlist)) {
+        await refreshPlaylistMosaicCover(playlist);
+        continue;
+      }
 
       const isPreset = isPresetPlaylistName(playlist.name);
       

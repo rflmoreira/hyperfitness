@@ -1412,6 +1412,25 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+/* Capas das playlists: proporção fixa 1:1 (quadrada), sem "queixo" na base */
+.special-playlist-card > .aspect-square,
+.featured-playlist-card > .aspect-square,
+.my-playlist-card > .aspect-square {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.special-playlist-card > .aspect-square > img,
+.featured-playlist-card > .aspect-square > img,
+.my-playlist-card > .aspect-square > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Discover Play Button (shared by special & featured cards) */
 .discover-play-wrapper {
   position: absolute;
