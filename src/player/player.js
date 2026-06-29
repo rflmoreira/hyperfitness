@@ -5086,20 +5086,12 @@ const MUSIC_PLAYER = (() => {
     updatePlaylistCardCover(playlist.id, coverUrl);
   }
 
-  // Monta as 4 capas do mural, repetindo as existentes quando houver menos de 4
-  function buildMosaicSources(covers = []) {
-    const unique = [...new Set(covers)];
-    if (!unique.length) return [];
-    if (unique.length >= 4) return unique.slice(0, 4);
-    const filled = [];
-    while (filled.length < 4) {
-      filled.push(unique[filled.length % unique.length]);
-    }
-    return filled;
-  }
+  // Quantidade mínima de capas para compor o mural 2x2 completo
+  const WATCH_LATER_MOSAIC_MIN = 4;
 
   // (Re)gera o mural de capas da playlist "Músicas Favoritas" a partir das faixas atuais,
   // mantendo-o sempre consistente com o conteúdo da playlist.
+  // O mosaico só é exibido quando há 4 ou mais capas reais; caso contrário usa a capa genérica.
   async function refreshWatchLaterCover() {
     const watchLater = getWatchLaterPlaylist();
     if (!watchLater) return;
@@ -5110,11 +5102,11 @@ const MUSIC_PLAYER = (() => {
     const unique = [...new Set(realCovers)];
 
     // Assinatura das capas relevantes: evita regerar o mural sem necessidade
-    const signature = `${unique.length}:${unique.slice(0, 4).join('|')}`;
+    const signature = `${unique.length}:${unique.slice(0, WATCH_LATER_MOSAIC_MIN).join('|')}`;
     if (signature === watchLater._coverSignature) return;
 
-    // Sem capas reais: volta ao fallback
-    if (unique.length === 0) {
+    // Menos de 4 capas: usa a capa genérica (evita mosaico incompleto)
+    if (unique.length < WATCH_LATER_MOSAIC_MIN) {
       watchLater._coverSignature = signature;
       watchLater.images = [];
       watchLater.coverSources = [];
@@ -5122,20 +5114,13 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
-    // Apenas uma capa real: usa a própria capa
-    if (unique.length === 1) {
-      watchLater._coverSignature = signature;
-      watchLater.coverSources = unique;
-      setPlaylistCover(watchLater, unique[0]);
-      return;
-    }
-
-    // Mural 2x2 com as capas das faixas
+    // Mural 2x2 com as 4 primeiras capas das faixas
+    const mosaicSources = unique.slice(0, 4);
     try {
-      const mosaic = await gerarCapaPlaylist(buildMosaicSources(unique));
+      const mosaic = await gerarCapaPlaylist(mosaicSources);
       if (mosaic) {
         watchLater._coverSignature = signature;
-        watchLater.coverSources = unique.slice(0, 4);
+        watchLater.coverSources = mosaicSources;
         setPlaylistCover(watchLater, mosaic);
         return;
       }
@@ -5143,8 +5128,10 @@ const MUSIC_PLAYER = (() => {
       console.warn(`⚠️ [COVER] Falha ao gerar mural de favoritos: ${error.message}`);
     }
 
-    // Fallback se o mosaico falhar (não fixa a assinatura para permitir nova tentativa)
-    setPlaylistCover(watchLater, unique[0]);
+    // Se o mosaico falhar, usa a capa genérica (não fixa a assinatura para permitir nova tentativa)
+    watchLater.images = [];
+    watchLater.coverSources = [];
+    updatePlaylistCardCover(watchLater.id, getFallbackCover(watchLater.name));
   }
 
   // Helper para verificar se a sessão de importação ainda é válida
@@ -5887,9 +5874,9 @@ const MUSIC_PLAYER = (() => {
       const isWatchLater = playlist.id === WATCH_LATER_PLAYLIST_ID;
 
       // Usa o mural gerado (armazenado em images). Enquanto o mural não estiver pronto,
-      // mostra a capa da primeira faixa como placeholder imediato.
+      // mostra a capa da primeira faixa como placeholder apenas se a playlist tiver 4+ faixas.
       let imageUrl = getPlaylistCover(playlist);
-      if (isWatchLater && !playlist.images?.length && playlist.tracks?.[0]) {
+      if (isWatchLater && !playlist.images?.length && trackCount >= 4 && playlist.tracks?.[0]) {
         imageUrl = getTrackCoverUrl(playlist.tracks[0]) || imageUrl;
       }
 
