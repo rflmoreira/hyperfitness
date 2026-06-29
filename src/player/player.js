@@ -4149,13 +4149,8 @@ const MUSIC_PLAYER = (() => {
     
     targetPlaylist.tracks.push(...tracksToAdd);
 
-    // Atualiza a capa da playlist com a primeira música se não tiver
-    if (targetPlaylist.cover === 'src/imagens/genericCover.png' && tracksToAdd.length > 0) {
-      const firstTrackCover = tracksToAdd[0].album?.images?.[0]?.url;
-      if (firstTrackCover) {
-        targetPlaylist.cover = firstTrackCover;
-      }
-    }
+    // A capa do card é montada a partir das capas do Deezer das faixas (via enriquecimento).
+    // Mantém a capa genérica até o enriquecimento resolver as correspondências no Deezer.
 
     // Salva no localStorage
     savePlaylistsToStorage();
@@ -4638,8 +4633,9 @@ const MUSIC_PLAYER = (() => {
     const newPlaylist = {
       id: `yt-playlist-${Date.now()}`,
       name: name,
-      cover: `https://i.ytimg.com/vi/${pendingYouTubeTrack._videoId}/mqdefault.jpg`,
-      images: [{ url: `https://i.ytimg.com/vi/${pendingYouTubeTrack._videoId}/mqdefault.jpg` }],
+      // A capa é resolvida via Deezer no enriquecimento; usa a genérica até lá
+      cover: 'src/imagens/genericCover.png',
+      images: [],
       tracks: [pendingYouTubeTrack]
     };
 
@@ -5293,12 +5289,20 @@ const MUSIC_PLAYER = (() => {
         const track = tracks[currentIndex];
         if (!track) continue;
 
+        const youtubeTrack = isYoutubeTrack(track);
+
         const hasRealCover = track.thumbnail
           && !track.generatedCover
           && !isFallbackCover(track.thumbnail)
           && !isGeneratedCover(track.thumbnail);
 
-        if (hasRealCover) continue;
+        // Faixas do YouTube sempre buscam a capa no Deezer (mesmo com thumbnail do YouTube),
+        // exceto quando a correspondência já foi resolvida nesta sessão.
+        if (youtubeTrack) {
+          if (track._deezerCoverResolved) continue;
+        } else if (hasRealCover) {
+          continue;
+        }
 
         const artistLabel = getTrackArtists(track).replace(/, /g, ' ');
         try {
@@ -5311,6 +5315,7 @@ const MUSIC_PLAYER = (() => {
             track.generatedCover = isFallbackCover(safeCover);
             applyCoverToStateAndUi(track, safeCover, importSessionId);
           }
+          if (youtubeTrack) track._deezerCoverResolved = true;
         } catch (error) {
           console.warn(`⚠️ [COVER] Erro ao enriquecer faixa "${track.name}": ${error.message}`);
         }
@@ -6129,6 +6134,11 @@ const MUSIC_PLAYER = (() => {
   // Helper para obter capa sanitizada da track (sem fallback)
   function getTrackCoverUrl(track) {
     return sanitizeImageUrl(track?.thumbnail) || sanitizeImageUrl(track?.album?.images?.[0]?.url) || '';
+  }
+
+  // Identifica faixas importadas do YouTube (busca manual ou import de playlist)
+  function isYoutubeTrack(track) {
+    return !!(track && (track._videoId || track._fromYoutubePlaylist || track._manualSearch));
   }
 
   function getTrackImage(track) {
