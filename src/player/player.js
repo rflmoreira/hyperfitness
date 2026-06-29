@@ -4171,8 +4171,9 @@ const MUSIC_PLAYER = (() => {
       subtitle: `${targetPlaylist.tracks.length} faixas no total`
     });
 
-    // Muda para a aba de biblioteca
+    // Muda para a aba de biblioteca exibindo as faixas da playlist recém-importada
     switchPlayerTab('playlist');
+    selectPlaylist(targetPlaylist);
   }
 
   // Estado temporário para o track sendo adicionado
