@@ -5121,30 +5121,49 @@ const MUSIC_PLAYER = (() => {
     updatePlaylistCardCover(playlist.id, coverUrl);
   }
 
-  // Quantidade mínima de capas para compor o mosaico 2x2 completo
+  // Quantidade mínima de capas válidas para gerar o mosaico (geradas progressivamente durante o preload).
+  // O mosaico é criado assim que houver 4 ou mais capas válidas.
   const PLAYLIST_MOSAIC_MIN = 4;
+  const WATCH_LATER_MOSAIC_MIN = 4;
 
   // Identifica playlists importadas do YouTube (id começa com "yt-")
   function isYoutubeImportedPlaylist(playlist) {
     return typeof playlist?.id === 'string' && playlist.id.startsWith('yt-');
   }
 
+  // Playlists cuja capa é um mosaico montado a partir das capas das faixas
+  function isMosaicCoverPlaylist(playlist) {
+    return !!playlist && (playlist.id === WATCH_LATER_PLAYLIST_ID || isYoutubeImportedPlaylist(playlist));
+  }
+
+  // Mínimo de capas válidas para gerar o mosaico desta playlist
+  function getMosaicMinCovers(playlist) {
+    return playlist?.id === WATCH_LATER_PLAYLIST_ID ? WATCH_LATER_MOSAIC_MIN : PLAYLIST_MOSAIC_MIN;
+  }
+
   // (Re)gera a capa de uma playlist como mosaico 2x2 a partir das capas (artes de álbum) das faixas.
-  // O mosaico só é gerado quando há 4 ou mais capas reais; caso contrário usa a capa genérica.
+  // O mosaico é gerado assim que houver o mínimo de capas válidas; caso contrário usa a capa genérica.
+  // Pode ser chamada repetidamente durante o preload: a assinatura evita regerações desnecessárias.
   async function refreshPlaylistMosaicCover(playlist) {
     if (!playlist) return;
 
+    const minCovers = getMosaicMinCovers(playlist);
     const realCovers = (playlist.tracks || [])
       .map(track => getTrackCoverUrl(track))
       .filter(isRealCover);
     const unique = [...new Set(realCovers)];
+    const canGenerate = unique.length >= minCovers;
 
-    // Assinatura das capas relevantes: evita regerar o mosaico sem necessidade
-    const signature = `${unique.length}:${unique.slice(0, PLAYLIST_MOSAIC_MIN).join('|')}`;
+    // As 4 capas efetivamente usadas no mosaico 2x2
+    const mosaicSources = unique.slice(0, 4);
+
+    // Assinatura: quando pode gerar, depende só das 4 capas do mosaico (estável depois de definidas,
+    // mesmo que novas capas surjam); enquanto não atinge o mínimo, depende da contagem.
+    const signature = canGenerate ? `m:${mosaicSources.join('|')}` : `g:${unique.length}`;
     if (signature === playlist._coverSignature) return;
 
-    // Menos de 4 capas: usa a capa genérica (evita mosaico incompleto)
-    if (unique.length < PLAYLIST_MOSAIC_MIN) {
+    // Ainda sem capas suficientes: usa a capa genérica
+    if (!canGenerate) {
       playlist._coverSignature = signature;
       playlist.images = [];
       playlist.coverSources = [];
@@ -5152,12 +5171,11 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
-    // Mosaico 2x2 com as 4 primeiras capas das faixas
-    const mosaicSources = unique.slice(0, 4);
+    // Marca a assinatura de forma otimista para evitar regenerações concorrentes idênticas
+    playlist._coverSignature = signature;
     try {
       const mosaic = await gerarCapaPlaylist(mosaicSources);
       if (mosaic) {
-        playlist._coverSignature = signature;
         playlist.coverSources = mosaicSources;
         setPlaylistCover(playlist, mosaic);
         return;
@@ -5166,8 +5184,9 @@ const MUSIC_PLAYER = (() => {
       console.warn(`⚠️ [COVER] Falha ao gerar mosaico da playlist "${playlist.name}": ${error.message}`);
     }
 
-    // Falha ao gerar (transitória): não fixa a assinatura (permite nova tentativa) e
-    // preserva um mosaico já existente; só usa a genérica se ainda não houver mosaico.
+    // Falha (transitória): libera a assinatura para nova tentativa e preserva um mosaico já existente;
+    // só usa a genérica se ainda não houver mosaico.
+    playlist._coverSignature = null;
     if (!isMosaicCover(playlist.images?.[0]?.url)) {
       playlist.images = [];
       playlist.coverSources = [];
@@ -5199,6 +5218,12 @@ const MUSIC_PLAYER = (() => {
       if (hasValidCover && !playlist.coverSources.includes(coverUrl)) {
         playlist.coverSources.unshift(coverUrl);
         playlist.coverSources = playlist.coverSources.slice(0, 4);
+      }
+
+      // Geração progressiva do mosaico: assim que houver capas válidas suficientes durante o
+      // preload, o mosaico é criado/atualizado automaticamente (sem aguardar todas as faixas).
+      if (hasValidCover && isMosaicCoverPlaylist(playlist)) {
+        refreshPlaylistMosaicCover(playlist);
       }
     }
 
