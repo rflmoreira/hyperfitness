@@ -2988,7 +2988,7 @@ const MUSIC_PLAYER = (() => {
     ui.specialPlaylistsGrid.innerHTML = SPECIAL_PLAYLISTS.map(playlist => {
       const trackCount = getPlaylistTrackCount(playlist);
       return `
-        <div class="special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-yellow-500/10 hover:bg-yellow-500/20 transition-all duration-300 hover:scale-[1.02] ring-1 ring-yellow-500/20" 
+        <div class="special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-yellow-500/10 hover:bg-yellow-500/20 transition-all duration-300 ring-1 ring-yellow-500/20" 
              data-special-id="${playlist.id}">
           <div class="relative aspect-square">
             <img src="${playlist.cover}" 
@@ -3041,7 +3041,7 @@ const MUSIC_PLAYER = (() => {
     ui.featuredPlaylistsGrid.innerHTML = FEATURED_PLAYLISTS.map(playlist => {
       const trackCount = getPlaylistTrackCount(playlist);
       return `
-        <div class="featured-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]" 
+        <div class="featured-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300" 
              data-featured-id="${playlist.id}">
           <div class="relative aspect-square">
             <img src="${playlist.cover}" 
@@ -5995,7 +5995,7 @@ const MUSIC_PLAYER = (() => {
       }
 
       return `
-        <div class="my-playlist-card special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] ring-1 ring-white/10 relative" 
+        <div class="my-playlist-card special-playlist-card group cursor-pointer rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 ring-1 ring-white/10 relative" 
              data-playlist-id="${playlist.id}">
           <div class="relative aspect-square">
             <img src="${imageUrl}" 

@@ -1429,6 +1429,20 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Elevação suave aplicada apenas à capa (não ao card inteiro) */
+  transform: translateZ(0);
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Ao passar o cursor ou interagir, apenas a capa se eleva (título/infos/layout ficam estáticos) */
+.special-playlist-card:hover > .aspect-square > img,
+.featured-playlist-card:hover > .aspect-square > img,
+.my-playlist-card:hover > .aspect-square > img,
+.special-playlist-card:focus-within > .aspect-square > img,
+.featured-playlist-card:focus-within > .aspect-square > img,
+.my-playlist-card:focus-within > .aspect-square > img {
+  transform: translateY(-8px) scale(1.05);
 }
 
 /* Discover Play Button (shared by special & featured cards) */
