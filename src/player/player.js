@@ -2147,6 +2147,19 @@ const MUSIC_PLAYER = (() => {
       const hasText = e.target.value.trim().length > 0;
       if (ui.manualSearchBtn) ui.manualSearchBtn.disabled = !hasText;
     });
+    // Seleciona todo o texto ao focar/clicar quando o campo já contém um valor,
+    // permitindo substituir ou apagar com um único toque (mantém o padrão se estiver vazio).
+    const selectManualSearchIfFilled = (input) => {
+      if (!input || !input.value.length) return;
+      input.select();
+    };
+    ui.manualSearchInput?.addEventListener('focus', (e) => {
+      // rAF garante que a seleção persista após o tratamento padrão de foco (ex.: Safari)
+      requestAnimationFrame(() => selectManualSearchIfFilled(e.target));
+    });
+    ui.manualSearchInput?.addEventListener('click', (e) => {
+      selectManualSearchIfFilled(e.target);
+    });
     ui.manualSearchInput?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !ui.manualSearchBtn?.disabled) {
         performManualSearch();
