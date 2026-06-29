@@ -1509,9 +1509,19 @@
   cursor: grabbing;
 }
 
-/* Lixeira sempre visível durante a edição */
-#my-playlists-section.is-editing .delete-playlist-btn {
-  opacity: 1 !important;
+/* Lixeira oculta por padrão (fora do modo de reordenação), evitando exclusões acidentais */
+.my-playlist-card .delete-playlist-btn {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1), background 180ms ease;
+}
+
+/* Lixeira aparece com animação suave apenas no modo de reordenação */
+#my-playlists-section.is-editing .my-playlist-card .delete-playlist-btn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
 /* Evita conflito entre a animação de profundidade da capa e o modo de edição */

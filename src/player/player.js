@@ -2443,6 +2443,12 @@ const MUSIC_PLAYER = (() => {
 
     modal.addEventListener('touchstart', (e) => {
       if (!e.touches.length) return;
+      // Durante a reordenação de playlists, desativa o swipe de troca de abas
+      // para não conflitar com o arrastar dos cards (drag and drop).
+      if (playlistsReorderMode) {
+        tracking = false;
+        return;
+      }
       if (e.target.closest('#playlists-container') || e.target.closest('.track-item') || e.target.closest('.manual-search-item') || e.target.closest('#discover-top-spacer') || e.target.closest('.discover-carousel')) {
         tracking = false;
         return;
@@ -6009,7 +6015,7 @@ const MUSIC_PLAYER = (() => {
                  onerror="this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             ${!isWatchLater ? `
-            <button class="delete-playlist-btn absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
+            <button class="delete-playlist-btn absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
               <i class="ph-bold ph-trash text-white text-[14px]"></i>
             </button>
             ` : `
