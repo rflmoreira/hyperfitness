@@ -333,107 +333,147 @@ async function searchYouTube(query, limit = 50) {
   return videos;
 }
 
+const INNERTUBE_CLIENT_CONTEXT = {
+  client: {
+    clientName: 'WEB',
+    clientVersion: '2.20241126.01.00',
+    hl: 'en',
+    gl: 'US'
+  }
+};
+
+// Converte um texto de duração ("16:09" ou "1:02:33") para segundos
+function parseDurationToSeconds(text) {
+  const timeParts = String(text || '').match(/(\d+):(\d+)(?::(\d+))?/);
+  if (!timeParts) return 0;
+  return timeParts[3]
+    ? parseInt(timeParts[1], 10) * 3600 + parseInt(timeParts[2], 10) * 60 + parseInt(timeParts[3], 10)
+    : parseInt(timeParts[1], 10) * 60 + parseInt(timeParts[2], 10);
+}
+
+// Extrai um vídeo a partir do novo formato lockupViewModel
+function parseLockupVideo(lockup) {
+  if (!lockup || lockup.contentType !== 'LOCKUP_CONTENT_TYPE_VIDEO') return null;
+
+  const videoId = lockup.contentId;
+  if (!videoId) return null;
+
+  const metadata = lockup.metadata?.lockupMetadataViewModel;
+  const title = metadata?.title?.content || '';
+  const author = metadata?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]?.text?.content || '';
+
+  // Duração fica num badge sobreposto ao thumbnail (ex.: "16:09")
+  let durationText = '';
+  const overlays = lockup.contentImage?.thumbnailViewModel?.overlays || [];
+  for (const overlay of overlays) {
+    const badges = overlay?.thumbnailBottomOverlayViewModel?.badges || [];
+    for (const badge of badges) {
+      const text = badge?.thumbnailBadgeViewModel?.text;
+      if (text && /\d+:\d+/.test(text)) {
+        durationText = text;
+        break;
+      }
+    }
+    if (durationText) break;
+  }
+
+  const sources = lockup.contentImage?.thumbnailViewModel?.image?.sources || [];
+  const thumbnail = sources.length
+    ? sources[sources.length - 1].url
+    : `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+
+  return {
+    videoId,
+    title,
+    author,
+    lengthSeconds: parseDurationToSeconds(durationText),
+    thumbnail
+  };
+}
+
+// Percorre a resposta da InnerTube coletando vídeos (lockupViewModel) e o token de continuação
+function collectLockupVideos(node, videos, limit, seenIds, tokenRef, depth = 0) {
+  if (!node || typeof node !== 'object' || depth > 40) return;
+
+  if (node.lockupViewModel) {
+    const video = parseLockupVideo(node.lockupViewModel);
+    if (video && !seenIds.has(video.videoId) && videos.length < limit) {
+      seenIds.add(video.videoId);
+      videos.push(video);
+    }
+  }
+
+  if (node.continuationItemRenderer) {
+    const token = node.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token;
+    if (token) tokenRef.token = token;
+  }
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      collectLockupVideos(item, videos, limit, seenIds, tokenRef, depth + 1);
+    }
+  } else {
+    for (const key of Object.keys(node)) {
+      if (key === 'responseContext' || key === 'trackingParams') continue;
+      collectLockupVideos(node[key], videos, limit, seenIds, tokenRef, depth + 1);
+    }
+  }
+}
+
 async function getPlaylistVideos(playlistId, limit = 100) {
-  const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
-  
-  const html = await fetchYouTubeHTML(playlistUrl);
-  const jsonData = parseYouTubeInitialData(html);
-  
-  if (!jsonData) {
+  // A página HTML da playlist não expõe mais os vídeos server-side; usa a API InnerTube.
+  let data = await fetchInnertubeBrowse({ browseId: `VL${playlistId}` });
+
+  if (!data) {
     throw new Error('Could not parse YouTube playlist response');
   }
 
-  const playlistHeader = jsonData?.header?.playlistHeaderRenderer || {};
-  const playlistInfo = {
-    title: playlistHeader.title?.simpleText || '',
-    author: playlistHeader.ownerText?.runs?.[0]?.text || '',
-    videoCount: parseInt(playlistHeader.numVideosText?.runs?.[0]?.text?.replace(/\D/g, ''), 10) || 0,
-    thumbnail: playlistHeader.playlistHeaderBanner?.heroPlaylistThumbnailRenderer?.thumbnail?.thumbnails?.slice(-1)[0]?.url || ''
-  };
-
-  const contents = jsonData?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents?.[0]?.playlistVideoListRenderer?.contents || [];
-  
   const videos = [];
-  let continuationToken = null;
-  
-  // Processa os vídeos da primeira página
-  for (const item of contents) {
-    if (item.playlistVideoRenderer) {
-      const video = item.playlistVideoRenderer;
-      if (!video?.videoId) continue;
-      
-      const durationText = video.lengthText?.simpleText || '0:00';
-      let durationSeconds = 0;
-      const timeParts = durationText.match(/(\d+):(\d+)(?::(\d+))?/);
-      if (timeParts) {
-        durationSeconds = timeParts[3]
-          ? parseInt(timeParts[1]) * 3600 + parseInt(timeParts[2]) * 60 + parseInt(timeParts[3])
-          : parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
-      }
+  const seenIds = new Set();
+  const tokenRef = { token: null };
 
-      videos.push({
-        videoId: video.videoId,
-        title: video.title?.runs?.[0]?.text || '',
-        author: video.shortBylineText?.runs?.[0]?.text || '',
-        lengthSeconds: durationSeconds,
-        thumbnail: video.thumbnail?.thumbnails?.slice(-1)[0]?.url || ''
-      });
-    } else if (item.continuationItemRenderer) {
-      // Guarda o token de continuação para buscar mais vídeos
-      continuationToken = item.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token;
-    }
+  collectLockupVideos(data, videos, limit, seenIds, tokenRef);
 
-    if (videos.length >= limit) break;
-  }
+  // Pagina enquanto houver token e não tiver atingido o limite
+  let pages = 0;
+  while (tokenRef.token && videos.length < limit && pages < 10) {
+    const token = tokenRef.token;
+    tokenRef.token = null;
+    pages++;
 
-  // Se ainda não atingiu o limite e tem continuation token, busca mais páginas
-  while (videos.length < limit && continuationToken) {
     try {
-      const continuationData = await fetchPlaylistContinuation(continuationToken);
-      if (!continuationData) break;
-      
-      const continuationItems = continuationData?.onResponseReceivedActions?.[0]?.appendContinuationItemsAction?.continuationItems || [];
-      continuationToken = null; // Reset para próxima iteração
-      
-      for (const item of continuationItems) {
-        if (item.playlistVideoRenderer) {
-          const video = item.playlistVideoRenderer;
-          if (!video?.videoId) continue;
-          
-          const durationText = video.lengthText?.simpleText || '0:00';
-          let durationSeconds = 0;
-          const timeParts = durationText.match(/(\d+):(\d+)(?::(\d+))?/);
-          if (timeParts) {
-            durationSeconds = timeParts[3]
-              ? parseInt(timeParts[1]) * 3600 + parseInt(timeParts[2]) * 60 + parseInt(timeParts[3])
-              : parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
-          }
-
-          videos.push({
-            videoId: video.videoId,
-            title: video.title?.runs?.[0]?.text || '',
-            author: video.shortBylineText?.runs?.[0]?.text || '',
-            lengthSeconds: durationSeconds,
-            thumbnail: video.thumbnail?.thumbnails?.slice(-1)[0]?.url || ''
-          });
-        } else if (item.continuationItemRenderer) {
-          continuationToken = item.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token;
-        }
-
-        if (videos.length >= limit) break;
-      }
+      data = await fetchInnertubeBrowse({ continuation: token });
+      if (!data) break;
+      collectLockupVideos(data, videos, limit, seenIds, tokenRef);
     } catch (e) {
       console.error('[PLAYLIST] Continuation fetch error:', e.message);
       break;
     }
   }
 
-  return { playlistInfo, videos };
+  const playlistInfo = extractPlaylistInfo(data, videos.length);
+
+  return { playlistInfo, videos: videos.slice(0, limit) };
 }
 
-async function fetchPlaylistContinuation(continuationToken) {
+// Best-effort: extrai informações gerais da playlist quando disponíveis
+function extractPlaylistInfo(data, videoCount) {
+  const headerViewModel = data?.header?.pageHeaderRenderer?.content?.pageHeaderViewModel;
+  const title = headerViewModel?.title?.dynamicTextViewModel?.text?.content
+    || data?.metadata?.playlistMetadataRenderer?.title
+    || '';
+
+  return {
+    title,
+    author: '',
+    videoCount: videoCount || 0,
+    thumbnail: ''
+  };
+}
+
+async function fetchInnertubeBrowse(payload) {
   const apiUrl = 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false';
-  
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -442,20 +482,13 @@ async function fetchPlaylistContinuation(continuationToken) {
       'Accept-Language': 'en-US,en;q=0.9'
     },
     body: JSON.stringify({
-      context: {
-        client: {
-          clientName: 'WEB',
-          clientVersion: '2.20241126.01.00',
-          hl: 'en',
-          gl: 'US'
-        }
-      },
-      continuation: continuationToken
+      context: INNERTUBE_CLIENT_CONTEXT,
+      ...payload
     })
   });
 
   if (!response.ok) {
-    throw new Error(`Continuation fetch failed: ${response.status}`);
+    throw new Error(`InnerTube browse failed: ${response.status}`);
   }
 
   return response.json();
