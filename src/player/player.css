@@ -930,6 +930,49 @@
   font-size: 30px;
 }
 
+/* Tela cheia via CSS (fallback para iPhone Safari e navegadores sem element
+   fullscreen). Cobre o viewport com position:fixed sem recarregar o iframe. */
+#expanded-video-wrapper.css-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  border-radius: 0 !important;
+  background: #000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 2147483647 !important;
+}
+
+#expanded-video-wrapper.css-fullscreen .video-fullscreen-btn {
+  width: 74px;
+  height: 74px;
+  font-size: 30px;
+}
+
+/* Enquanto a tela cheia CSS estiver ativa, remove transform/backdrop-filter dos
+   ancestrais para que o position:fixed seja relativo ao viewport (senão um
+   ancestral com transform/filter vira o bloco de contenção e "prende" o vídeo). */
+body.video-css-fs #player-controls-bar {
+  transform: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.video-css-fs #player-controls-bar .expanded-cover-wrapper {
+  transform: none !important;
+}
+
 /* Modo Vídeo ativo: esconde a capa, mostra o clipe */
 #player-controls-bar .expanded-cover-wrapper.mode-video #ctrl-expanded-cover {
   opacity: 0;

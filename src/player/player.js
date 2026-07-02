@@ -1084,6 +1084,8 @@ const MUSIC_PLAYER = (() => {
     function enterCoverMode({ resume = true } = {}) {
       currentMode = 'cover';
       applyModeVisual('cover');
+      // Sair do modo Vídeo também encerra qualquer tela cheia ativa.
+      exitFullscreenIfActive();
 
       if (!ytEngineActive) {
         return;
@@ -1118,6 +1120,7 @@ const MUSIC_PLAYER = (() => {
     function stopVideo() {
       ytEngineActive = false;
       stopProgressLoop();
+      exitFullscreenIfActive();
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
       // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
       audio.muted = prevMuted;
@@ -1140,23 +1143,70 @@ const MUSIC_PLAYER = (() => {
       document.getElementById('video-overlay')?.classList.remove('visible');
     }
 
-    function isFullscreen() {
-      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    // Fullscreen CSS (fallback para navegadores sem element fullscreen, ex.: iPhone Safari)
+    let cssFullscreen = false;
+
+    function nativeFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || null;
     }
 
-    function toggleFullscreen() {
+    function isFullscreen() {
+      return !!nativeFullscreenElement() || cssFullscreen;
+    }
+
+    function enterCssFullscreen() {
       const el = document.getElementById('expanded-video-wrapper');
       if (!el) return;
-      if (isFullscreen()) {
+      el.classList.add('css-fullscreen');
+      // Neutraliza transform/backdrop-filter dos ancestrais (que quebrariam o
+      // position:fixed) enquanto a tela cheia CSS estiver ativa.
+      document.body.classList.add('video-css-fs');
+      cssFullscreen = true;
+      updateFullscreenIcon();
+    }
+
+    function exitCssFullscreen() {
+      document.getElementById('expanded-video-wrapper')?.classList.remove('css-fullscreen');
+      document.body.classList.remove('video-css-fs');
+      cssFullscreen = false;
+      updateFullscreenIcon();
+    }
+
+    function exitAnyFullscreen() {
+      if (cssFullscreen) { exitCssFullscreen(); return; }
+      if (nativeFullscreenElement()) {
         const exit = document.exitFullscreen || document.webkitExitFullscreen;
         try { exit?.call(document); } catch (e) {}
-      } else {
-        const req = el.requestFullscreen || el.webkitRequestFullscreen;
-        try {
-          const p = req?.call(el);
-          if (p && typeof p.catch === 'function') p.catch(() => {});
-        } catch (e) {}
       }
+    }
+
+    async function toggleFullscreen() {
+      const el = document.getElementById('expanded-video-wrapper');
+      if (!el) return;
+
+      if (isFullscreen()) {
+        exitAnyFullscreen();
+        return;
+      }
+
+      // 1) Fullscreen API nativa (Desktop, Android Chrome, iPad Safari).
+      //    Deve ser chamada dentro do gesto do usuário (o clique do botão).
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) {
+        try {
+          const result = req.call(el);
+          if (result && typeof result.then === 'function') {
+            await result; // pode rejeitar em navegadores que não permitem fullscreen de <div>
+          }
+          return; // sucesso: o ícone é atualizado via fullscreenchange
+        } catch (e) {
+          // Ex.: iOS iPhone não permite fullscreen de elementos que não sejam <video>.
+        }
+      }
+
+      // 2) Fallback CSS (iPhone Safari e afins): "tela cheia" cobrindo o viewport
+      //    via position:fixed, sem recarregar o iframe (preserva reprodução/sincronização).
+      enterCssFullscreen();
     }
 
     function updateFullscreenIcon() {
@@ -1184,6 +1234,15 @@ const MUSIC_PLAYER = (() => {
 
       document.addEventListener('fullscreenchange', updateFullscreenIcon);
       document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+      // Escape encerra a tela cheia CSS (a nativa já é tratada pelo navegador).
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && cssFullscreen) exitCssFullscreen();
+      });
+    }
+
+    // Encerra qualquer tela cheia ativa (nativa ou CSS). Usado ao sair do modo Vídeo.
+    function exitFullscreenIfActive() {
+      if (isFullscreen()) exitAnyFullscreen();
     }
 
     // ---- Disponibilidade / restauração ----
