@@ -1061,12 +1061,24 @@ const MUSIC_PLAYER = (() => {
       if (!wrapper || !coverImg) return;
       // Em tela cheia o posicionamento é controlado pelo CSS (!important).
       if (isFullscreen()) return;
+      // Usa offsetWidth/offsetHeight (tamanho de layout, ignora transforms)
+      // em vez de getBoundingClientRect width/height (que retorna o rect
+      // pós-transform — em mode-video a capa tem scale(0.96), o que tornaria
+      // o wrapper 4% menor que o correto).
+      const layoutWidth = coverImg.offsetWidth;
+      const layoutHeight = coverImg.offsetHeight;
+      if (!layoutWidth || !layoutHeight) return;
+      // Para a posição, usa getBoundingClientRect (coordenadas reais no viewport).
       const rect = coverImg.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const width = rect.width;
+      // Calcula o centro da capa a partir do rect (que inclui o transform).
+      // Como o transform é uniforme (scale), o centro é o mesmo pré ou pós-transform.
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      // Constrói o retângulo 16:9 usando o tamanho de layout (sem scale).
+      const width = layoutWidth;
       const height = width * 9 / 16;
-      const left = rect.left;
-      const top = rect.top + (rect.height - height) / 2;
+      const left = centerX - width / 2;
+      const top = centerY - height / 2;
       wrapper.style.left = `${Math.round(left)}px`;
       wrapper.style.top = `${Math.round(top)}px`;
       wrapper.style.width = `${Math.round(width)}px`;
@@ -1446,24 +1458,44 @@ const MUSIC_PLAYER = (() => {
       //
       // IMPORTANTE: iOS/Safari disparam 'visibilitychange: hidden' TRANSITÓRIO ao
       // girar o dispositivo ou entrar/sair de tela cheia. Se reagíssemos na hora,
-      // o vídeo seria interrompido a cada rotação. Por isso usamos um debounce e
-      // só saímos do modo Vídeo quando a página permanece oculta (bloqueio real).
+      // o vídeo seria interrompido a cada rotação. Estratégia:
+      //  1) No hidden transitório: apenas pausar o YouTube (sem handoff MP3).
+      //     Isso evita recarregar o iframe (loadVideoById) ao retomar.
+      //  2) Se permanecer hidden por 2000ms (bloqueio real/troca de aba):
+      //     fazer o handoff completo para MP3 via enterCoverMode.
+      //  3) Ao voltar a ficar visible: se foi apenas pausado, retomar com
+      //     playVideo() (sem reload); se foi handoff completo, maybeAutoRestore.
       let hiddenTimer = null;
+      let videoPausedByVisibility = false;
       const clearHiddenTimer = () => { if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; } };
 
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
           clearHiddenTimer();
+          if (ytEngineActive && !videoPausedByVisibility) {
+            // Pausa imediatamente o YouTube (sem handoff) para evitar
+            // reprodução em segundo plano (proibido pelo iOS).
+            try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
+            videoPausedByVisibility = true;
+          }
+          // Debounce longo: só faz handoff completo se realmente saiu da aba.
           hiddenTimer = setTimeout(() => {
             hiddenTimer = null;
-            // Continua oculta de fato (não foi um transitório de rotação/fullscreen).
             if (document.visibilityState === 'hidden' && ytEngineActive) {
-              enterCoverMode({ resume: true }); // mantém userPreference
+              // Bloqueio real: faz handoff completo para MP3.
+              videoPausedByVisibility = false;
+              enterCoverMode({ resume: true });
             }
-          }, 600);
+          }, 2000);
         } else {
           clearHiddenTimer();
-          maybeAutoRestore();
+          if (videoPausedByVisibility && ytEngineActive) {
+            // Retoma o YouTube de onde parou (sem recarregar o iframe).
+            try { if (ytPlayer && ytReady) ytPlayer.playVideo(); } catch (e) {}
+            videoPausedByVisibility = false;
+          } else {
+            maybeAutoRestore();
+          }
         }
       });
 
@@ -1481,13 +1513,14 @@ const MUSIC_PLAYER = (() => {
       const onViewportChange = () => {
         if (!ytEngineActive) return;
         if (isFullscreen()) return;
+        // Reposiciona imediatamente (via RAF coalesced) e escalona
+        // retentativas para capturar o rect definitivo após cada
+        // estágio da animação de rotação do iOS (~100-700ms).
         schedulePositionVideoWrapper();
-        // No iOS a animação de rotação pode durar ~500ms; escalona
-        // reposicionamentos para capturar o rect definitivo após o
-        // layout assentar, evitando que o overlay fique preso numa
-        // posição intermediária.
-        setTimeout(positionVideoWrapper, 300);
-        setTimeout(positionVideoWrapper, 500);
+        setTimeout(schedulePositionVideoWrapper, 100);
+        setTimeout(schedulePositionVideoWrapper, 300);
+        setTimeout(schedulePositionVideoWrapper, 500);
+        setTimeout(schedulePositionVideoWrapper, 700);
       };
       window.addEventListener('resize', onViewportChange, { passive: true });
       window.addEventListener('orientationchange', onViewportChange, { passive: true });
