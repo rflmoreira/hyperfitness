@@ -396,15 +396,6 @@
     </div>
     <div class="expanded-cover-stage">
       <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">
-      <div id="expanded-video-wrapper" class="expanded-video-wrapper" aria-hidden="true">
-        <div id="yt-video-host"></div>
-        <!-- Overlay de controles personalizados sobre o vídeo (bloqueia os controles nativos do YouTube) -->
-        <div id="video-overlay" class="video-overlay">
-          <button id="video-fullscreen-btn" class="video-fullscreen-btn" type="button" aria-label="Tela cheia">
-            <i class="ph-bold ph-arrows-out" aria-hidden="true"></i>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
   <div class="controls-inner">
@@ -433,6 +424,20 @@
     <div class="controls-group volume-control">
       <button id="ctrl-volume-btn" aria-label="Mudo"><i class="ph-bold ph-speaker-high"></i></button>
     </div>
+  </div>
+</div>
+
+<!-- Player de vídeo (clipe oficial) — montado em NÍVEL SUPERIOR, fora do
+     #player-controls-bar, para que o <iframe> nunca tenha ancestrais com
+     backdrop-filter/transform (evita o crash de rotação no iOS). Posicionado
+     via JS para sobrepor a área da capa; usa position:fixed. -->
+<div id="expanded-video-wrapper" class="expanded-video-wrapper" aria-hidden="true">
+  <div id="yt-video-host"></div>
+  <!-- Overlay de controles personalizados sobre o vídeo (bloqueia os controles nativos do YouTube) -->
+  <div id="video-overlay" class="video-overlay">
+    <button id="video-fullscreen-btn" class="video-fullscreen-btn" type="button" aria-label="Tela cheia">
+      <i class="ph-bold ph-arrows-out" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 

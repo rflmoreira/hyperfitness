@@ -1002,6 +1002,26 @@ const MUSIC_PLAYER = (() => {
       updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
     }
 
+    // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
+    // sobrepor exatamente a área da capa (16:9 centralizado sobre a arte quadrada).
+    function positionVideoWrapper() {
+      const wrapper = document.getElementById('expanded-video-wrapper');
+      const coverImg = document.getElementById('ctrl-expanded-cover');
+      if (!wrapper || !coverImg) return;
+      // Em tela cheia o posicionamento é controlado pelo CSS (!important).
+      if (isFullscreen()) return;
+      const rect = coverImg.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const width = rect.width;
+      const height = width * 9 / 16;
+      const left = rect.left;
+      const top = rect.top + (rect.height - height) / 2;
+      wrapper.style.left = `${Math.round(left)}px`;
+      wrapper.style.top = `${Math.round(top)}px`;
+      wrapper.style.width = `${Math.round(width)}px`;
+      wrapper.style.height = `${Math.round(height)}px`;
+    }
+
     // ---- Visual (fade + scale) ----
     function applyModeVisual(mode) {
       const els = getEls();
@@ -1010,6 +1030,20 @@ const MUSIC_PLAYER = (() => {
         els.toggle.querySelectorAll('[data-mode]').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.mode === mode);
         });
+      }
+      // Exibe/oculta o player de vídeo de nível superior e o posiciona sobre a capa.
+      const videoWrapper = document.getElementById('expanded-video-wrapper');
+      if (videoWrapper) {
+        if (mode === 'video') {
+          positionVideoWrapper();
+          videoWrapper.classList.add('is-visible');
+          // Reposiciona após a animação de abertura da capa assentar (o rect muda
+          // durante o scale), garantindo alinhamento exato.
+          requestAnimationFrame(positionVideoWrapper);
+          setTimeout(positionVideoWrapper, 380);
+        } else {
+          videoWrapper.classList.remove('is-visible');
+        }
       }
     }
 
@@ -1138,6 +1172,7 @@ const MUSIC_PLAYER = (() => {
       if (reflowHideTimer) clearTimeout(reflowHideTimer);
       reflowHideTimer = setTimeout(() => {
         reflowHideTimer = null;
+        positionVideoWrapper(); // reposiciona sobre a capa após a rotação assentar
         document.getElementById('expanded-video-wrapper')?.classList.remove('reflow-hidden');
       }, 500);
     }
@@ -1188,6 +1223,8 @@ const MUSIC_PLAYER = (() => {
       cssFullscreen = false;
       updateFullscreenIcon();
       syncFullscreenChrome();
+      // Volta a posicionar o vídeo sobre a capa (modo Vídeo normal).
+      positionVideoWrapper();
     }
 
     function exitAnyFullscreen() {
@@ -1242,6 +1279,8 @@ const MUSIC_PLAYER = (() => {
     function onNativeFullscreenChange() {
       updateFullscreenIcon();
       syncFullscreenChrome();
+      // Ao sair da tela cheia nativa, reposiciona o vídeo sobre a capa.
+      if (!isFullscreen()) positionVideoWrapper();
     }
 
     function initVideoControls() {
@@ -1392,13 +1431,19 @@ const MUSIC_PLAYER = (() => {
         if (ytEngineActive) enterCoverMode({ resume: true });
       });
 
-      // Mudança de orientação: oculta o iframe durante a transição para evitar o
-      // recarregamento do iOS ao recompor o iframe no meio da rotação. NÃO recarrega
-      // nada — apenas alterna visibility e restaura logo após a rotação assentar.
+      // Mudança de orientação: oculta o iframe durante a transição (belt-and-suspenders)
+      // e reposiciona ao final. Com o vídeo montado em nível superior, a rotação já
+      // não derruba o iframe; isto apenas garante alinhamento e suavidade.
       window.addEventListener('orientationchange', hideVideoDuringReflow);
       if (window.screen && screen.orientation && typeof screen.orientation.addEventListener === 'function') {
         screen.orientation.addEventListener('change', hideVideoDuringReflow);
       }
+
+      // Mantém o vídeo alinhado à capa quando o viewport muda (rotação, barra de
+      // URL mostrando/ocultando, etc.), exceto em tela cheia.
+      window.addEventListener('resize', () => {
+        if (ytEngineActive && !isFullscreen()) positionVideoWrapper();
+      }, { passive: true });
     }
 
     return {
