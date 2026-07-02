@@ -6529,15 +6529,30 @@
       will-change: transform;
     }
 
+    /* CAUSA RAIZ do recarregamento global ao girar o dispositivo (iOS Safari):
+       esta camada cobre o documento INTEIRO e, com filter: blur, o WebKit não
+       consegue renderizá-la em tiles — precisa de um buffer rasterizado do
+       tamanho total (largura × altura do documento × DPR²). Cada rotação
+       re-rasterizava esse buffer gigante na nova largura, estourando a memória
+       da GPU e derrubando o processo WebContent (o Safari então recarrega a
+       página — o mesmo mecanismo já documentado no overlay do week-sheet).
+
+       Correção: o raster é gerado em resolução REDUZIDA (o JS define
+       width/height em px = tamanho final ÷ --bg-bands-scale) e ampliado por
+       transform: scale(). O blur escala junto com o transform, então
+       blur(80px ÷ escala) ampliado é visualmente idêntico a blur(80px) —
+       mesma aparência com 1/escala² da memória e da re-rasterização.
+       Sem o JS (fallback), --bg-bands-scale é 1 e nada muda. */
     #page-background .bg-abstract-bands {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) -5%;
       width: 110%;
       height: 110%;
-      transform: translate3d(0, var(--pg-background-parallax-y), 0);
+      transform: translate3d(0, var(--pg-background-parallax-y), 0) scale(var(--bg-bands-scale, 1));
+      transform-origin: top left;
       will-change: transform;
       opacity: 0.45;
-      filter: blur(80px);
+      filter: blur(calc(80px / var(--bg-bands-scale, 1)));
     }
 
     /* ── Reduced Motion ── */
@@ -6546,9 +6561,13 @@
         --pg-background-parallax-y: 0px !important;
       }
       #page-background .bg-gradient-base,
-      #page-background .bg-abstract-bands,
       #page-background .bg-noise {
         transform: none !important;
+        will-change: auto;
+      }
+      /* Preserva o scale do raster reduzido (o parallax já é zerado acima). */
+      #page-background .bg-abstract-bands {
+        transform: translate3d(0, 0, 0) scale(var(--bg-bands-scale, 1)) !important;
         will-change: auto;
       }
     }
@@ -10211,18 +10230,34 @@
       boundScroll: null,
       boundResize: null,
       boundMotionChange: null,
+      bands: null,
+      bandsObserver: null,
+      // Fator de redução do raster de .bg-abstract-bands (ver CSS): a camada é
+      // rasterizada em 1/4 do tamanho e ampliada por transform, eliminando o
+      // buffer de GPU em tamanho de documento que derrubava o WebContent do
+      // Safari iOS a cada rotação (e fazia a página inteira recarregar).
+      bandsScale: 4,
 
       init(layer) {
         this.destroy();
         if (!layer) return;
 
         this.layer = layer;
+        this.bands = layer.querySelector('.bg-abstract-bands');
         this.boundScroll = this.handleScroll.bind(this);
         this.boundResize = this.handleResize.bind(this);
         this.boundMotionChange = this.handleMotionPreferenceChange.bind(this);
         this.reduceMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') || null;
 
         this.updateMotionScale();
+        this.syncBandsRaster();
+        // A altura de #page-background acompanha o documento (muda ao abrir
+        // telas/listas); o observer mantém o raster reduzido sempre cobrindo
+        // a área final, como o width/height:110% originais faziam.
+        if (typeof ResizeObserver === 'function') {
+          this.bandsObserver = new ResizeObserver(() => this.syncBandsRaster());
+          this.bandsObserver.observe(layer);
+        }
         window.addEventListener('scroll', this.boundScroll, { passive: true });
         window.addEventListener('resize', this.boundResize, { passive: true });
 
@@ -10241,6 +10276,20 @@
         const isMobile = window.matchMedia?.('(max-width: 767px)').matches;
         this.factor = isMobile ? 0.028 : 0.038;
         this.maxShift = isMobile ? 34 : 58;
+      },
+
+      // Dimensiona .bg-abstract-bands em pixels reais = (tamanho final × 110%)
+      // ÷ bandsScale; o CSS amplia de volta com scale(var(--bg-bands-scale)).
+      // Geometria e aparência idênticas às originais, com raster 16× menor.
+      syncBandsRaster() {
+        if (!this.layer || !this.bands) return;
+        const w = this.layer.clientWidth;
+        const h = this.layer.clientHeight;
+        if (!w || !h) return;
+        const k = this.bandsScale;
+        this.bands.style.width = `${Math.ceil((w * 1.1) / k)}px`;
+        this.bands.style.height = `${Math.ceil((h * 1.1) / k)}px`;
+        this.bands.style.setProperty('--bg-bands-scale', String(k));
       },
 
       getReducedMotion() {
@@ -10289,6 +10338,7 @@
 
       handleResize() {
         this.updateMotionScale();
+        this.syncBandsRaster();
         this.handleScroll();
       },
 
@@ -10297,6 +10347,12 @@
       },
 
       destroy() {
+        if (this.bandsObserver) {
+          this.bandsObserver.disconnect();
+          this.bandsObserver = null;
+        }
+        this.bands = null;
+
         if (this.boundScroll) {
           window.removeEventListener('scroll', this.boundScroll);
           this.boundScroll = null;
