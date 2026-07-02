@@ -976,7 +976,8 @@ const MUSIC_PLAYER = (() => {
             fs: 0,
             iv_load_policy: 3,
             disablekb: 1,
-            cc_load_policy: 0
+            cc_load_policy: 0,
+            origin: window.location.origin
           },
           events: {
             onReady: () => { ytReady = true; resolve(p); },
@@ -1082,12 +1083,15 @@ const MUSIC_PLAYER = (() => {
         if (mode === 'video') {
           positionVideoWrapper();
           videoWrapper.classList.add('is-visible');
+          videoWrapper.setAttribute('aria-hidden', 'false');
           // Reposiciona após a animação de abertura da capa assentar (o rect muda
           // durante o scale), garantindo alinhamento exato.
           requestAnimationFrame(positionVideoWrapper);
           setTimeout(positionVideoWrapper, 380);
         } else {
           videoWrapper.classList.remove('is-visible');
+          videoWrapper.setAttribute('aria-hidden', 'true');
+          videoWrapper.querySelector(':focus')?.blur();
         }
       }
     }
