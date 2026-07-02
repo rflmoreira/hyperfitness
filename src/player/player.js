@@ -5986,6 +5986,7 @@ const MUSIC_PLAYER = (() => {
 
     const concurrency = 1;
     let index = 0;
+    let coversResolved = false; // houve capa real recuperada que precisa ser persistida?
 
     async function worker() {
       while (index < tracks.length) {
@@ -6018,6 +6019,9 @@ const MUSIC_PLAYER = (() => {
             track.album.images = [{ url: safeCover }];
             track.generatedCover = isFallbackCover(safeCover);
             applyCoverToStateAndUi(track, safeCover, importSessionId);
+            // Marca para persistir apenas quando uma capa REAL foi obtida, para
+            // que o reload recupere a arte original (e não a capa genérica).
+            if (!track.generatedCover) coversResolved = true;
           }
           if (youtubeTrack) track._deezerCoverResolved = true;
         } catch (error) {
@@ -6029,6 +6033,13 @@ const MUSIC_PLAYER = (() => {
     }
 
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
+
+    // Persiste as capas reais recuperadas para que sobrevivam ao reload da página.
+    // (As capas resolvidas no enriquecimento só existiam em memória/DOM antes.)
+    if (coversResolved && !isImportSessionStale(importSessionId)) {
+      debouncedSave();
+    }
+
     return tracks;
   }
 
