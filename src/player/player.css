@@ -851,12 +851,19 @@
   pointer-events: auto;
 }
 
+/* O iframe do YouTube tem tamanho de LAYOUT constante (1280×720) e é ajustado
+   ao wrapper apenas por transform (variáveis definidas por JS no wrapper —
+   syncHostScale). Redimensionar o layout de um iframe durante a rotação
+   derruba o WebContent do Safari iOS (o Safari recarrega a página em ciclo);
+   com transform, a rotação nunca re-layouta o documento embutido. */
 #expanded-video-wrapper #yt-video-host,
 #expanded-video-wrapper iframe {
-  width: 100%;
-  height: 100%;
+  width: 1280px;
+  height: 720px;
   border: 0;
   display: block;
+  transform-origin: top left;
+  transform: translate(var(--yt-tx, 0px), var(--yt-ty, 0px)) scale(var(--yt-scale, 1));
 }
 
 /* Overlay de controles personalizados sobre o vídeo.
@@ -966,29 +973,6 @@
   width: 74px;
   height: 74px;
   font-size: 30px;
-}
-
-/* Rotação em andamento (iOS Safari): retira temporariamente a camada do vídeo
-   do compositor enquanto o viewport gira. O iframe permanece vivo e o clipe
-   continua tocando; apenas a rasterização é suspensa, o que elimina o crash
-   do WebContent ao girar (que fazia o Safari recarregar a página em ciclo).
-   A classe é aplicada por JS só durante a transição (~500ms) e removida assim
-   que o viewport estabiliza. Declarada APÓS .css-fullscreen para vencer o
-   visibility:visible !important da tela cheia CSS durante a rotação. */
-#expanded-video-wrapper.rotation-parking {
-  visibility: hidden !important;
-}
-
-/* Durante a janela de rotação (iOS), suspende os backdrop-filters de viewport
-   inteiro: re-rasterizados a cada frame da animação de rotação junto com a
-   camada do vídeo, eram o custo cumulativo que derrubava o WebContent após
-   rotações consecutivas. O fundo translúcido (background) é mantido, então a
-   mudança é imperceptível no meio do giro; o blur volta quando o viewport
-   estabiliza (~500ms). */
-body.video-rotation-parking #expanded-cover-blur,
-body.video-rotation-parking #player-controls-blur {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
 
 /* Em tela cheia (nativa OU CSS), oculta toda a interface fora da experiência de

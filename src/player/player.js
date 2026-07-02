@@ -956,8 +956,10 @@ const MUSIC_PLAYER = (() => {
       if (!host) return null;
       playerCreating = new Promise((resolve) => {
         const p = new YT.Player(host, {
-          width: '100%',
-          height: '100%',
+          // Tamanho de layout constante do iframe (ver syncHostScale): o ajuste
+          // visual ao wrapper é feito por transform, nunca por relayout.
+          width: String(YT_HOST_W),
+          height: String(YT_HOST_H),
           // Conjunto MÁXIMO de opções suportadas pela IFrame Player API para
           // ocultar/limitar os controles nativos do YouTube:
           // - controls: 0    -> remove a barra de controles (play/pause, progresso, volume, engrenagem, legendas, tela cheia)
@@ -1048,110 +1050,72 @@ const MUSIC_PLAYER = (() => {
       updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
     }
 
-    // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
-    // sobrepor exatamente a área da capa (16:9 centralizado sobre a arte quadrada).
-    function positionVideoWrapper() {
+    // ---- Iframe com tamanho de layout FIXO (causa raiz do reload ao girar) ----
+    // O Safari iOS derruba o processo WebContent quando o LAYOUT do iframe do
+    // YouTube muda durante a rotação: o documento embutido é re-layoutado e
+    // re-rasterizado no meio da transição e, após alguns giros, o processo
+    // crasha — o Safari então RECARREGA a página (o "ciclo de recarregamentos").
+    // Mitigações reativas (ocultar/estacionar ao detectar o giro) não resolvem
+    // porque o crash ocorre no mesmo turno em que o WebKit processa a rotação,
+    // antes de qualquer handler do app rodar.
+    //
+    // Correção estrutural: o iframe mantém um tamanho de layout CONSTANTE
+    // (YT_HOST_W×YT_HOST_H, definido no CSS) e é ajustado ao wrapper apenas por
+    // transform (translate+scale) — operação de compositor que NÃO re-layouta o
+    // documento embutido. Girar o dispositivo passa a redimensionar somente o
+    // wrapper (um div simples) e o fator de escala; o iframe nunca é
+    // redimensionado, em qualquer quantidade de rotações, com ou sem tela cheia.
+    const YT_HOST_W = 1280;
+    const YT_HOST_H = 720;
+
+    function syncHostScale() {
       const wrapper = document.getElementById('expanded-video-wrapper');
-      const coverImg = document.getElementById('ctrl-expanded-cover');
-      if (!wrapper || !coverImg) return;
-      // Em tela cheia o posicionamento é controlado pelo CSS (!important).
-      if (isFullscreen()) return;
-      const rect = coverImg.getBoundingClientRect();
+      if (!wrapper) return;
+      const rect = wrapper.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
-      const width = rect.width;
-      const height = width * 9 / 16;
-      const left = rect.left;
-      const top = rect.top + (rect.height - height) / 2;
-      wrapper.style.left = `${Math.round(left)}px`;
-      wrapper.style.top = `${Math.round(top)}px`;
-      wrapper.style.width = `${Math.round(width)}px`;
-      wrapper.style.height = `${Math.round(height)}px`;
+      // Escala uniforme + centralização. O fundo #000 do wrapper cobre as
+      // bordas quando a proporção difere de 16:9 (ex.: tela cheia), replicando
+      // o letterbox que o próprio player do YouTube aplicava.
+      // As variáveis ficam no WRAPPER (não no iframe) porque a IFrame API
+      // substitui o elemento host pelo iframe criado.
+      const scale = Math.min(rect.width / YT_HOST_W, rect.height / YT_HOST_H);
+      wrapper.style.setProperty('--yt-tx', `${(rect.width - YT_HOST_W * scale) / 2}px`);
+      wrapper.style.setProperty('--yt-ty', `${(rect.height - YT_HOST_H * scale) / 2}px`);
+      wrapper.style.setProperty('--yt-scale', String(scale));
     }
 
-    // Coalesce dos reposicionamentos: durante rotação/resize o navegador dispara
-    // vários eventos em sequência; agrupar as escritas de geometria em um único
-    // frame evita re-rasterizações repetidas da camada composta do iframe.
+    // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
+    // sobrepor exatamente a área da capa (16:9 centralizado sobre a arte
+    // quadrada). Em tela cheia a geometria do wrapper é controlada pelo CSS
+    // (!important); em ambos os casos o fator de escala é re-sincronizado.
+    function positionVideoWrapper() {
+      const wrapper = document.getElementById('expanded-video-wrapper');
+      if (!wrapper) return;
+      if (!isFullscreen()) {
+        const coverImg = document.getElementById('ctrl-expanded-cover');
+        if (!coverImg) return;
+        const rect = coverImg.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const width = rect.width;
+        const height = width * 9 / 16;
+        const left = rect.left;
+        const top = rect.top + (rect.height - height) / 2;
+        wrapper.style.left = `${Math.round(left)}px`;
+        wrapper.style.top = `${Math.round(top)}px`;
+        wrapper.style.width = `${Math.round(width)}px`;
+        wrapper.style.height = `${Math.round(height)}px`;
+      }
+      syncHostScale();
+    }
+
+    // Coalesce das atualizações: durante rotação/resize o navegador dispara
+    // vários eventos em sequência; agrupa tudo em um único frame.
     let positionRaf = null;
     function schedulePositionVideoWrapper() {
       if (positionRaf) return;
       positionRaf = requestAnimationFrame(() => {
         positionRaf = null;
         positionVideoWrapper();
-      });
-    }
-
-    // ---- Estabilização de rotação (iOS/Safari) ----
-    // CAUSA RAIZ do "ciclo de recarregamentos" ao girar o iPhone: o Safari iOS
-    // derruba o processo WebContent quando o compositor precisa redimensionar a
-    // camada do iframe do YouTube no meio da animação de rotação (agravado pelas
-    // camadas de backdrop-filter da interface). O crash recarrega a página e,
-    // girando novamente, o ciclo se repete. Não é um reload disparado pelo app.
-    //
-    // Correção: durante a transição de rotação o wrapper do vídeo é "estacionado"
-    // (visibility:hidden — o iframe permanece vivo e o clipe CONTINUA tocando;
-    // nada é recriado nem perde estado) e, quando o viewport estabiliza, ele é
-    // reposicionado e reexibido em um único passo. Aplica-se apenas ao iOS;
-    // no Chrome Android (sem o crash) basta o coalesce por frame acima.
-    const isIosSafariLike = /iP(hone|od|ad)/.test(navigator.platform || '') ||
-      (/Mac/.test(navigator.platform || '') && (navigator.maxTouchPoints || 0) > 1);
-
-    // A animação de rotação do iOS leva ~400-500ms; o settle precisa cobri-la
-    // por inteiro (300ms reexibia o vídeo com a animação ainda em curso e o
-    // crash voltava após algumas rotações consecutivas). Cada novo evento de
-    // resize/orientationchange/visualViewport re-arma o timer.
-    const ROTATION_SETTLE_MS = 500;
-    let rotationSettleTimer = null;
-    let rotationParked = false;
-    let lastIsLandscape = window.innerWidth > window.innerHeight;
-
-    function parkVideoForRotation() {
-      if (!isIosSafariLike) return;
-      // O iframe permanece vivo mesmo no modo Capa; estaciona sempre que existir.
-      if (!ytPlayer && !playerCreating) return;
-      const wrapper = document.getElementById('expanded-video-wrapper');
-      if (!wrapper) return;
-      if (!rotationParked) {
-        rotationParked = true;
-        // Congela o tamanho do iframe em pixels absolutos: visibility:hidden
-        // impede a pintura mas NÃO o layout — em tela cheia CSS (100dvw/100dvh)
-        // o iframe era redimensionado NO MEIO da animação de rotação e o
-        // documento embutido do YouTube re-renderizava a cada giro (o que
-        // restava para derrubar o WebContent após rotações consecutivas).
-        const host = document.getElementById('yt-video-host');
-        const rect = wrapper.getBoundingClientRect();
-        if (host && rect.width && rect.height) {
-          host.style.width = `${Math.round(rect.width)}px`;
-          host.style.height = `${Math.round(rect.height)}px`;
-        }
-        wrapper.classList.add('rotation-parking');
-        // Suspende os backdrop-filters de viewport inteiro durante a janela de
-        // rotação (re-rasterizados a cada frame junto com a camada do vídeo,
-        // eram o custo cumulativo que esgotava o compositor). O fundo
-        // translucido é mantido; o blur volta ao estabilizar.
-        document.body.classList.add('video-rotation-parking');
-      }
-      if (rotationSettleTimer) clearTimeout(rotationSettleTimer);
-      rotationSettleTimer = setTimeout(unparkVideoAfterRotation, ROTATION_SETTLE_MS);
-    }
-
-    function unparkVideoAfterRotation() {
-      rotationSettleTimer = null;
-      // Fase 1 (ainda oculto): restaura o iframe para 100% do wrapper e aplica a
-      // geometria final em um único passo — o relayout do YouTube acontece sem
-      // nenhuma pintura/composição em andamento.
-      const host = document.getElementById('yt-video-host');
-      if (host) {
-        host.style.width = '';
-        host.style.height = '';
-      }
-      positionVideoWrapper(); // no-op em tela cheia (guard interno)
-      // Fase 2 (frame seguinte): reexibe com a rasterização final já pronta.
-      requestAnimationFrame(() => {
-        // Uma nova rotação pode ter re-estacionado nesse meio tempo.
-        if (rotationSettleTimer) return;
-        rotationParked = false;
-        document.getElementById('expanded-video-wrapper')?.classList.remove('rotation-parking');
-        document.body.classList.remove('video-rotation-parking');
       });
     }
 
@@ -1330,6 +1294,8 @@ const MUSIC_PLAYER = (() => {
       cssFullscreen = true;
       updateFullscreenIcon();
       syncFullscreenChrome();
+      // Re-sincroniza a escala do iframe para o wrapper em tamanho de viewport.
+      positionVideoWrapper();
     }
 
     function exitCssFullscreen() {
@@ -1393,8 +1359,8 @@ const MUSIC_PLAYER = (() => {
     function onNativeFullscreenChange() {
       updateFullscreenIcon();
       syncFullscreenChrome();
-      // Ao sair da tela cheia nativa, reposiciona o vídeo sobre a capa.
-      if (!isFullscreen()) positionVideoWrapper();
+      // Reposiciona/re-escala para o novo contexto (dentro ou fora da tela cheia).
+      positionVideoWrapper();
     }
 
     function initVideoControls() {
@@ -1544,40 +1510,16 @@ const MUSIC_PLAYER = (() => {
         if (ytEngineActive) enterCoverMode({ resume: true });
       });
 
-      // Rotação: estaciona o vídeo durante a transição (somente iOS, onde o
-      // redimensionamento da camada do iframe no meio da rotação derruba o
-      // WebContent e provoca o ciclo de reloads). 'orientationchange' cobre o
-      // Safari iOS; screen.orientation 'change' cobre navegadores mais novos.
-      // parkVideoForRotation é idempotente, então receber os dois eventos para
-      // a mesma rotação apenas re-arma o timer de estabilização.
-      window.addEventListener('orientationchange', parkVideoForRotation);
-      try {
-        screen.orientation?.addEventListener?.('change', parkVideoForRotation);
-      } catch (e) {}
-      // O visualViewport dispara resize várias vezes AO LONGO da animação de
-      // rotação do iOS (o window.resize pode disparar só uma vez, cedo demais);
-      // usá-lo para re-armar o settle garante que o vídeo só volte quando a
-      // animação realmente terminar, independentemente de quantos giros seguidos.
-      try {
-        window.visualViewport?.addEventListener?.('resize', () => {
-          if (rotationParked) parkVideoForRotation();
-        });
-      } catch (e) {}
-
-      // Mantém o vídeo alinhado à capa quando o viewport muda (rotação, barra de
-      // URL mostrando/ocultando, etc.), exceto em tela cheia. As escritas de
-      // geometria são coalescidas por frame e, no iOS, adiadas até o fim da
-      // rotação (detectada pelo flip retrato/paisagem ou pelo parking ativo).
-      // Nunca reinicializa nada — apenas geometria do wrapper.
+      // Mantém o vídeo alinhado quando o viewport muda (rotação, barra de URL
+      // mostrando/ocultando, tela cheia). Como o iframe tem tamanho de layout
+      // FIXO e é ajustado apenas por transform, isto atualiza só a geometria do
+      // wrapper e o fator de escala — barato e seguro em qualquer quantidade de
+      // rotações. O timeout final captura o rect definitivo depois que a
+      // animação de rotação do iOS assenta.
       window.addEventListener('resize', () => {
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const flipped = isLandscape !== lastIsLandscape;
-        lastIsLandscape = isLandscape;
-        if (isIosSafariLike && (flipped || rotationParked)) {
-          parkVideoForRotation(); // no-op se o iframe ainda não foi criado
-          if (rotationParked) return;
-        }
-        if (ytEngineActive && !isFullscreen()) schedulePositionVideoWrapper();
+        if (!ytEngineActive) return;
+        schedulePositionVideoWrapper();
+        setTimeout(positionVideoWrapper, 300);
       }, { passive: true });
     }
 
