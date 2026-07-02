@@ -851,12 +851,6 @@
   pointer-events: auto;
 }
 
-/* Oculta o vídeo apenas durante a transição de rotação, sem recarregar o iframe
-   (visibility não recria o iframe). */
-#expanded-video-wrapper.reflow-hidden {
-  visibility: hidden !important;
-}
-
 #expanded-video-wrapper #yt-video-host,
 #expanded-video-wrapper iframe {
   width: 100%;

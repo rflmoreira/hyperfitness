@@ -910,7 +910,6 @@ const MUSIC_PLAYER = (() => {
     let currentMode = 'cover';       // 'cover' | 'video'
     let userPreference = 'cover';    // último modo escolhido pelo usuário
     let available = false;           // faixa atual tem clipe?
-    let loadedVideoId = null;
     let progressRaf = null;
     let prevMuted = false;           // estado de mute do MP3 antes do modo Vídeo
 
@@ -918,7 +917,6 @@ const MUSIC_PLAYER = (() => {
       return {
         wrapper: document.getElementById('expanded-cover-wrapper'),
         toggle: document.getElementById('cover-mode-toggle'),
-        videoWrapper: document.getElementById('expanded-video-wrapper'),
         host: document.getElementById('yt-video-host'),
         coverImg: document.getElementById('ctrl-expanded-cover')
       };
@@ -1142,7 +1140,6 @@ const MUSIC_PLAYER = (() => {
         return false;
       }
 
-      loadedVideoId = videoId;
       try {
         // Se a música estava tocando, autoplay; se pausada, apenas prepara (cue).
         if (wasPlaying) player.loadVideoById({ videoId, startSeconds: startAt });
@@ -1207,23 +1204,6 @@ const MUSIC_PLAYER = (() => {
       audio.muted = prevMuted;
     }
 
-    // Oculta o player de vídeo APENAS durante a transição de rotação/reflow, sem
-    // recarregar o iframe (visibility preserva a reprodução). Isso evita que o
-    // Safari/iOS recomponha o iframe no meio da rotação — causa do recarregamento.
-    let reflowHideTimer = null;
-    function hideVideoDuringReflow() {
-      if (!ytEngineActive) return;
-      const wrapper = document.getElementById('expanded-video-wrapper');
-      if (!wrapper) return;
-      wrapper.classList.add('reflow-hidden');
-      if (reflowHideTimer) clearTimeout(reflowHideTimer);
-      reflowHideTimer = setTimeout(() => {
-        reflowHideTimer = null;
-        positionVideoWrapper(); // reposiciona sobre a capa após a rotação assentar
-        document.getElementById('expanded-video-wrapper')?.classList.remove('reflow-hidden');
-      }, 500);
-    }
-
     // ---- Overlay de controles personalizados + tela cheia ----
     const OVERLAY_HIDE_DELAY_MS = 2800;
     let overlayHideTimer = null;
@@ -1256,9 +1236,6 @@ const MUSIC_PLAYER = (() => {
       const el = document.getElementById('expanded-video-wrapper');
       if (!el) return;
       el.classList.add('css-fullscreen');
-      // Neutraliza transform/backdrop-filter dos ancestrais (que quebrariam o
-      // position:fixed) enquanto a tela cheia CSS estiver ativa.
-      document.body.classList.add('video-css-fs');
       cssFullscreen = true;
       updateFullscreenIcon();
       syncFullscreenChrome();
@@ -1266,7 +1243,6 @@ const MUSIC_PLAYER = (() => {
 
     function exitCssFullscreen() {
       document.getElementById('expanded-video-wrapper')?.classList.remove('css-fullscreen');
-      document.body.classList.remove('video-css-fs');
       cssFullscreen = false;
       updateFullscreenIcon();
       syncFullscreenChrome();
@@ -1411,7 +1387,6 @@ const MUSIC_PLAYER = (() => {
     function onTrackChanged() {
       if (ytEngineActive) stopVideo();
       currentMode = 'cover';
-      loadedVideoId = null;
       applyModeVisual('cover');
       // Desabilita o botão Vídeo até detectar o clipe da nova faixa.
       available = false;
@@ -1477,14 +1452,6 @@ const MUSIC_PLAYER = (() => {
         // e.persisted indica bfcache; ainda assim, só age se realmente saindo.
         if (ytEngineActive) enterCoverMode({ resume: true });
       });
-
-      // Mudança de orientação: oculta o iframe durante a transição (belt-and-suspenders)
-      // e reposiciona ao final. Com o vídeo montado em nível superior, a rotação já
-      // não derruba o iframe; isto apenas garante alinhamento e suavidade.
-      window.addEventListener('orientationchange', hideVideoDuringReflow);
-      if (window.screen && screen.orientation && typeof screen.orientation.addEventListener === 'function') {
-        screen.orientation.addEventListener('change', hideVideoDuringReflow);
-      }
 
       // Mantém o vídeo alinhado à capa quando o viewport muda (rotação, barra de
       // URL mostrando/ocultando, etc.), exceto em tela cheia.
@@ -3065,9 +3032,9 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e no player de vídeo)
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo)
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
-      if (e.target.closest('#cover-mode-toggle') || e.target.closest('#expanded-video-wrapper')) return;
+      if (e.target.closest('#cover-mode-toggle')) return;
       toggleExpandedCover(false);
     });
 
@@ -3608,12 +3575,7 @@ const MUSIC_PLAYER = (() => {
     // Não foca automaticamente no input ao trocar para YouTube
     // O foco acontece ao clicar no botão de busca
 
-    // Inicializa lógica de scroll da aba Biblioteca
-    if (isPlaylist) {
-      requestAnimationFrame(() => {
-        initPlaylistsMarquee();
-      });
-    } else if (isDiscover) {
+    if (isDiscover) {
       requestAnimationFrame(() => {
         updateDiscoverSpacerLayout?.();
         setTimeout(() => updateDiscoverSpacerLayout?.(), 120);
@@ -3622,11 +3584,6 @@ const MUSIC_PLAYER = (() => {
   }
 
   let updateDiscoverSpacerLayout = null;
-
-  // Stub para compatibilidade: referência histórica sem implementação (o efeito de
-  // marquee das playlists não existe mais). Mantido como no-op para evitar
-  // ReferenceError durante a troca de abas/abertura do modal.
-  function initPlaylistsMarquee() { /* no-op */ }
 
   // ====== Discover Banner Carousel ======
   function renderDiscoverCarousel() {
@@ -4141,11 +4098,6 @@ const MUSIC_PLAYER = (() => {
       modal.removeAttribute('inert');
       modal.style.pointerEvents = 'auto';
       updatePlaylistEmptyState();
-      requestAnimationFrame(() => {
-        if (TAB_ORDER[currentTabIndex] === 'playlist') {
-          initPlaylistsMarquee();
-        }
-      });
     } else {
       modal.setAttribute('inert', '');
       modal.style.pointerEvents = 'none';
