@@ -972,11 +972,23 @@
    do compositor enquanto o viewport gira. O iframe permanece vivo e o clipe
    continua tocando; apenas a rasterização é suspensa, o que elimina o crash
    do WebContent ao girar (que fazia o Safari recarregar a página em ciclo).
-   A classe é aplicada por JS só durante a transição (~300ms) e removida assim
+   A classe é aplicada por JS só durante a transição (~500ms) e removida assim
    que o viewport estabiliza. Declarada APÓS .css-fullscreen para vencer o
    visibility:visible !important da tela cheia CSS durante a rotação. */
 #expanded-video-wrapper.rotation-parking {
   visibility: hidden !important;
+}
+
+/* Durante a janela de rotação (iOS), suspende os backdrop-filters de viewport
+   inteiro: re-rasterizados a cada frame da animação de rotação junto com a
+   camada do vídeo, eram o custo cumulativo que derrubava o WebContent após
+   rotações consecutivas. O fundo translúcido (background) é mantido, então a
+   mudança é imperceptível no meio do giro; o blur volta quando o viewport
+   estabiliza (~500ms). */
+body.video-rotation-parking #expanded-cover-blur,
+body.video-rotation-parking #player-controls-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Em tela cheia (nativa OU CSS), oculta toda a interface fora da experiência de

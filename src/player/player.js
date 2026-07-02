@@ -1095,30 +1095,64 @@ const MUSIC_PLAYER = (() => {
     const isIosSafariLike = /iP(hone|od|ad)/.test(navigator.platform || '') ||
       (/Mac/.test(navigator.platform || '') && (navigator.maxTouchPoints || 0) > 1);
 
-    const ROTATION_SETTLE_MS = 300;
+    // A animação de rotação do iOS leva ~400-500ms; o settle precisa cobri-la
+    // por inteiro (300ms reexibia o vídeo com a animação ainda em curso e o
+    // crash voltava após algumas rotações consecutivas). Cada novo evento de
+    // resize/orientationchange/visualViewport re-arma o timer.
+    const ROTATION_SETTLE_MS = 500;
     let rotationSettleTimer = null;
     let rotationParked = false;
     let lastIsLandscape = window.innerWidth > window.innerHeight;
 
     function parkVideoForRotation() {
-      if (!isIosSafariLike || !ytEngineActive) return;
+      if (!isIosSafariLike) return;
+      // O iframe permanece vivo mesmo no modo Capa; estaciona sempre que existir.
+      if (!ytPlayer && !playerCreating) return;
       const wrapper = document.getElementById('expanded-video-wrapper');
       if (!wrapper) return;
       if (!rotationParked) {
         rotationParked = true;
+        // Congela o tamanho do iframe em pixels absolutos: visibility:hidden
+        // impede a pintura mas NÃO o layout — em tela cheia CSS (100dvw/100dvh)
+        // o iframe era redimensionado NO MEIO da animação de rotação e o
+        // documento embutido do YouTube re-renderizava a cada giro (o que
+        // restava para derrubar o WebContent após rotações consecutivas).
+        const host = document.getElementById('yt-video-host');
+        const rect = wrapper.getBoundingClientRect();
+        if (host && rect.width && rect.height) {
+          host.style.width = `${Math.round(rect.width)}px`;
+          host.style.height = `${Math.round(rect.height)}px`;
+        }
         wrapper.classList.add('rotation-parking');
+        // Suspende os backdrop-filters de viewport inteiro durante a janela de
+        // rotação (re-rasterizados a cada frame junto com a camada do vídeo,
+        // eram o custo cumulativo que esgotava o compositor). O fundo
+        // translucido é mantido; o blur volta ao estabilizar.
+        document.body.classList.add('video-rotation-parking');
       }
-      // Cada novo resize/orientationchange durante a rotação re-arma o timer;
-      // o vídeo só volta quando o viewport ficar estável por ROTATION_SETTLE_MS.
       if (rotationSettleTimer) clearTimeout(rotationSettleTimer);
       rotationSettleTimer = setTimeout(unparkVideoAfterRotation, ROTATION_SETTLE_MS);
     }
 
     function unparkVideoAfterRotation() {
       rotationSettleTimer = null;
-      rotationParked = false;
+      // Fase 1 (ainda oculto): restaura o iframe para 100% do wrapper e aplica a
+      // geometria final em um único passo — o relayout do YouTube acontece sem
+      // nenhuma pintura/composição em andamento.
+      const host = document.getElementById('yt-video-host');
+      if (host) {
+        host.style.width = '';
+        host.style.height = '';
+      }
       positionVideoWrapper(); // no-op em tela cheia (guard interno)
-      document.getElementById('expanded-video-wrapper')?.classList.remove('rotation-parking');
+      // Fase 2 (frame seguinte): reexibe com a rasterização final já pronta.
+      requestAnimationFrame(() => {
+        // Uma nova rotação pode ter re-estacionado nesse meio tempo.
+        if (rotationSettleTimer) return;
+        rotationParked = false;
+        document.getElementById('expanded-video-wrapper')?.classList.remove('rotation-parking');
+        document.body.classList.remove('video-rotation-parking');
+      });
     }
 
     // ---- Visual (fade + scale) ----
@@ -1520,6 +1554,15 @@ const MUSIC_PLAYER = (() => {
       try {
         screen.orientation?.addEventListener?.('change', parkVideoForRotation);
       } catch (e) {}
+      // O visualViewport dispara resize várias vezes AO LONGO da animação de
+      // rotação do iOS (o window.resize pode disparar só uma vez, cedo demais);
+      // usá-lo para re-armar o settle garante que o vídeo só volte quando a
+      // animação realmente terminar, independentemente de quantos giros seguidos.
+      try {
+        window.visualViewport?.addEventListener?.('resize', () => {
+          if (rotationParked) parkVideoForRotation();
+        });
+      } catch (e) {}
 
       // Mantém o vídeo alinhado à capa quando o viewport muda (rotação, barra de
       // URL mostrando/ocultando, etc.), exceto em tela cheia. As escritas de
@@ -1530,12 +1573,11 @@ const MUSIC_PLAYER = (() => {
         const isLandscape = window.innerWidth > window.innerHeight;
         const flipped = isLandscape !== lastIsLandscape;
         lastIsLandscape = isLandscape;
-        if (!ytEngineActive) return;
         if (isIosSafariLike && (flipped || rotationParked)) {
-          parkVideoForRotation();
-          return;
+          parkVideoForRotation(); // no-op se o iframe ainda não foi criado
+          if (rotationParked) return;
         }
-        if (!isFullscreen()) schedulePositionVideoWrapper();
+        if (ytEngineActive && !isFullscreen()) schedulePositionVideoWrapper();
       }, { passive: true });
     }
 
