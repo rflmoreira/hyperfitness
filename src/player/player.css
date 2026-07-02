@@ -851,19 +851,12 @@
   pointer-events: auto;
 }
 
-/* O iframe do YouTube tem tamanho de LAYOUT constante (1280×720) e é ajustado
-   ao wrapper apenas por transform (variáveis definidas por JS no wrapper —
-   syncHostScale). Redimensionar o layout de um iframe durante a rotação
-   derruba o WebContent do Safari iOS (o Safari recarrega a página em ciclo);
-   com transform, a rotação nunca re-layouta o documento embutido. */
 #expanded-video-wrapper #yt-video-host,
 #expanded-video-wrapper iframe {
-  width: 1280px;
-  height: 720px;
+  width: 100%;
+  height: 100%;
   border: 0;
   display: block;
-  transform-origin: top left;
-  transform: translate(var(--yt-tx, 0px), var(--yt-ty, 0px)) scale(var(--yt-scale, 1));
 }
 
 /* Overlay de controles personalizados sobre o vídeo.

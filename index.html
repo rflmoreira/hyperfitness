@@ -15,7 +15,7 @@
     rel="stylesheet" />
   <link rel="preload" href="src/imagens/HyperFitness.png" as="image" />
   <link rel="preload" href="src/imagens/capa de fundo.jpg" as="image" />
-  <link rel="stylesheet" href="src/player/player.css?v=34" />
+  <link rel="stylesheet" href="src/player/player.css?v=35" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -2416,7 +2416,11 @@
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 9999;
-      mix-blend-mode: overlay;
+      /* mix-blend-mode: overlay removido: forçava o WebKit a rasterizar a
+         viewport inteira como textura e aplicar blend a cada frame. Em
+         rotação, essa re-rasterização somada à de #page-background
+         (tamanho do documento) estourava a GPU e derrubava o WebContent
+         (reload da página). A 0.03 de opacidade, imperceptível sem o blend. */
     }
 
     body::after {
@@ -6514,11 +6518,15 @@
         0 -4px 24px -6px rgba(0, 150, 60, 0.05),
         inset 0 1px 1px rgba(0, 150, 60, 0.1),
         inset 0 0 0 1px rgba(0, 150, 60, 0.03);
-      isolation: isolate;
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
-      -webkit-mask-image: -webkit-radial-gradient(white, black);
-      mask-image: radial-gradient(white, black);
+      /* isolation, mask-image e translateZ(0) removidos: #page-background
+         cobre o documento INTEIRO (top..bottom, milhares de px). Cada uma
+         dessas propriedades forçava o WebKit a alocar uma textura GPU do
+         tamanho do documento (largura × altura × DPR²). Em rotação, todas
+         eram re-rasterizadas simultaneamente na nova largura, estourando a
+         memória da GPU e derrubando o WebContent — o Safari então recarrega
+         a página. Sem essas propriedades, o overflow:hidden + border-radius
+         ainda clipam os filhos corretamente (o translateZ(0) era um hack
+         de renderização do Safari que não é mais necessário em iOS 16+). */
     }
 
     #page-background .bg-gradient-base {
@@ -6526,7 +6534,10 @@
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
       background: radial-gradient(circle at 50% 0%, #000a04 0%, #000000 80%);
       transform: translate3d(0, var(--pg-background-parallax-y), 0);
-      will-change: transform;
+      /* will-change: transform removido: mantinha uma camada composta
+         permanente do tamanho do documento. O parallax anima
+         esporadicamente (scroll); sem will-change, o browser promove a
+         camada apenas durante a animação e a libera ao parar. */
     }
 
     /* CAUSA RAIZ do recarregamento global ao girar o dispositivo (iOS Safari):
@@ -6560,10 +6571,8 @@
       #page-background {
         --pg-background-parallax-y: 0px !important;
       }
-      #page-background .bg-gradient-base,
-      #page-background .bg-noise {
+      #page-background .bg-gradient-base {
         transform: none !important;
-        will-change: auto;
       }
       /* Preserva o scale do raster reduzido (o parallax já é zerado acima). */
       #page-background .bg-abstract-bands {
@@ -8390,7 +8399,9 @@
       background-size: cover;
       background-position: center top;
       background-repeat: no-repeat;
-      will-change: transform;
+      /* will-change: transform removido (redundante com translateZ(0) abaixo,
+         que já promove a camada para GPU). Manter os dois mantinha a camada
+         composta permanente mesmo quando parada. */
       transform: translateZ(0);
       z-index: 0;
       -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);

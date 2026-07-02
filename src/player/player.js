@@ -956,10 +956,8 @@ const MUSIC_PLAYER = (() => {
       if (!host) return null;
       playerCreating = new Promise((resolve) => {
         const p = new YT.Player(host, {
-          // Tamanho de layout constante do iframe (ver syncHostScale): o ajuste
-          // visual ao wrapper é feito por transform, nunca por relayout.
-          width: String(YT_HOST_W),
-          height: String(YT_HOST_H),
+          width: '100%',
+          height: '100%',
           // Conjunto MÁXIMO de opções suportadas pela IFrame Player API para
           // ocultar/limitar os controles nativos do YouTube:
           // - controls: 0    -> remove a barra de controles (play/pause, progresso, volume, engrenagem, legendas, tela cheia)
@@ -982,7 +980,11 @@ const MUSIC_PLAYER = (() => {
             origin: window.location.origin
           },
           events: {
-            onReady: () => { ytReady = true; resolve(p); },
+            onReady: () => {
+              ytReady = true;
+              try { p.setPlaybackQuality('large'); } catch (e) {}
+              resolve(p);
+            },
             onStateChange: onYtStateChange,
             onError: onYtError
           }
@@ -999,6 +1001,7 @@ const MUSIC_PLAYER = (() => {
       if (!S) return;
       if (e.data === S.ENDED) { handleEnded(); return; }
       if (e.data === S.PLAYING) {
+        try { ytPlayer?.setPlaybackQuality('large'); } catch (e) {}
         state.isPlaying = true;
         updateUiState();
         startProgressLoop();
@@ -1050,62 +1053,24 @@ const MUSIC_PLAYER = (() => {
       updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
     }
 
-    // ---- Iframe com tamanho de layout FIXO (causa raiz do reload ao girar) ----
-    // O Safari iOS derruba o processo WebContent quando o LAYOUT do iframe do
-    // YouTube muda durante a rotação: o documento embutido é re-layoutado e
-    // re-rasterizado no meio da transição e, após alguns giros, o processo
-    // crasha — o Safari então RECARREGA a página (o "ciclo de recarregamentos").
-    // Mitigações reativas (ocultar/estacionar ao detectar o giro) não resolvem
-    // porque o crash ocorre no mesmo turno em que o WebKit processa a rotação,
-    // antes de qualquer handler do app rodar.
-    //
-    // Correção estrutural: o iframe mantém um tamanho de layout CONSTANTE
-    // (YT_HOST_W×YT_HOST_H, definido no CSS) e é ajustado ao wrapper apenas por
-    // transform (translate+scale) — operação de compositor que NÃO re-layouta o
-    // documento embutido. Girar o dispositivo passa a redimensionar somente o
-    // wrapper (um div simples) e o fator de escala; o iframe nunca é
-    // redimensionado, em qualquer quantidade de rotações, com ou sem tela cheia.
-    const YT_HOST_W = 1280;
-    const YT_HOST_H = 720;
-
-    function syncHostScale() {
-      const wrapper = document.getElementById('expanded-video-wrapper');
-      if (!wrapper) return;
-      const rect = wrapper.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      // Escala uniforme + centralização. O fundo #000 do wrapper cobre as
-      // bordas quando a proporção difere de 16:9 (ex.: tela cheia), replicando
-      // o letterbox que o próprio player do YouTube aplicava.
-      // As variáveis ficam no WRAPPER (não no iframe) porque a IFrame API
-      // substitui o elemento host pelo iframe criado.
-      const scale = Math.min(rect.width / YT_HOST_W, rect.height / YT_HOST_H);
-      wrapper.style.setProperty('--yt-tx', `${(rect.width - YT_HOST_W * scale) / 2}px`);
-      wrapper.style.setProperty('--yt-ty', `${(rect.height - YT_HOST_H * scale) / 2}px`);
-      wrapper.style.setProperty('--yt-scale', String(scale));
-    }
-
     // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
-    // sobrepor exatamente a área da capa (16:9 centralizado sobre a arte
-    // quadrada). Em tela cheia a geometria do wrapper é controlada pelo CSS
-    // (!important); em ambos os casos o fator de escala é re-sincronizado.
+    // sobrepor exatamente a área da capa (16:9 centralizado sobre a arte quadrada).
     function positionVideoWrapper() {
       const wrapper = document.getElementById('expanded-video-wrapper');
-      if (!wrapper) return;
-      if (!isFullscreen()) {
-        const coverImg = document.getElementById('ctrl-expanded-cover');
-        if (!coverImg) return;
-        const rect = coverImg.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const width = rect.width;
-        const height = width * 9 / 16;
-        const left = rect.left;
-        const top = rect.top + (rect.height - height) / 2;
-        wrapper.style.left = `${Math.round(left)}px`;
-        wrapper.style.top = `${Math.round(top)}px`;
-        wrapper.style.width = `${Math.round(width)}px`;
-        wrapper.style.height = `${Math.round(height)}px`;
-      }
-      syncHostScale();
+      const coverImg = document.getElementById('ctrl-expanded-cover');
+      if (!wrapper || !coverImg) return;
+      // Em tela cheia o posicionamento é controlado pelo CSS (!important).
+      if (isFullscreen()) return;
+      const rect = coverImg.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const width = rect.width;
+      const height = width * 9 / 16;
+      const left = rect.left;
+      const top = rect.top + (rect.height - height) / 2;
+      wrapper.style.left = `${Math.round(left)}px`;
+      wrapper.style.top = `${Math.round(top)}px`;
+      wrapper.style.width = `${Math.round(width)}px`;
+      wrapper.style.height = `${Math.round(height)}px`;
     }
 
     // Coalesce das atualizações: durante rotação/resize o navegador dispara
@@ -1294,8 +1259,6 @@ const MUSIC_PLAYER = (() => {
       cssFullscreen = true;
       updateFullscreenIcon();
       syncFullscreenChrome();
-      // Re-sincroniza a escala do iframe para o wrapper em tamanho de viewport.
-      positionVideoWrapper();
     }
 
     function exitCssFullscreen() {
@@ -1359,8 +1322,8 @@ const MUSIC_PLAYER = (() => {
     function onNativeFullscreenChange() {
       updateFullscreenIcon();
       syncFullscreenChrome();
-      // Reposiciona/re-escala para o novo contexto (dentro ou fora da tela cheia).
-      positionVideoWrapper();
+      // Ao sair da tela cheia nativa, reposiciona o vídeo sobre a capa.
+      if (!isFullscreen()) positionVideoWrapper();
     }
 
     function initVideoControls() {
