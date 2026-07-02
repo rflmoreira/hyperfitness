@@ -6533,51 +6533,33 @@
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) 0;
       background: radial-gradient(circle at 50% 0%, #000a04 0%, #000000 80%);
-      transform: translate3d(0, var(--pg-background-parallax-y), 0);
-      /* will-change: transform removido: mantinha uma camada composta
-         permanente do tamanho do documento. O parallax anima
-         esporadicamente (scroll); sem will-change, o browser promove a
-         camada apenas durante a animação e a libera ao parar. */
+      /* transform removido: translate3d forçava compositing GPU numa camada
+         do tamanho do documento inteiro. Em rotação, essa textura gigante
+         era re-rasterizada na nova largura, estourando a memória da GPU e
+         derrubando o WebContent (reload da página). Sem transform, o
+         gradiente é pintado no fluxo normal — sem textura GPU. O parallax
+         visual era imperceptível (radial gradient escuro, max 34-58px). */
     }
 
-    /* CAUSA RAIZ do recarregamento global ao girar o dispositivo (iOS Safari):
-       esta camada cobre o documento INTEIRO e, com filter: blur, o WebKit não
-       consegue renderizá-la em tiles — precisa de um buffer rasterizado do
-       tamanho total (largura × altura do documento × DPR²). Cada rotação
-       re-rasterizava esse buffer gigante na nova largura, estourando a memória
-       da GPU e derrubando o processo WebContent (o Safari então recarrega a
-       página — o mesmo mecanismo já documentado no overlay do week-sheet).
-
-       Correção: o raster é gerado em resolução REDUZIDA (o JS define
-       width/height em px = tamanho final ÷ --bg-bands-scale) e ampliado por
-       transform: scale(). O blur escala junto com o transform, então
-       blur(80px ÷ escala) ampliado é visualmente idêntico a blur(80px) —
-       mesma aparência com 1/escala² da memória e da re-rasterização.
-       Sem o JS (fallback), --bg-bands-scale é 1 e nada muda. */
+    /* O blur é aplicado DENTRO do SVG (feGaussianBlur) em vez de CSS
+       filter:blur. CSS filter numa elemento do tamanho do documento força
+       compositing GPU — o WebKit aloca uma textura do tamanho total
+       (largura × altura × DPR²) e re-rasteriza a cada rotação, estourando a
+       GPU e derrubando o WebContent (reload da página). Com o blur no SVG,
+       o resultado é pintado no fluxo normal — sem textura GPU, sem
+       compositing, sem re-rasterização em rotação. */
     #page-background .bg-abstract-bands {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) -5%;
       width: 110%;
       height: 110%;
-      transform: translate3d(0, var(--pg-background-parallax-y), 0) scale(var(--bg-bands-scale, 1));
-      transform-origin: top left;
-      will-change: transform;
       opacity: 0.45;
-      filter: blur(calc(80px / var(--bg-bands-scale, 1)));
     }
 
     /* ── Reduced Motion ── */
     @media (prefers-reduced-motion: reduce) {
       #page-background {
         --pg-background-parallax-y: 0px !important;
-      }
-      #page-background .bg-gradient-base {
-        transform: none !important;
-      }
-      /* Preserva o scale do raster reduzido (o parallax já é zerado acima). */
-      #page-background .bg-abstract-bands {
-        transform: translate3d(0, 0, 0) scale(var(--bg-bands-scale, 1)) !important;
-        will-change: auto;
       }
     }
 
@@ -9147,6 +9129,9 @@
     <div class="bg-abstract-bands">
       <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" style="width: 100%; height: 100%;">
         <defs>
+          <filter id="blur-bands" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="40" />
+          </filter>
           <linearGradient id="grad-band-1" x1="0%" y1="100%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#001a09" stop-opacity="1" />
             <stop offset="50%" stop-color="#004d1c" stop-opacity="1" />
@@ -9165,9 +9150,11 @@
           </linearGradient>
         </defs>
 
-        <path d="M -200 800 C 300 900, 600 200, 1200 300" fill="none" stroke="url(#grad-band-1)" stroke-width="300" />
-        <path d="M -200 200 C 400 100, 700 800, 1200 900" fill="none" stroke="url(#grad-band-2)" stroke-width="200" />
-        <path d="M -100 -100 C 300 300, 800 0, 1200 400" fill="none" stroke="url(#grad-band-3)" stroke-width="250" />
+        <g filter="url(#blur-bands)">
+          <path d="M -200 800 C 300 900, 600 200, 1200 300" fill="none" stroke="url(#grad-band-1)" stroke-width="300" />
+          <path d="M -200 200 C 400 100, 700 800, 1200 900" fill="none" stroke="url(#grad-band-2)" stroke-width="200" />
+          <path d="M -100 -100 C 300 300, 800 0, 1200 400" fill="none" stroke="url(#grad-band-3)" stroke-width="250" />
+        </g>
       </svg>
     </div>
   </div>
@@ -10241,34 +10228,18 @@
       boundScroll: null,
       boundResize: null,
       boundMotionChange: null,
-      bands: null,
-      bandsObserver: null,
-      // Fator de redução do raster de .bg-abstract-bands (ver CSS): a camada é
-      // rasterizada em 1/4 do tamanho e ampliada por transform, eliminando o
-      // buffer de GPU em tamanho de documento que derrubava o WebContent do
-      // Safari iOS a cada rotação (e fazia a página inteira recarregar).
-      bandsScale: 4,
 
       init(layer) {
         this.destroy();
         if (!layer) return;
 
         this.layer = layer;
-        this.bands = layer.querySelector('.bg-abstract-bands');
         this.boundScroll = this.handleScroll.bind(this);
         this.boundResize = this.handleResize.bind(this);
         this.boundMotionChange = this.handleMotionPreferenceChange.bind(this);
         this.reduceMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') || null;
 
         this.updateMotionScale();
-        this.syncBandsRaster();
-        // A altura de #page-background acompanha o documento (muda ao abrir
-        // telas/listas); o observer mantém o raster reduzido sempre cobrindo
-        // a área final, como o width/height:110% originais faziam.
-        if (typeof ResizeObserver === 'function') {
-          this.bandsObserver = new ResizeObserver(() => this.syncBandsRaster());
-          this.bandsObserver.observe(layer);
-        }
         window.addEventListener('scroll', this.boundScroll, { passive: true });
         window.addEventListener('resize', this.boundResize, { passive: true });
 
@@ -10287,20 +10258,6 @@
         const isMobile = window.matchMedia?.('(max-width: 767px)').matches;
         this.factor = isMobile ? 0.028 : 0.038;
         this.maxShift = isMobile ? 34 : 58;
-      },
-
-      // Dimensiona .bg-abstract-bands em pixels reais = (tamanho final × 110%)
-      // ÷ bandsScale; o CSS amplia de volta com scale(var(--bg-bands-scale)).
-      // Geometria e aparência idênticas às originais, com raster 16× menor.
-      syncBandsRaster() {
-        if (!this.layer || !this.bands) return;
-        const w = this.layer.clientWidth;
-        const h = this.layer.clientHeight;
-        if (!w || !h) return;
-        const k = this.bandsScale;
-        this.bands.style.width = `${Math.ceil((w * 1.1) / k)}px`;
-        this.bands.style.height = `${Math.ceil((h * 1.1) / k)}px`;
-        this.bands.style.setProperty('--bg-bands-scale', String(k));
       },
 
       getReducedMotion() {
@@ -10349,7 +10306,6 @@
 
       handleResize() {
         this.updateMotionScale();
-        this.syncBandsRaster();
         this.handleScroll();
       },
 
@@ -10358,12 +10314,6 @@
       },
 
       destroy() {
-        if (this.bandsObserver) {
-          this.bandsObserver.disconnect();
-          this.bandsObserver = null;
-        }
-        this.bands = null;
-
         if (this.boundScroll) {
           window.removeEventListener('scroll', this.boundScroll);
           this.boundScroll = null;
