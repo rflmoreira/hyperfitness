@@ -1477,13 +1477,23 @@ const MUSIC_PLAYER = (() => {
       // mostrando/ocultando, tela cheia). Como o iframe tem tamanho de layout
       // FIXO e é ajustado apenas por transform, isto atualiza só a geometria do
       // wrapper e o fator de escala — barato e seguro em qualquer quantidade de
-      // rotações. O timeout final captura o rect definitivo depois que a
-      // animação de rotação do iOS assenta.
-      window.addEventListener('resize', () => {
+      // rotações.
+      const onViewportChange = () => {
         if (!ytEngineActive) return;
+        if (isFullscreen()) return;
         schedulePositionVideoWrapper();
+        // No iOS a animação de rotação pode durar ~500ms; escalona
+        // reposicionamentos para capturar o rect definitivo após o
+        // layout assentar, evitando que o overlay fique preso numa
+        // posição intermediária.
         setTimeout(positionVideoWrapper, 300);
-      }, { passive: true });
+        setTimeout(positionVideoWrapper, 500);
+      };
+      window.addEventListener('resize', onViewportChange, { passive: true });
+      window.addEventListener('orientationchange', onViewportChange, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onViewportChange, { passive: true });
+      }
     }
 
     return {
