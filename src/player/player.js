@@ -6028,6 +6028,20 @@ const MUSIC_PLAYER = (() => {
     return playlists;
   }
 
+  // Coleta as URLs que representam a CAPA DA PLAYLIST das playlists que contêm as
+  // faixas informadas. Usado para detectar faixas que herdaram a capa da playlist
+  // (importações antigas) e não possuem capa individual.
+  function getCurrentPlaylistCoverUrls(tracks = []) {
+    const urls = new Set();
+    const add = (u) => { const s = sanitizeImageUrl(u); if (s) urls.add(s); };
+    const consider = (p) => { if (p) add(p.playlistCover); };
+    consider(state.currentPlaylist);
+    for (const p of state.playlists) {
+      if (p?.tracks?.length && p.tracks.some(t => tracks.includes(t))) consider(p);
+    }
+    return urls;
+  }
+
   async function enrichTracksWithCovers(tracks = [], importSessionId = state.currentImportSessionId) {
     if (!tracks.length) return tracks;
 
@@ -6046,6 +6060,12 @@ const MUSIC_PLAYER = (() => {
     const concurrency = 1;
     let index = 0;
     let coversResolved = false; // houve capa real recuperada que precisa ser persistida?
+    let resolvedSinceSave = 0;  // controle de flush incremental para o localStorage
+
+    // URLs que representam a CAPA DA PLAYLIST. Uma faixa cujo thumbnail seja igual
+    // a uma dessas URLs NÃO tem capa própria (herdou a da playlist em importações
+    // antigas) e deve ser re-enriquecida para recuperar sua arte individual.
+    const playlistCoverUrls = getCurrentPlaylistCoverUrls(tracks);
 
     async function worker() {
       while (index < tracks.length) {
@@ -6054,6 +6074,18 @@ const MUSIC_PLAYER = (() => {
         if (!track) continue;
 
         const youtubeTrack = isYoutubeTrack(track);
+
+        // Se o thumbnail é, na verdade, a capa da playlist, limpa para não ser
+        // considerado capa individual (nem exibido no lugar da arte real).
+        const thumbSan = sanitizeImageUrl(track.thumbnail);
+        if (thumbSan && playlistCoverUrls.has(thumbSan)) {
+          track.thumbnail = '';
+          if (track.album?.images?.length) {
+            track.album.images = track.album.images.filter(img => sanitizeImageUrl(img?.url) !== thumbSan);
+          }
+          const trackIndex = state.tracks.indexOf(track);
+          if (trackIndex >= 0) updateTrackCardCover(trackIndex, getFallbackCover(getTrackTitle(track)));
+        }
 
         const hasRealCover = track.thumbnail
           && !track.generatedCover
@@ -6080,7 +6112,17 @@ const MUSIC_PLAYER = (() => {
             applyCoverToStateAndUi(track, safeCover, importSessionId);
             // Marca para persistir apenas quando uma capa REAL foi obtida, para
             // que o reload recupere a arte original (e não a capa genérica).
-            if (!track.generatedCover) coversResolved = true;
+            if (!track.generatedCover) {
+              coversResolved = true;
+              resolvedSinceSave++;
+              // Flush incremental: como o enriquecimento é contínuo (delay curto
+              // entre faixas), o debounce nunca dispararia. Salvamos a cada N
+              // capas resolvidas para que o progresso sobreviva a um reload.
+              if (resolvedSinceSave >= 4 && !isImportSessionStale(importSessionId)) {
+                resolvedSinceSave = 0;
+                savePlaylistsToStorage();
+              }
+            }
           }
           if (youtubeTrack) track._deezerCoverResolved = true;
         } catch (error) {
@@ -6095,8 +6137,9 @@ const MUSIC_PLAYER = (() => {
 
     // Persiste as capas reais recuperadas para que sobrevivam ao reload da página.
     // (As capas resolvidas no enriquecimento só existiam em memória/DOM antes.)
+    // Salva imediatamente (não via debounce) para garantir a gravação do lote final.
     if (coversResolved && !isImportSessionStale(importSessionId)) {
-      debouncedSave();
+      savePlaylistsToStorage();
     }
 
     return tracks;
@@ -6488,11 +6531,14 @@ const MUSIC_PLAYER = (() => {
         name: title || artistRaw || 'Faixa sem título',
         title: title || '',
         artists: artists.length ? artists.map(name => ({ name })) : [{ name: artistRaw || '' }].filter(a => a.name),
+        // IMPORTANTE: nunca usar a capa da playlist como capa da faixa. Faixas sem
+        // capa própria ficam sem thumbnail para que o enriquecimento resolva a
+        // arte individual (a capa da playlist é derivada em separado via playlistImage).
         album: {
           name: album || '',
-          images: thumbnail ? [{ url: thumbnail }] : (playlistImage ? [{ url: playlistImage }] : [])
+          images: thumbnail ? [{ url: thumbnail }] : []
         },
-        thumbnail: thumbnail || playlistImage || '',
+        thumbnail: thumbnail || '',
         isrc: isrc || '',
         playlistName,
         playlistImage,
@@ -6905,8 +6951,19 @@ const MUSIC_PLAYER = (() => {
       return;
     }
 
+    const playlistCoverUrls = getCurrentPlaylistCoverUrls(state.tracks);
     state.tracks = state.tracks.map((track) => {
       if (!track) return track;
+      // Faixa que herdou a capa da playlist (importações antigas): descarta para
+      // NUNCA exibir a capa da playlist no lugar da capa individual. O enriquecimento
+      // recupera a arte própria; até lá, usa-se a capa genérica.
+      const thumbSan = sanitizeImageUrl(track.thumbnail);
+      if (thumbSan && playlistCoverUrls.has(thumbSan)) {
+        track.thumbnail = '';
+        if (track.album?.images?.length) {
+          track.album.images = track.album.images.filter(img => sanitizeImageUrl(img?.url) !== thumbSan);
+        }
+      }
       const hasThumb = isRealCover(track.thumbnail);
       if (!hasThumb) {
         track.thumbnail = getFallbackCover(getTrackTitle(track));
