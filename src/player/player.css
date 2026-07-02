@@ -951,7 +951,7 @@
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  z-index: 2147483647 !important;
+  z-index: 99999 !important;
 }
 
 #expanded-video-wrapper.css-fullscreen .video-fullscreen-btn {
@@ -978,6 +978,24 @@ body.video-css-fs #player-controls-bar .expanded-cover-wrapper {
 body.video-fullscreen-active #footer-container,
 body.video-fullscreen-active #quick-actions-nav {
   display: none !important;
+}
+
+/* CORREÇÃO CRÍTICA (iOS Safari): backdrop-filter em ancestrais/sobreposições de
+   um <iframe> derruba o processo de renderização ao girar a tela, causando o
+   ciclo de recarregamentos. Enquanto o vídeo (iframe) estiver ativo, removemos
+   TODOS os backdrop-filter da subárvore do player e das camadas de blur da capa. */
+body.hf-video-active #player-controls-bar,
+body.hf-video-active #player-controls-bar *,
+body.hf-video-active #expanded-cover-blur,
+body.hf-video-active #player-controls-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove o transform do ancestral do iframe durante o vídeo (identidade visual
+   quando a capa está aberta) para simplificar a composição sobre o iframe. */
+body.hf-video-active #player-controls-bar .expanded-cover-wrapper {
+  transform: none !important;
 }
 
 /* Modo Vídeo ativo: esconde a capa, mostra o clipe */

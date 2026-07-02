@@ -1042,6 +1042,8 @@ const MUSIC_PLAYER = (() => {
       currentMode = 'video';
       userPreference = 'video';
       applyModeVisual('video');
+      // Remove backdrop-filter dos ancestrais do iframe (evita crash de rotação no iOS).
+      setVideoChromeActive(true);
 
       // Exclusividade: silencia COMPLETAMENTE o MP3 (pause + mute) para evitar
       // qualquer sobreposição com o áudio do clipe, mesmo se algum watchdog
@@ -1056,6 +1058,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        setVideoChromeActive(false);
         audio.muted = prevMuted;
         if (wasPlaying) { try { audio.play(); } catch (e) {} }
         return false;
@@ -1070,6 +1073,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        setVideoChromeActive(false);
         audio.muted = prevMuted;
         if (wasPlaying) { try { audio.play(); } catch (e2) {} }
         return false;
@@ -1086,6 +1090,7 @@ const MUSIC_PLAYER = (() => {
       applyModeVisual('cover');
       // Sair do modo Vídeo também encerra qualquer tela cheia ativa.
       exitFullscreenIfActive();
+      setVideoChromeActive(false);
 
       if (!ytEngineActive) {
         return;
@@ -1121,9 +1126,17 @@ const MUSIC_PLAYER = (() => {
       ytEngineActive = false;
       stopProgressLoop();
       exitFullscreenIfActive();
+      setVideoChromeActive(false);
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
       // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
       audio.muted = prevMuted;
+    }
+
+    // Alterna a classe que remove os backdrop-filter da subárvore do player
+    // enquanto o vídeo (iframe) está ativo. backdrop-filter em ancestrais de um
+    // <iframe> derruba o WebContent do iOS Safari ao girar a tela.
+    function setVideoChromeActive(active) {
+      document.body.classList.toggle('hf-video-active', !!active);
     }
 
     // ---- Overlay de controles personalizados + tela cheia ----
