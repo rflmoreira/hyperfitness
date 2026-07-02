@@ -1068,6 +1068,59 @@ const MUSIC_PLAYER = (() => {
       wrapper.style.height = `${Math.round(height)}px`;
     }
 
+    // Coalesce dos reposicionamentos: durante rotação/resize o navegador dispara
+    // vários eventos em sequência; agrupar as escritas de geometria em um único
+    // frame evita re-rasterizações repetidas da camada composta do iframe.
+    let positionRaf = null;
+    function schedulePositionVideoWrapper() {
+      if (positionRaf) return;
+      positionRaf = requestAnimationFrame(() => {
+        positionRaf = null;
+        positionVideoWrapper();
+      });
+    }
+
+    // ---- Estabilização de rotação (iOS/Safari) ----
+    // CAUSA RAIZ do "ciclo de recarregamentos" ao girar o iPhone: o Safari iOS
+    // derruba o processo WebContent quando o compositor precisa redimensionar a
+    // camada do iframe do YouTube no meio da animação de rotação (agravado pelas
+    // camadas de backdrop-filter da interface). O crash recarrega a página e,
+    // girando novamente, o ciclo se repete. Não é um reload disparado pelo app.
+    //
+    // Correção: durante a transição de rotação o wrapper do vídeo é "estacionado"
+    // (visibility:hidden — o iframe permanece vivo e o clipe CONTINUA tocando;
+    // nada é recriado nem perde estado) e, quando o viewport estabiliza, ele é
+    // reposicionado e reexibido em um único passo. Aplica-se apenas ao iOS;
+    // no Chrome Android (sem o crash) basta o coalesce por frame acima.
+    const isIosSafariLike = /iP(hone|od|ad)/.test(navigator.platform || '') ||
+      (/Mac/.test(navigator.platform || '') && (navigator.maxTouchPoints || 0) > 1);
+
+    const ROTATION_SETTLE_MS = 300;
+    let rotationSettleTimer = null;
+    let rotationParked = false;
+    let lastIsLandscape = window.innerWidth > window.innerHeight;
+
+    function parkVideoForRotation() {
+      if (!isIosSafariLike || !ytEngineActive) return;
+      const wrapper = document.getElementById('expanded-video-wrapper');
+      if (!wrapper) return;
+      if (!rotationParked) {
+        rotationParked = true;
+        wrapper.classList.add('rotation-parking');
+      }
+      // Cada novo resize/orientationchange durante a rotação re-arma o timer;
+      // o vídeo só volta quando o viewport ficar estável por ROTATION_SETTLE_MS.
+      if (rotationSettleTimer) clearTimeout(rotationSettleTimer);
+      rotationSettleTimer = setTimeout(unparkVideoAfterRotation, ROTATION_SETTLE_MS);
+    }
+
+    function unparkVideoAfterRotation() {
+      rotationSettleTimer = null;
+      rotationParked = false;
+      positionVideoWrapper(); // no-op em tela cheia (guard interno)
+      document.getElementById('expanded-video-wrapper')?.classList.remove('rotation-parking');
+    }
+
     // ---- Visual (fade + scale) ----
     function applyModeVisual(mode) {
       const els = getEls();
@@ -1457,10 +1510,32 @@ const MUSIC_PLAYER = (() => {
         if (ytEngineActive) enterCoverMode({ resume: true });
       });
 
+      // Rotação: estaciona o vídeo durante a transição (somente iOS, onde o
+      // redimensionamento da camada do iframe no meio da rotação derruba o
+      // WebContent e provoca o ciclo de reloads). 'orientationchange' cobre o
+      // Safari iOS; screen.orientation 'change' cobre navegadores mais novos.
+      // parkVideoForRotation é idempotente, então receber os dois eventos para
+      // a mesma rotação apenas re-arma o timer de estabilização.
+      window.addEventListener('orientationchange', parkVideoForRotation);
+      try {
+        screen.orientation?.addEventListener?.('change', parkVideoForRotation);
+      } catch (e) {}
+
       // Mantém o vídeo alinhado à capa quando o viewport muda (rotação, barra de
-      // URL mostrando/ocultando, etc.), exceto em tela cheia.
+      // URL mostrando/ocultando, etc.), exceto em tela cheia. As escritas de
+      // geometria são coalescidas por frame e, no iOS, adiadas até o fim da
+      // rotação (detectada pelo flip retrato/paisagem ou pelo parking ativo).
+      // Nunca reinicializa nada — apenas geometria do wrapper.
       window.addEventListener('resize', () => {
-        if (ytEngineActive && !isFullscreen()) positionVideoWrapper();
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const flipped = isLandscape !== lastIsLandscape;
+        lastIsLandscape = isLandscape;
+        if (!ytEngineActive) return;
+        if (isIosSafariLike && (flipped || rotationParked)) {
+          parkVideoForRotation();
+          return;
+        }
+        if (!isFullscreen()) schedulePositionVideoWrapper();
       }, { passive: true });
     }
 
