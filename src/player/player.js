@@ -1453,18 +1453,16 @@ const MUSIC_PLAYER = (() => {
         });
       });
 
-      // Bloqueio de tela / troca de aba / minimizar o app: volta para a Capa
-      // (o YouTube embed não toca em segundo plano), mantendo o áudio via MP3.
+      // Bloqueio de tela / troca de aba / minimizar o app: faz handoff imediato
+      // do YouTube para MP3, permitindo reprodução em segundo plano.
       //
       // IMPORTANTE: iOS/Safari disparam 'visibilitychange: hidden' TRANSITÓRIO ao
-      // girar o dispositivo ou entrar/sair de tela cheia. Se reagíssemos na hora,
-      // o vídeo seria interrompido a cada rotação. Estratégia:
-      //  1) No hidden transitório: apenas pausar o YouTube (sem handoff MP3).
-      //     Isso evita recarregar o iframe (loadVideoById) ao retomar.
-      //  2) Se permanecer hidden por 2000ms (bloqueio real/troca de aba):
-      //     fazer o handoff completo para MP3 via enterCoverMode.
-      //  3) Ao voltar a ficar visible: se foi apenas pausado, retomar com
-      //     playVideo() (sem reload); se foi handoff completo, maybeAutoRestore.
+      // girar o dispositivo ou entrar/sair de tela cheia. Para distinguir rotação
+      // (transitório) de minimizar/bloquear (persistente), usamos um debounce:
+      //  - Se voltar a ficar visible em <500ms: foi rotação — cancela o handoff
+      //    e apenas resume o YouTube pausado.
+      //  - Se permanecer hidden por 500ms: minimizar/bloqueio real — faz handoff
+      //    completo para MP3 (que pode tocar em segundo plano).
       let hiddenTimer = null;
       let videoPausedByVisibility = false;
       const clearHiddenTimer = () => { if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; } };
@@ -1473,26 +1471,32 @@ const MUSIC_PLAYER = (() => {
         if (document.visibilityState === 'hidden') {
           clearHiddenTimer();
           if (ytEngineActive && !videoPausedByVisibility) {
-            // Pausa imediatamente o YouTube (sem handoff) para evitar
-            // reprodução em segundo plano (proibido pelo iOS).
+            // Pausa imediatamente o YouTube (não toca em segundo plano).
             try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
             videoPausedByVisibility = true;
+            // Agenda handoff para MP3 após 500ms — se voltar a ficar visible
+            // antes (rotação), cancela e resume o YouTube.
+            hiddenTimer = setTimeout(() => {
+              hiddenTimer = null;
+              if (document.visibilityState === 'hidden' && ytEngineActive) {
+                // Minimizar/bloqueio real: handoff completo para MP3.
+                videoPausedByVisibility = false;
+                enterCoverMode({ resume: true });
+              }
+            }, 500);
           }
-          // Debounce longo: só faz handoff completo se realmente saiu da aba.
-          hiddenTimer = setTimeout(() => {
-            hiddenTimer = null;
-            if (document.visibilityState === 'hidden' && ytEngineActive) {
-              // Bloqueio real: faz handoff completo para MP3.
-              videoPausedByVisibility = false;
-              enterCoverMode({ resume: true });
-            }
-          }, 2000);
         } else {
           clearHiddenTimer();
           if (videoPausedByVisibility && ytEngineActive) {
-            // Retoma o YouTube de onde parou (sem recarregar o iframe).
+            // Rotação transitória: retoma o YouTube de onde parou.
             try { if (ytPlayer && ytReady) ytPlayer.playVideo(); } catch (e) {}
             videoPausedByVisibility = false;
+          } else if (!ytEngineActive && state.isPlaying && audio.paused && audio.src) {
+            // Handoff para MP3 foi feito em segundo plano, mas audio.play()
+            // pode ter falhado (navegador bloqueia play() em página hidden).
+            // Retoma agora que a página está visível novamente.
+            const p = audio.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
           } else {
             maybeAutoRestore();
           }
@@ -1623,7 +1627,8 @@ const MUSIC_PLAYER = (() => {
 
   // Helper para iniciar reprodução do áudio
   function startPlaying() {
-    audio.play();
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
     state.isPlaying = true;
   }
 
