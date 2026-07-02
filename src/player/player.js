@@ -3737,28 +3737,41 @@ const MUSIC_PLAYER = (() => {
     const discoverContainer = document.getElementById('discover-container');
     const carouselWrapper = document.getElementById('discover-carousel-wrapper');
     if (discoverContainer && carouselWrapper) {
+      let discoverScrollRaf = null;
+      let lastDiscoverScroll = -1;
+
       function handleDiscoverScroll() {
         const scrollTop = discoverContainer.scrollTop;
-        const maxScroll = 150;
-        const progress = Math.min(scrollTop / maxScroll, 1);
+        if (scrollTop === lastDiscoverScroll) return;
+        lastDiscoverScroll = scrollTop;
+        if (discoverScrollRaf !== null) return;
+        discoverScrollRaf = requestAnimationFrame(() => {
+          discoverScrollRaf = null;
+          const st = lastDiscoverScroll;
+          const maxScroll = 150;
+          const progress = Math.min(st / maxScroll, 1);
 
-        const opacity = 1 - (progress * 0.85);
-        const scale = 1 - (progress * 0.08);
-        const blur = progress * 4;
-        const translateY = -(progress * 15);
+          const opacity = Math.max(1 - (progress * 0.85), 0.1);
+          const scale = 1 - (progress * 0.08);
+          const blur = progress * 4;
+          const translateY = -(progress * 15);
 
-        carouselWrapper.style.opacity = Math.max(opacity, 0.1);
-        carouselWrapper.style.transform = `scale(${scale}) translateY(${translateY}px)`;
-        carouselWrapper.style.filter = `blur(${blur}px)`;
-        
-        // Carrossel interativo no topo, escondido ao scrollar
-        if (scrollTop > 50) {
-          carouselWrapper.style.zIndex = '5';
-          carouselWrapper.style.pointerEvents = 'none';
-        } else {
-          carouselWrapper.style.zIndex = '25';
-          carouselWrapper.style.pointerEvents = 'auto';
-        }
+          carouselWrapper.style.opacity = opacity;
+          carouselWrapper.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+          if (blur > 0.1) {
+            carouselWrapper.style.filter = `blur(${blur.toFixed(1)}px)`;
+          } else {
+            carouselWrapper.style.filter = '';
+          }
+
+          if (st > 50) {
+            carouselWrapper.style.zIndex = '5';
+            carouselWrapper.style.pointerEvents = 'none';
+          } else {
+            carouselWrapper.style.zIndex = '25';
+            carouselWrapper.style.pointerEvents = 'auto';
+          }
+        });
       }
 
       discoverContainer.addEventListener('scroll', handleDiscoverScroll, { passive: true });
@@ -4539,7 +4552,7 @@ const MUSIC_PLAYER = (() => {
           <p class="text-xs text-white/50 truncate mt-0.5">${escapeHTML(cleanPlaylistAuthor(playlist.author))}</p>
         </div>
         <button class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
-          style="background: rgba(147, 51, 234, 0.45); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(168, 85, 247, 0.3);"
+          style="background: rgba(147, 51, 234, 0.65); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.3);"
           title="Importar playlist">
           <i class="ph-bold ph-plus text-base"></i>
         </button>
@@ -4710,7 +4723,7 @@ const MUSIC_PLAYER = (() => {
             </div>
             <span class="search-item-duration text-xs text-white/40 flex-shrink-0">${duration}</span>
             <button class="add-to-playlist-btn flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
-              style="background: rgba(255, 122, 31, 0.45); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset; backdrop-filter: blur(15px) saturate(300%) brightness(2.5); -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5); border: 1px solid rgba(255, 122, 31, 0.3);"
+              style="background: rgba(255, 122, 31, 0.65); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 122, 31, 0.3);"
               title="Adicionar à playlist">
               <i class="ph-bold ph-plus text-base"></i>
             </button>
@@ -7657,17 +7670,18 @@ const MUSIC_PLAYER = (() => {
 
 
   // Handler de scroll do YouTube - infinite scroll
+  let youtubeScrollRaf = null;
   function handleYoutubeScroll() {
-    if (!ui.youtubeSearchContent) return;
-    
-    const scrollTop = ui.youtubeSearchContent.scrollTop;
-    const { scrollHeight, clientHeight } = ui.youtubeSearchContent;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    
-    // Infinite scroll - carrega mais quando estiver a 200px do final
-    if (distanceFromBottom <= 200) {
-      loadMoreYouTubeResults();
-    }
+    if (youtubeScrollRaf !== null) return;
+    youtubeScrollRaf = requestAnimationFrame(() => {
+      youtubeScrollRaf = null;
+      if (!ui.youtubeSearchContent) return;
+      const { scrollTop, scrollHeight, clientHeight } = ui.youtubeSearchContent;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      if (distanceFromBottom <= 200) {
+        loadMoreYouTubeResults();
+      }
+    });
   }
   
 

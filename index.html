@@ -121,7 +121,7 @@
       -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
       mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
       pointer-events: none;
-      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+      transition: opacity 0.3s ease;
     }
 
     #builder-screen .builder-back-btn,
@@ -161,7 +161,7 @@
       backdrop-filter: blur(20px) saturate(130%);
       -webkit-backdrop-filter: blur(20px) saturate(130%);
       transform: scale(1);
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     #builder-screen .builder-back-btn:hover {
@@ -2320,7 +2320,7 @@
         rgba(9, 9, 15, 0.58);
       --liquid-card-border: rgba(255, 255, 255, 0.18);
       --liquid-card-border-soft: rgba(255, 255, 255, 0.11);
-      --liquid-card-filter: blur(54px) saturate(190%) contrast(1.08) brightness(1.05);
+      --liquid-card-filter: blur(24px) saturate(180%) contrast(1.08) brightness(1.05);
       --liquid-card-shadow:
         0 30px 70px -34px rgba(0, 0, 0, 0.86),
         0 14px 32px -22px rgba(0, 0, 0, 0.68),
@@ -2665,8 +2665,8 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.2),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         inset 0 -1px 1px rgba(0, 0, 0, 0.4);
-      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
-      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(24px) saturate(180%) contrast(110%);
     }
 
     .phase-dashboard__hero::before {
@@ -3028,8 +3028,8 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.2),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         inset 0 -1px 1px rgba(0, 0, 0, 0.4);
-      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
-      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(24px) saturate(180%) contrast(110%);
     }
 
     .phase-stats::before,
@@ -3646,8 +3646,8 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.2),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         inset 0 -14px 22px -22px rgba(0, 0, 0, 0.55);
-      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
-      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(24px) saturate(180%) contrast(110%);
       transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 250ms ease;
       isolation: isolate;
       contain: paint;
@@ -4076,8 +4076,8 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.2),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         inset 0 -1px 1px rgba(0, 0, 0, 0.4);
-      -webkit-backdrop-filter: blur(48px) saturate(180%) contrast(110%);
-      backdrop-filter: blur(48px) saturate(180%) contrast(110%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%);
+      backdrop-filter: blur(24px) saturate(180%) contrast(110%);
       overflow: hidden;
     }
 
@@ -4385,7 +4385,6 @@
       opacity: 0;
       margin-top: 0;
       transition: grid-template-rows 0.34s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.26s ease, margin-top 0.34s ease;
-      will-change: grid-template-rows, opacity;
     }
 
     .hf-edit-actions.is-visible {
@@ -5822,7 +5821,6 @@
       opacity: 0;
       transform: translateY(50px);
       transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-      will-change: transform, opacity
     }
 
     .scroll-animate.is-visible {
@@ -6637,8 +6635,7 @@
          transição. A composição da opacity ocorre na GPU. */
       opacity: 0;
       will-change: opacity;
-      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease,
-                  opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
+      transition: opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
     }
 
     #top-bar.top-bar-visible::before {
@@ -6664,8 +6661,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       #top-bar::before {
-        transition: backdrop-filter 0.2s ease, -webkit-backdrop-filter 0.2s ease,
-                    opacity 0.2s linear;
+        transition: opacity 0.2s linear;
       }
     }
 
@@ -7065,7 +7061,6 @@
       transform: translate3d(0, var(--card-parallax-offset, 0), 0);
       scale: var(--card-image-scale, 1.05);
       transition: scale 0.6s ease;
-      will-change: transform, scale;
       pointer-events: none
     }
 
@@ -7429,7 +7424,6 @@
     #exercise-image-modal {
       z-index: 150;
       transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-      will-change: opacity, visibility
     }
 
     #exercise-image-modal.active {
@@ -7658,7 +7652,6 @@
 
     .timer-control-btn {
       animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      will-change: transform, opacity
     }
 
     .timer-control-btn:nth-child(1) {
@@ -7671,12 +7664,10 @@
 
     #timer-toggle-btn.is-running .ph-pause {
       animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      will-change: transform, opacity
     }
 
     #timer-toggle-btn:not(.is-running) .ph-play {
       animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      will-change: transform, opacity
     }
 
     @media (max-width:480px) {
@@ -11844,28 +11835,6 @@
       `;
     }
 
-    function renderProgressBar(completed, total, progress) {
-      const remaining = Math.max(total - completed, 0);
-      const caption = remaining === 0
-        ? "Treino completo. Pronto para avançar."
-        : `${remaining} ${remaining === 1 ? "exercício restante" : "exercícios restantes"} para fechar o treino.`;
-      DOM_ELEMENTS.progressBarContainer.innerHTML = `
-        <div class="hf-workout-progress" aria-label="${escapeHTML(`Progresso do treino: ${completed} de ${total}`)}">
-          <div class="hf-workout-progress__top">
-            <span class="hf-workout-progress__label">
-              <i class="ph-bold ph-pulse" aria-hidden="true"></i>
-              Progresso do treino
-            </span>
-            <span class="hf-workout-progress__value">${escapeHTML(completed)} / ${escapeHTML(total)}</span>
-          </div>
-          <div class="hf-workout-progress__track" aria-hidden="true">
-            <span class="hf-workout-progress__fill" style="width: ${progress}%"></span>
-          </div>
-          <span class="hf-workout-progress__caption">${escapeHTML(caption)}</span>
-        </div>
-      `;
-    }
-
     function isProgramDeleteModalOpen() {
       return DOM_ELEMENTS.programDeleteModal?.getAttribute("aria-hidden") === "false";
     }
@@ -12233,7 +12202,7 @@
 
       const scrollHandler = () => scheduleCardParallaxUpdate();
       window.addEventListener('scroll', scrollHandler, { passive: true });
-      window.addEventListener('resize', scrollHandler);
+      window.addEventListener('resize', scrollHandler, { passive: true });
 
       // Top bar blur on scroll
       const topBar = document.getElementById('top-bar');
