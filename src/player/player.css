@@ -973,6 +973,13 @@ body.video-css-fs #player-controls-bar .expanded-cover-wrapper {
   transform: none !important;
 }
 
+/* Em tela cheia (nativa OU CSS), oculta toda a interface fora da experiência de
+   reprodução para que apenas o vídeo apareça (ex.: quick-actions-nav/footer). */
+body.video-fullscreen-active #footer-container,
+body.video-fullscreen-active #quick-actions-nav {
+  display: none !important;
+}
+
 /* Modo Vídeo ativo: esconde a capa, mostra o clipe */
 #player-controls-bar .expanded-cover-wrapper.mode-video #ctrl-expanded-cover {
   opacity: 0;

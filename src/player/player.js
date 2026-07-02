@@ -1163,6 +1163,7 @@ const MUSIC_PLAYER = (() => {
       document.body.classList.add('video-css-fs');
       cssFullscreen = true;
       updateFullscreenIcon();
+      syncFullscreenChrome();
     }
 
     function exitCssFullscreen() {
@@ -1170,6 +1171,7 @@ const MUSIC_PLAYER = (() => {
       document.body.classList.remove('video-css-fs');
       cssFullscreen = false;
       updateFullscreenIcon();
+      syncFullscreenChrome();
     }
 
     function exitAnyFullscreen() {
@@ -1214,6 +1216,18 @@ const MUSIC_PLAYER = (() => {
       if (icon) icon.className = isFullscreen() ? 'ph-bold ph-arrows-in' : 'ph-bold ph-arrows-out';
     }
 
+    // Mantém uma classe no <body> refletindo o estado de tela cheia, para que a
+    // interface fora da experiência de reprodução (ex.: quick-actions-nav) seja
+    // ocultada tanto no fullscreen nativo quanto no CSS.
+    function syncFullscreenChrome() {
+      document.body.classList.toggle('video-fullscreen-active', isFullscreen());
+    }
+
+    function onNativeFullscreenChange() {
+      updateFullscreenIcon();
+      syncFullscreenChrome();
+    }
+
     function initVideoControls() {
       const overlay = document.getElementById('video-overlay');
       const fsBtn = document.getElementById('video-fullscreen-btn');
@@ -1232,8 +1246,8 @@ const MUSIC_PLAYER = (() => {
         toggleFullscreen();
       });
 
-      document.addEventListener('fullscreenchange', updateFullscreenIcon);
-      document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+      document.addEventListener('fullscreenchange', onNativeFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', onNativeFullscreenChange);
       // Escape encerra a tela cheia CSS (a nativa já é tratada pelo navegador).
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && cssFullscreen) exitCssFullscreen();
@@ -1332,15 +1346,35 @@ const MUSIC_PLAYER = (() => {
 
       // Bloqueio de tela / troca de aba / minimizar o app: volta para a Capa
       // (o YouTube embed não toca em segundo plano), mantendo o áudio via MP3.
+      //
+      // IMPORTANTE: iOS/Safari disparam 'visibilitychange: hidden' TRANSITÓRIO ao
+      // girar o dispositivo ou entrar/sair de tela cheia. Se reagíssemos na hora,
+      // o vídeo seria interrompido a cada rotação. Por isso usamos um debounce e
+      // só saímos do modo Vídeo quando a página permanece oculta (bloqueio real).
+      let hiddenTimer = null;
+      const clearHiddenTimer = () => { if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; } };
+
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-          if (ytEngineActive) enterCoverMode({ resume: true }); // mantém userPreference
+          clearHiddenTimer();
+          hiddenTimer = setTimeout(() => {
+            hiddenTimer = null;
+            // Continua oculta de fato (não foi um transitório de rotação/fullscreen).
+            if (document.visibilityState === 'hidden' && ytEngineActive) {
+              enterCoverMode({ resume: true }); // mantém userPreference
+            }
+          }, 600);
         } else {
+          clearHiddenTimer();
           maybeAutoRestore();
         }
       });
-      // Navegação para fora da página.
-      window.addEventListener('pagehide', () => { if (ytEngineActive) enterCoverMode({ resume: true }); });
+
+      // Navegação real para fora da página (não dispara em rotação).
+      window.addEventListener('pagehide', (e) => {
+        // e.persisted indica bfcache; ainda assim, só age se realmente saindo.
+        if (ytEngineActive) enterCoverMode({ resume: true });
+      });
     }
 
     return {
