@@ -865,6 +865,7 @@ const MUSIC_PLAYER = (() => {
     let available = false;           // faixa atual tem clipe?
     let loadedVideoId = null;
     let progressRaf = null;
+    let prevMuted = false;           // estado de mute do MP3 antes do modo Vídeo
 
     function getEls() {
       return {
@@ -1024,14 +1025,19 @@ const MUSIC_PLAYER = (() => {
 
       const startAt = Math.max(0, audio.currentTime || 0);
       const wasPlaying = state.isPlaying && !audio.paused;
-      // Marca engine como YouTube ANTES de pausar o MP3 para que o handler
+      // Marca engine como YouTube ANTES de silenciar o MP3 para que o handler
       // de 'pause' do áudio não altere o estado/UI.
       ytEngineActive = true;
       currentMode = 'video';
       userPreference = 'video';
       applyModeVisual('video');
 
+      // Exclusividade: silencia COMPLETAMENTE o MP3 (pause + mute) para evitar
+      // qualquer sobreposição com o áudio do clipe, mesmo se algum watchdog
+      // tentar retomar o <audio> enquanto o vídeo estiver ativo.
+      prevMuted = audio.muted;
       try { audio.pause(); } catch (e) {}
+      audio.muted = true;
 
       const player = await ensurePlayer();
       if (!player) {
@@ -1039,6 +1045,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        audio.muted = prevMuted;
         if (wasPlaying) { try { audio.play(); } catch (e) {} }
         return false;
       }
@@ -1052,6 +1059,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        audio.muted = prevMuted;
         if (wasPlaying) { try { audio.play(); } catch (e2) {} }
         return false;
       }
@@ -1073,6 +1081,7 @@ const MUSIC_PLAYER = (() => {
       let t = 0;
       try { if (ytPlayer && ytReady) t = ytPlayer.getCurrentTime() || 0; } catch (e) {}
       const shouldPlay = state.isPlaying;
+      // Encerra a reprodução do vídeo (fonte única).
       try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
 
       ytEngineActive = false;
@@ -1082,6 +1091,9 @@ const MUSIC_PLAYER = (() => {
       if (Number.isFinite(t) && t > 0 && audio.src) {
         try { audio.currentTime = t; } catch (e) {}
       }
+
+      // Restaura o áudio do MP3 (remove o mute aplicado no modo Vídeo).
+      audio.muted = prevMuted;
 
       if (resume && shouldPlay) {
         startPlaying();
@@ -1096,6 +1108,8 @@ const MUSIC_PLAYER = (() => {
       ytEngineActive = false;
       stopProgressLoop();
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
+      // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
+      audio.muted = prevMuted;
     }
 
     // ---- Disponibilidade / restauração ----
@@ -1106,6 +1120,7 @@ const MUSIC_PLAYER = (() => {
       if (isOfficialVideoResolved(track)) {
         available = !!getCachedOfficialVideoId(track);
         updateToggleVisibility();
+        maybeAutoRestore();
         return;
       }
 
@@ -1140,12 +1155,29 @@ const MUSIC_PLAYER = (() => {
       if (ytEngineActive) enterCoverMode({ resume: true });
     }
 
+    // Chamado no INÍCIO da troca de faixa (antes do novo áudio começar).
+    // Encerra o vídeo anterior e volta o visual para a Capa. A detecção do
+    // clipe e a eventual reentrada no modo Vídeo são adiadas para
+    // onTrackPlaying(), garantindo que só haja uma fonte de mídia ativa.
     function onTrackChanged() {
       if (ytEngineActive) stopVideo();
       currentMode = 'cover';
       loadedVideoId = null;
       applyModeVisual('cover');
-      refreshAvailability();
+      // Desabilita o botão Vídeo até detectar o clipe da nova faixa.
+      available = false;
+      updateToggleVisibility();
+    }
+
+    // Chamado quando o áudio da nova faixa começou a tocar de fato.
+    // Detecta o clipe e, se a preferência do usuário for Vídeo e a capa estiver
+    // aberta, reentra no modo Vídeo (carregando e reproduzindo o novo clipe).
+    // Evita buscas desnecessárias quando a capa está fechada e o usuário não
+    // está no modo Vídeo (o botão só é visível com a capa aberta).
+    function onTrackPlaying() {
+      if (isExpandedCoverOpen() || userPreference === 'video') {
+        refreshAvailability();
+      }
     }
 
     function init() {
@@ -1182,6 +1214,7 @@ const MUSIC_PLAYER = (() => {
       onExpandedCoverOpen,
       onExpandedCoverClose,
       onTrackChanged,
+      onTrackPlaying,
       refreshAvailability,
       // engine (roteamento de controles)
       isVideo: () => ytEngineActive,
@@ -1232,6 +1265,9 @@ const MUSIC_PLAYER = (() => {
     resetAudioError(index);
     updateUiState();
     advanceScheduled = false;
+    // Com o áudio da nova faixa já tocando, tenta reentrar no modo Vídeo
+    // (se for a preferência do usuário e houver clipe disponível).
+    videoMode.onTrackPlaying();
   }
 
   // Helper para parar a reprodução
