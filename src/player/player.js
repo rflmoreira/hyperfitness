@@ -212,6 +212,9 @@ const MUSIC_PLAYER = (() => {
     preloadedPlaylists: new Set() // Playlists que já tiveram preload executado
   };
 
+  // Retomada pendente após reload/crash do navegador (restaura faixa + posição).
+  let pendingResume = null;
+
   // Expor state globalmente para debug
   window.appState = state;
 
@@ -583,9 +586,21 @@ const MUSIC_PLAYER = (() => {
 
   function saveCurrentStateToStorage() {
     try {
+      // Posição da faixa: no modo Vídeo o MP3 fica pausado, então usamos o tempo
+      // do clipe como melhor aproximação; caso contrário, o tempo do <audio>.
+      let posSec = 0;
+      try {
+        posSec = (videoMode && videoMode.isVideo()) ? (videoMode.getCurrentTime() || 0) : (audio.currentTime || 0);
+      } catch (_) { posSec = audio.currentTime || 0; }
+
       const currentState = {
         currentPlaylistId: state.currentPlaylist?.id || null,
-        currentTrackIndex: state.currentTrackIndex
+        currentTrackIndex: state.currentTrackIndex,
+        // Fila/posição REAL de reprodução, para retomar após reload/crash do navegador.
+        playingPlaylistId: state.playingPlaylistId || null,
+        playingTrackIndex: state.playingTrackIndex,
+        positionMs: Math.max(0, Math.floor(posSec * 1000)),
+        wasPlaying: !!state.isPlaying
       };
       localStorage.setItem(CURRENT_STATE_STORAGE_KEY, JSON.stringify(currentState));
     } catch (e) {
@@ -603,6 +618,38 @@ const MUSIC_PLAYER = (() => {
       console.warn('Erro ao carregar estado atual:', e);
     }
     return null;
+  }
+
+  // Restaura a fila e a posição de reprodução após um reload/crash do navegador.
+  // NÃO auto-reproduz (políticas de autoplay exigem gesto do usuário); apenas
+  // deixa a faixa selecionada e a posição pronta para retomar em 1 toque.
+  function restorePlaybackState(saved) {
+    if (!saved) return;
+    const { playingPlaylistId, playingTrackIndex, positionMs } = saved;
+    if (!playingPlaylistId || playingPlaylistId === 'youtube-search') return;
+    if (!Number.isInteger(playingTrackIndex) || playingTrackIndex < 0) return;
+
+    const playlist = state.playlists.find(p => p.id === playingPlaylistId);
+    if (!playlist || !Array.isArray(playlist.tracks) || playingTrackIndex >= playlist.tracks.length) return;
+
+    // Restaura a fila de reprodução (sem iniciar o áudio).
+    state.playingPlaylistId = playingPlaylistId;
+    state.playingTracks = [...playlist.tracks];
+    state.playingTrackIndex = playingTrackIndex;
+
+    // Se a visualização é a mesma playlist, alinha o índice destacado.
+    if (state.currentPlaylist?.id === playingPlaylistId) {
+      state.currentTrackIndex = playingTrackIndex;
+    }
+
+    // Guarda a posição para saltar assim que a faixa começar a tocar.
+    pendingResume = {
+      playlistId: playingPlaylistId,
+      index: playingTrackIndex,
+      positionSec: Math.max(0, (positionMs || 0) / 1000)
+    };
+
+    updateUiState();
   }
 
   // Cache de áudio reproduzido (videoId -> audioUrl)
@@ -1500,6 +1547,30 @@ const MUSIC_PLAYER = (() => {
   function markPlaybackSuccess(index) {
     state.isPlaying = true;
     resetAudioError(index);
+
+    // Retomada após reload/crash: salta para a posição salva na primeira vez que
+    // a faixa restaurada começar a tocar.
+    if (pendingResume) {
+      if (index === pendingResume.index && state.playingPlaylistId === pendingResume.playlistId) {
+        const pos = pendingResume.positionSec;
+        pendingResume = null;
+        if (pos > 1) {
+          const seekTo = () => {
+            try {
+              if (!Number.isFinite(audio.duration) || pos < audio.duration - 1) {
+                audio.currentTime = pos;
+              }
+            } catch (_) {}
+          };
+          if (audio.readyState >= 1) seekTo();
+          else audio.addEventListener('loadedmetadata', seekTo, { once: true });
+        }
+      } else {
+        // Usuário escolheu outra faixa: descarta a retomada pendente.
+        pendingResume = null;
+      }
+    }
+
     updateUiState();
     advanceScheduled = false;
     // Com o áudio da nova faixa já tocando, tenta reentrar no modo Vídeo
@@ -3957,6 +4028,9 @@ const MUSIC_PLAYER = (() => {
           }
         }
 
+        // Restaura a fila e a posição de reprodução (retomada após reload/crash).
+        restorePlaybackState(savedState);
+
         bindUi();
         
         // Configura Media Session API para controles do sistema
@@ -3972,6 +4046,22 @@ const MUSIC_PLAYER = (() => {
 
         // Salva ao fechar/recarregar a página
         window.addEventListener('beforeunload', saveAllData);
+
+        // Persiste a posição de reprodução periodicamente. Crashes do WebContent
+        // (ex.: iOS Safari ao girar a tela com o iframe do YouTube) NÃO disparam
+        // beforeunload/pagehide de forma confiável, então salvamos com frequência
+        // para que o reload restaure a faixa e a posição exatas. Grava apenas a
+        // chave pequena de "estado atual" (barato).
+        setInterval(() => {
+          if (state.isPlaying || (videoMode && videoMode.isVideo())) {
+            saveCurrentStateToStorage();
+          }
+        }, 4000);
+
+        // Também salva imediatamente quando a página fica oculta (bloqueio/troca de app).
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') saveCurrentStateToStorage();
+        });
 
         // Inicializa a rádio
         initRadio();
@@ -8596,6 +8686,15 @@ const MUSIC_PLAYER = (() => {
       pausePlaying();
       updateUiState();
       stopPlaybackCountdown({ resetLabel: false });
+      saveCurrentStateToStorage(); // grava a posição exata ao pausar
+      return;
+    }
+
+    // Retomada após reload/crash: nada carregado no <audio>, mas há uma fila de
+    // reprodução restaurada — inicia a faixa (o salto para a posição é aplicado
+    // em markPlaybackSuccess via pendingResume).
+    if (!audio.src && hasLibraryPlaybackQueue() && state.playingTrackIndex >= 0) {
+      playTrackInternal(state.playingTrackIndex, { fromPlayingTracks: true });
       return;
     }
 
