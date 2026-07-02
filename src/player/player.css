@@ -853,6 +853,83 @@
   display: block;
 }
 
+/* Overlay de controles personalizados sobre o vídeo.
+   Sempre captura os eventos de ponteiro (bloqueando os controles nativos do
+   YouTube), mas fica visualmente oculto até haver interação. */
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 122, 31, 0.28);
+  opacity: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.4s ease;
+}
+
+.video-overlay.visible {
+  opacity: 1;
+}
+
+.video-fullscreen-btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 25px;
+  background: rgba(25, 25, 25, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.25) inset;
+  backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+  -webkit-backdrop-filter: blur(15px) saturate(300%) brightness(2.5);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.video-overlay.visible .video-fullscreen-btn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.video-fullscreen-btn:active {
+  transform: scale(0.92);
+}
+
+/* Tela cheia (nativa) do player de vídeo */
+#expanded-video-wrapper:fullscreen,
+#expanded-video-wrapper:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  aspect-ratio: auto;
+  border-radius: 0;
+  margin: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: none;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: #000;
+}
+
+#expanded-video-wrapper:fullscreen .video-fullscreen-btn,
+#expanded-video-wrapper:-webkit-full-screen .video-fullscreen-btn {
+  width: 74px;
+  height: 74px;
+  font-size: 30px;
+}
+
 /* Modo Vídeo ativo: esconde a capa, mostra o clipe */
 #player-controls-bar .expanded-cover-wrapper.mode-video #ctrl-expanded-cover {
   opacity: 0;

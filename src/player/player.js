@@ -1112,6 +1112,69 @@ const MUSIC_PLAYER = (() => {
       audio.muted = prevMuted;
     }
 
+    // ---- Overlay de controles personalizados + tela cheia ----
+    const OVERLAY_HIDE_DELAY_MS = 2800;
+    let overlayHideTimer = null;
+
+    function showVideoOverlay() {
+      const overlay = document.getElementById('video-overlay');
+      if (!overlay) return;
+      overlay.classList.add('visible');
+      if (overlayHideTimer) clearTimeout(overlayHideTimer);
+      overlayHideTimer = setTimeout(hideVideoOverlay, OVERLAY_HIDE_DELAY_MS);
+    }
+
+    function hideVideoOverlay() {
+      if (overlayHideTimer) { clearTimeout(overlayHideTimer); overlayHideTimer = null; }
+      document.getElementById('video-overlay')?.classList.remove('visible');
+    }
+
+    function isFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function toggleFullscreen() {
+      const el = document.getElementById('expanded-video-wrapper');
+      if (!el) return;
+      if (isFullscreen()) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        try { exit?.call(document); } catch (e) {}
+      } else {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        try {
+          const p = req?.call(el);
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch (e) {}
+      }
+    }
+
+    function updateFullscreenIcon() {
+      const icon = document.querySelector('#video-fullscreen-btn i');
+      if (icon) icon.className = isFullscreen() ? 'ph-bold ph-arrows-in' : 'ph-bold ph-arrows-out';
+    }
+
+    function initVideoControls() {
+      const overlay = document.getElementById('video-overlay');
+      const fsBtn = document.getElementById('video-fullscreen-btn');
+      if (!overlay) return;
+
+      // Exibe o overlay ao mover o mouse (desktop) ou tocar (mobile).
+      const reveal = () => showVideoOverlay();
+      overlay.addEventListener('pointermove', reveal);
+      overlay.addEventListener('pointerdown', reveal);
+      overlay.addEventListener('touchstart', reveal, { passive: true });
+
+      // Clique no botão personalizado entra/sai da tela cheia.
+      fsBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showVideoOverlay(); // reinicia o timer
+        toggleFullscreen();
+      });
+
+      document.addEventListener('fullscreenchange', updateFullscreenIcon);
+      document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+    }
+
     // ---- Disponibilidade / restauração ----
     function refreshAvailability() {
       const { track } = getCurrentPlayingTrack();
@@ -1181,6 +1244,7 @@ const MUSIC_PLAYER = (() => {
     }
 
     function init() {
+      initVideoControls();
       const { toggle } = getEls();
       toggle?.querySelectorAll('[data-mode]').forEach(btn => {
         btn.addEventListener('click', (e) => {
