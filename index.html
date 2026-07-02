@@ -2416,11 +2416,9 @@
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 9999;
-      /* mix-blend-mode: overlay removido: forçava o WebKit a rasterizar a
-         viewport inteira como textura e aplicar blend a cada frame. Em
-         rotação, essa re-rasterização somada à de #page-background
-         (tamanho do documento) estourava a GPU e derrubava o WebContent
-         (reload da página). A 0.03 de opacidade, imperceptível sem o blend. */
+      /* translateZ(0) promove a uma camada GPU viewport-sized (seguro: ~1.5MB,
+       não é document-sized). Evita repintura durante scroll. */
+      transform: translateZ(0);
     }
 
     body::after {
@@ -2432,6 +2430,7 @@
       background:
         radial-gradient(ellipse at 15% 0%, rgba(255, 122, 31, 0.05), transparent 50%),
         radial-gradient(ellipse at 85% 100%, rgba(64, 242, 96, 0.03), transparent 50%);
+      transform: translateZ(0);
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -6508,7 +6507,6 @@
       overflow: hidden;
       pointer-events: none;
       background-color: #000000;
-      --pg-background-parallax-y: 0px;
       --pg-background-parallax-overdraw: clamp(3rem, 7vh, 5rem);
       border-top: 1px solid var(--liquid-card-border);
       border-top-left-radius: clamp(1.35rem, 2.4vw, 2rem);
@@ -6541,26 +6539,21 @@
          visual era imperceptível (radial gradient escuro, max 34-58px). */
     }
 
-    /* O blur é aplicado DENTRO do SVG (feGaussianBlur) em vez de CSS
-       filter:blur. CSS filter numa elemento do tamanho do documento força
-       compositing GPU — o WebKit aloca uma textura do tamanho total
-       (largura × altura × DPR²) e re-rasteriza a cada rotação, estourando a
-       GPU e derrubando o WebContent (reload da página). Com o blur no SVG,
-       o resultado é pintado no fluxo normal — sem textura GPU, sem
-       compositing, sem re-rasterização em rotação. */
+    /* As bandas abstratas eram um SVG com feGaussianBlur (stdDeviation=40),
+       que é renderizado em SOFTWARE na área do documento inteiro — causa jank
+       em qualquer repaint (scroll, animações). Substituído por radial-gradients
+       que simulam o mesmo visual desfocado sem nenhum filter: pintadas no fluxo
+       normal, em tiles, sem compositing GPU. */
     #page-background .bg-abstract-bands {
       position: absolute;
       inset: calc(-1 * var(--pg-background-parallax-overdraw)) -5%;
       width: 110%;
       height: 110%;
       opacity: 0.45;
-    }
-
-    /* ── Reduced Motion ── */
-    @media (prefers-reduced-motion: reduce) {
-      #page-background {
-        --pg-background-parallax-y: 0px !important;
-      }
+      background:
+        radial-gradient(ellipse 55% 35% at 20% 75%, #004d1c, transparent 70%),
+        radial-gradient(ellipse 45% 28% at 78% 22%, #003312, transparent 65%),
+        radial-gradient(ellipse 50% 38% at 50% 48%, #00290e, transparent 75%);
     }
 
     #builder-screen:not(.hidden)~#footer-container,
@@ -9126,37 +9119,7 @@
   <div id="page-background" class="background-layer" data-scroll-background aria-hidden="true">
     <div class="bg-gradient-base"></div>
     
-    <div class="bg-abstract-bands">
-      <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" style="width: 100%; height: 100%;">
-        <defs>
-          <filter id="blur-bands" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="40" />
-          </filter>
-          <linearGradient id="grad-band-1" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#001a09" stop-opacity="1" />
-            <stop offset="50%" stop-color="#004d1c" stop-opacity="1" />
-            <stop offset="100%" stop-color="#000000" stop-opacity="1" />
-          </linearGradient>
-
-          <linearGradient id="grad-band-2" x1="100%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stop-color="#000000" stop-opacity="0" />
-            <stop offset="50%" stop-color="#003312" stop-opacity="0.8" />
-            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
-          </linearGradient>
-          
-          <linearGradient id="grad-band-3" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00290e" stop-opacity="0.75" />
-            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
-          </linearGradient>
-        </defs>
-
-        <g filter="url(#blur-bands)">
-          <path d="M -200 800 C 300 900, 600 200, 1200 300" fill="none" stroke="url(#grad-band-1)" stroke-width="300" />
-          <path d="M -200 200 C 400 100, 700 800, 1200 900" fill="none" stroke="url(#grad-band-2)" stroke-width="200" />
-          <path d="M -100 -100 C 300 300, 800 0, 1200 400" fill="none" stroke="url(#grad-band-3)" stroke-width="250" />
-        </g>
-      </svg>
-    </div>
+    <div class="bg-abstract-bands"></div>
   </div>
 
   <div id="login-screen">
@@ -10218,136 +10181,8 @@
     };
 
     const pageBackgroundParallaxController = {
-      layer: null,
-      frame: null,
-      currentY: 0,
-      targetY: 0,
-      maxShift: 56,
-      factor: 0.04,
-      reduceMotionQuery: null,
-      boundScroll: null,
-      boundResize: null,
-      boundMotionChange: null,
-
-      init(layer) {
-        this.destroy();
-        if (!layer) return;
-
-        this.layer = layer;
-        this.boundScroll = this.handleScroll.bind(this);
-        this.boundResize = this.handleResize.bind(this);
-        this.boundMotionChange = this.handleMotionPreferenceChange.bind(this);
-        this.reduceMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') || null;
-
-        this.updateMotionScale();
-        window.addEventListener('scroll', this.boundScroll, { passive: true });
-        window.addEventListener('resize', this.boundResize, { passive: true });
-
-        if (this.reduceMotionQuery) {
-          if (typeof this.reduceMotionQuery.addEventListener === 'function') {
-            this.reduceMotionQuery.addEventListener('change', this.boundMotionChange);
-          } else if (typeof this.reduceMotionQuery.addListener === 'function') {
-            this.reduceMotionQuery.addListener(this.boundMotionChange);
-          }
-        }
-
-        this.handleScroll();
-      },
-
-      updateMotionScale() {
-        const isMobile = window.matchMedia?.('(max-width: 767px)').matches;
-        this.factor = isMobile ? 0.028 : 0.038;
-        this.maxShift = isMobile ? 34 : 58;
-      },
-
-      getReducedMotion() {
-        return !!this.reduceMotionQuery?.matches;
-      },
-
-      setOffset(value) {
-        if (!this.layer) return;
-        this.layer.style.setProperty('--pg-background-parallax-y', `${value.toFixed(2)}px`);
-      },
-
-      schedule() {
-        if (this.frame !== null) return;
-        this.frame = window.requestAnimationFrame(() => this.tick());
-      },
-
-      tick() {
-        this.frame = null;
-
-        const delta = this.targetY - this.currentY;
-        if (Math.abs(delta) < 0.08) {
-          this.currentY = this.targetY;
-          this.setOffset(this.currentY);
-          return;
-        }
-
-        this.currentY += delta * 0.18;
-        this.setOffset(this.currentY);
-        this.schedule();
-      },
-
-      handleScroll() {
-        if (!this.layer) return;
-
-        if (this.getReducedMotion()) {
-          this.targetY = 0;
-          this.currentY = 0;
-          this.setOffset(0);
-          return;
-        }
-
-        const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-        this.targetY = Math.max(-this.maxShift, Math.min(0, -scrollY * this.factor));
-        this.schedule();
-      },
-
-      handleResize() {
-        this.updateMotionScale();
-        this.handleScroll();
-      },
-
-      handleMotionPreferenceChange() {
-        this.handleScroll();
-      },
-
-      destroy() {
-        if (this.boundScroll) {
-          window.removeEventListener('scroll', this.boundScroll);
-          this.boundScroll = null;
-        }
-
-        if (this.boundResize) {
-          window.removeEventListener('resize', this.boundResize);
-          this.boundResize = null;
-        }
-
-        if (this.reduceMotionQuery && this.boundMotionChange) {
-          if (typeof this.reduceMotionQuery.removeEventListener === 'function') {
-            this.reduceMotionQuery.removeEventListener('change', this.boundMotionChange);
-          } else if (typeof this.reduceMotionQuery.removeListener === 'function') {
-            this.reduceMotionQuery.removeListener(this.boundMotionChange);
-          }
-        }
-
-        this.boundMotionChange = null;
-        this.reduceMotionQuery = null;
-
-        if (this.frame !== null) {
-          window.cancelAnimationFrame(this.frame);
-          this.frame = null;
-        }
-
-        if (this.layer) {
-          this.layer.style.removeProperty('--pg-background-parallax-y');
-        }
-
-        this.layer = null;
-        this.currentY = 0;
-        this.targetY = 0;
-      }
+      init() {},
+      destroy() {}
     };
 
     // ===== Lottie helper (Bodymovin) =====
