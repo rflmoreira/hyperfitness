@@ -827,17 +827,13 @@
 /* Player de vídeo (clipe oficial) sobreposto ao palco */
 #player-controls-bar .expanded-video-wrapper {
   position: absolute;
-  /* Centralização por margin:auto (sem transform) para NÃO criar uma camada de
-     composição ao redor do iframe — isso evita o crash de rotação no iOS. */
-  top: 0;
+  top: 50%;
   left: 0;
   right: 0;
-  bottom: 0;
   width: 100%;
   max-width: min(calc(100vh - 200px), 380px);
-  margin: auto;
+  margin: 0 auto;
   aspect-ratio: 16 / 9;
-  height: auto;
   border-radius: 16px;
   overflow: hidden;
   background: #000;
@@ -845,8 +841,15 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: scale(0.96);
+  transform: translateY(-50%) scale(0.96);
   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.35s ease;
+}
+
+/* Oculta o vídeo apenas durante a transição de rotação, sem recarregar o iframe
+   (visibility não recria o iframe). Evita que o Safari recomponha o iframe no
+   meio da rotação — origem do recarregamento no iOS. */
+#player-controls-bar .expanded-video-wrapper.reflow-hidden {
+  visibility: hidden !important;
 }
 
 #player-controls-bar .expanded-video-wrapper #yt-video-host,
@@ -955,7 +958,7 @@
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  z-index: 99999 !important;
+  z-index: 2147483647 !important;
 }
 
 #expanded-video-wrapper.css-fullscreen .video-fullscreen-btn {
@@ -984,23 +987,6 @@ body.video-fullscreen-active #quick-actions-nav {
   display: none !important;
 }
 
-/* CORREÇÃO CRÍTICA (iOS Safari): backdrop-filter em ancestrais/sobreposições de
-   um <iframe> derruba o processo de renderização ao girar a tela, causando o
-   ciclo de recarregamentos. Enquanto o vídeo (iframe) estiver ativo, removemos
-   TODOS os backdrop-filter da subárvore do player e das camadas de blur da capa. */
-body.hf-video-active #player-controls-bar,
-body.hf-video-active #expanded-cover-blur,
-body.hf-video-active #player-controls-blur {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Remove o transform do ancestral do iframe durante o vídeo (identidade visual
-   quando a capa está aberta) para simplificar a composição sobre o iframe. */
-body.hf-video-active #player-controls-bar .expanded-cover-wrapper {
-  transform: none !important;
-}
-
 /* Modo Vídeo ativo: esconde a capa, mostra o clipe */
 #player-controls-bar .expanded-cover-wrapper.mode-video #ctrl-expanded-cover {
   opacity: 0;
@@ -1011,8 +997,7 @@ body.hf-video-active #player-controls-bar .expanded-cover-wrapper {
 #player-controls-bar .expanded-cover-wrapper.mode-video .expanded-video-wrapper {
   opacity: 1;
   visibility: visible;
-  /* Estado assentado SEM transform (remove a camada de composição sobre o iframe). */
-  transform: none;
+  transform: translateY(-50%) scale(1);
   pointer-events: auto;
 }
 
