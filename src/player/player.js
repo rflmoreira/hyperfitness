@@ -192,6 +192,8 @@ const MUSIC_PLAYER = (() => {
     currentAttemptUrl: '', // URL sendo tentada atualmente (para marcar falhas corretamente)
     searchCache: new Map(),
     searchPromises: new Map(),
+    officialVideoCache: new Map(),
+    officialVideoPromises: new Map(),
     audioCache: new Map(),
     audioErrorCounts: new Map(),
     coverCache: new Map(),
@@ -749,6 +751,465 @@ const MUSIC_PLAYER = (() => {
   function getTrackVideoId(track) {
     return track?._videoId || track?.videoId || null;
   }
+
+  // ===== Detecção de videoclipe oficial (modo Vídeo do expanded-cover) =====
+
+  const OFFICIAL_VIDEO_TTL_MS = CACHE_TTL_MS; // 5h
+
+  // Palavras que indicam que NÃO é um clipe oficial (áudio/lyric/etc.)
+  const NON_VIDEOCLIP_HINTS = /\b(audio|áudio|lyric|lyrics|letra|visualizer|topic|provided to youtube|slowed|reverb|8d|nightcore|cover)\b/i;
+
+  // Verifica se um resultado de busca aparenta ser um videoclipe oficial
+  function looksLikeOfficialVideo(video, track) {
+    if (!video || !video.videoId) return false;
+    const title = (video.title || '').toLowerCase();
+    // Descarta claramente não-clipes
+    if (NON_VIDEOCLIP_HINTS.test(title)) return false;
+    // Precisa citar o nome da música (parcial) para evitar falsos positivos
+    const trackTitle = getTrackTitle(track).toLowerCase().trim();
+    if (trackTitle) {
+      const firstWords = trackTitle.split(/\s+/).slice(0, 2).join(' ');
+      if (firstWords && !title.includes(firstWords) && !title.includes(trackTitle)) {
+        // título do resultado não bate com a música
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Busca o videoId do videoclipe oficial de uma faixa (ou null).
+  async function findOfficialVideoId(track) {
+    const title = getTrackTitle(track);
+    const artists = getTrackArtists(track);
+    if (!title) return null;
+
+    const query = `${title} ${artists} videoclipe oficial`.trim();
+    try {
+      const data = await searchYouTubeManual(query, 0, undefined, 'tracks');
+      const videos = (data && data.videos) || [];
+      if (!videos.length) return null;
+      // Prioriza o primeiro resultado que aparente ser clipe oficial
+      const match = videos.find(v => looksLikeOfficialVideo(v, track));
+      return match ? match.videoId : null;
+    } catch (e) {
+      console.warn(`⚠️ [VIDEOCLIP] Falha ao buscar clipe: ${e.message}`);
+      return null;
+    }
+  }
+
+  // Garante (com cache/dedup) a detecção do clipe oficial de uma faixa.
+  // Retorna o videoId (string) ou null. Nunca lança.
+  function ensureOfficialVideo(track) {
+    if (!track) return Promise.resolve(null);
+
+    // Faixas sem origem no YouTube (ex.: fallback 4shared) nunca têm clipe.
+    const trackVideoId = getTrackVideoId(track);
+    if (trackVideoId && String(trackVideoId).startsWith('4s-')) {
+      return Promise.resolve(null);
+    }
+
+    const key = getTrackKey(track);
+    if (!key) return Promise.resolve(null);
+
+    const cached = getCacheEntry(state.officialVideoCache, key, OFFICIAL_VIDEO_TTL_MS);
+    if (cached !== null) {
+      return Promise.resolve(cached.videoId || null);
+    }
+
+    if (state.officialVideoPromises.has(key)) {
+      return state.officialVideoPromises.get(key);
+    }
+
+    const promise = findOfficialVideoId(track)
+      .then(videoId => {
+        setCacheEntry(state.officialVideoCache, key, { videoId: videoId || null });
+        return videoId || null;
+      })
+      .catch(() => {
+        setCacheEntry(state.officialVideoCache, key, { videoId: null });
+        return null;
+      })
+      .finally(() => {
+        state.officialVideoPromises.delete(key);
+      });
+
+    state.officialVideoPromises.set(key, promise);
+    return promise;
+  }
+
+  // Retorna o videoId do clipe oficial já detectado (sincrono) ou null.
+  function getCachedOfficialVideoId(track) {
+    if (!track) return null;
+    const key = getTrackKey(track);
+    if (!key) return null;
+    const cached = getCacheEntry(state.officialVideoCache, key, OFFICIAL_VIDEO_TTL_MS);
+    return cached ? (cached.videoId || null) : null;
+  }
+
+  // true se a busca do clipe já foi resolvida (com ou sem resultado) para a faixa.
+  function isOfficialVideoResolved(track) {
+    if (!track) return false;
+    const key = getTrackKey(track);
+    if (!key) return false;
+    return getCacheEntry(state.officialVideoCache, key, OFFICIAL_VIDEO_TTL_MS) !== null;
+  }
+
+  // ===== Modo Vídeo (clipe oficial do YouTube no expanded-cover) =====
+  const videoMode = (() => {
+    let ytApiLoading = null;
+    let ytPlayer = null;
+    let ytReady = false;
+    let ytEngineActive = false;      // fonte ativa é o YouTube?
+    let currentMode = 'cover';       // 'cover' | 'video'
+    let userPreference = 'cover';    // último modo escolhido pelo usuário
+    let available = false;           // faixa atual tem clipe?
+    let loadedVideoId = null;
+    let progressRaf = null;
+
+    function getEls() {
+      return {
+        wrapper: document.getElementById('expanded-cover-wrapper'),
+        toggle: document.getElementById('cover-mode-toggle'),
+        videoWrapper: document.getElementById('expanded-video-wrapper'),
+        host: document.getElementById('yt-video-host'),
+        coverImg: document.getElementById('ctrl-expanded-cover')
+      };
+    }
+
+    function isExpandedCoverOpen() {
+      const w = document.getElementById('expanded-cover-wrapper');
+      return !!w && w.classList.contains('visible');
+    }
+
+    const isPageVisible = () => document.visibilityState === 'visible';
+
+    // ---- YouTube IFrame API ----
+    function loadYouTubeApi() {
+      if (window.YT && window.YT.Player) return Promise.resolve();
+      if (ytApiLoading) return ytApiLoading;
+      ytApiLoading = new Promise((resolve) => {
+        const prev = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+          if (typeof prev === 'function') { try { prev(); } catch (e) {} }
+          resolve();
+        };
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        tag.async = true;
+        document.head.appendChild(tag);
+      });
+      return ytApiLoading;
+    }
+
+    let playerCreating = null;
+    async function ensurePlayer() {
+      await loadYouTubeApi();
+      if (ytPlayer) return ytPlayer;
+      if (playerCreating) return playerCreating;
+      const { host } = getEls();
+      if (!host) return null;
+      playerCreating = new Promise((resolve) => {
+        const p = new YT.Player(host, {
+          width: '100%',
+          height: '100%',
+          playerVars: {
+            playsinline: 1,
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            fs: 0,
+            iv_load_policy: 3,
+            disablekb: 1
+          },
+          events: {
+            onReady: () => { ytReady = true; resolve(p); },
+            onStateChange: onYtStateChange,
+            onError: onYtError
+          }
+        });
+      });
+      ytPlayer = await playerCreating;
+      playerCreating = null;
+      return ytPlayer;
+    }
+
+    function onYtStateChange(e) {
+      if (!ytEngineActive) return;
+      const S = window.YT && YT.PlayerState;
+      if (!S) return;
+      if (e.data === S.ENDED) { handleEnded(); return; }
+      if (e.data === S.PLAYING) {
+        state.isPlaying = true;
+        updateUiState();
+        startProgressLoop();
+      } else if (e.data === S.PAUSED) {
+        state.isPlaying = false;
+        updateUiState();
+      }
+    }
+
+    function onYtError() {
+      // Clipe indisponível/embedding bloqueado: volta para a capa sem interromper o áudio.
+      console.warn('⚠️ [VIDEOCLIP] Erro no player do YouTube, voltando para a capa.');
+      enterCoverMode({ resume: true });
+      available = false;
+      updateToggleVisibility();
+    }
+
+    function handleEnded() {
+      stopProgressLoop();
+      // A "música" terminou (via clipe): avança para a próxima faixa.
+      // A troca de faixa reentra no modo Vídeo se houver clipe.
+      try { playNextTrack(); } catch (e) {}
+    }
+
+    // ---- Progresso (dirigido pelo tempo do YouTube) ----
+    function startProgressLoop() {
+      if (progressRaf) return;
+      const tick = () => {
+        if (!ytEngineActive) { progressRaf = null; return; }
+        updateVideoProgress();
+        progressRaf = requestAnimationFrame(tick);
+      };
+      progressRaf = requestAnimationFrame(tick);
+    }
+
+    function stopProgressLoop() {
+      if (progressRaf) cancelAnimationFrame(progressRaf);
+      progressRaf = null;
+    }
+
+    function updateVideoProgress() {
+      if (!ytPlayer || !ytReady) return;
+      let cur = 0, dur = 0;
+      try { cur = ytPlayer.getCurrentTime() || 0; dur = ytPlayer.getDuration() || 0; } catch (e) { return; }
+      const index = getActiveLibraryIndex();
+      if (index < 0 || dur <= 0) return;
+      const remainingMs = Math.max(0, (dur - cur) * 1000);
+      setTrackDurationLabel(index, remainingMs);
+      updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
+    }
+
+    // ---- Visual (fade + scale) ----
+    function applyModeVisual(mode) {
+      const els = getEls();
+      if (els.wrapper) els.wrapper.classList.toggle('mode-video', mode === 'video');
+      if (els.toggle) {
+        els.toggle.querySelectorAll('[data-mode]').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+      }
+    }
+
+    function updateToggleVisibility() {
+      // O alternador permanece sempre visível; apenas o botão "Vídeo"
+      // é habilitado/desabilitado conforme a disponibilidade do clipe.
+      const { toggle } = getEls();
+      const videoBtn = toggle?.querySelector('[data-mode="video"]');
+      if (videoBtn) {
+        videoBtn.disabled = !available;
+        videoBtn.setAttribute('aria-disabled', String(!available));
+      }
+      if (!available && ytEngineActive) {
+        // A faixa atual perdeu o clipe: força modo Capa (mantém preferência).
+        enterCoverMode({ resume: true });
+      }
+    }
+
+    // ---- Transições de modo ----
+    async function enterVideoMode() {
+      const { track } = getCurrentPlayingTrack();
+      const videoId = getCachedOfficialVideoId(track);
+      if (!videoId) return false;
+
+      const startAt = Math.max(0, audio.currentTime || 0);
+      const wasPlaying = state.isPlaying && !audio.paused;
+      // Marca engine como YouTube ANTES de pausar o MP3 para que o handler
+      // de 'pause' do áudio não altere o estado/UI.
+      ytEngineActive = true;
+      currentMode = 'video';
+      userPreference = 'video';
+      applyModeVisual('video');
+
+      try { audio.pause(); } catch (e) {}
+
+      const player = await ensurePlayer();
+      if (!player) {
+        // Falha ao criar o player: reverte para capa.
+        ytEngineActive = false;
+        currentMode = 'cover';
+        applyModeVisual('cover');
+        if (wasPlaying) { try { audio.play(); } catch (e) {} }
+        return false;
+      }
+
+      loadedVideoId = videoId;
+      try {
+        // Se a música estava tocando, autoplay; se pausada, apenas prepara (cue).
+        if (wasPlaying) player.loadVideoById({ videoId, startSeconds: startAt });
+        else player.cueVideoById({ videoId, startSeconds: startAt });
+      } catch (e) {
+        ytEngineActive = false;
+        currentMode = 'cover';
+        applyModeVisual('cover');
+        if (wasPlaying) { try { audio.play(); } catch (e2) {} }
+        return false;
+      }
+
+      state.isPlaying = wasPlaying; // confirmado pelo onStateChange
+      updateUiState();
+      if (wasPlaying) startProgressLoop();
+      return true;
+    }
+
+    function enterCoverMode({ resume = true } = {}) {
+      currentMode = 'cover';
+      applyModeVisual('cover');
+
+      if (!ytEngineActive) {
+        return;
+      }
+
+      let t = 0;
+      try { if (ytPlayer && ytReady) t = ytPlayer.getCurrentTime() || 0; } catch (e) {}
+      const shouldPlay = state.isPlaying;
+      try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
+
+      ytEngineActive = false;
+      stopProgressLoop();
+
+      // Handoff de posição (melhor esforço) para o MP3.
+      if (Number.isFinite(t) && t > 0 && audio.src) {
+        try { audio.currentTime = t; } catch (e) {}
+      }
+
+      if (resume && shouldPlay) {
+        startPlaying();
+        startPlaybackCountdown();
+        updateUiState();
+      } else {
+        updateUiState();
+      }
+    }
+
+    function stopVideo() {
+      ytEngineActive = false;
+      stopProgressLoop();
+      try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
+    }
+
+    // ---- Disponibilidade / restauração ----
+    function refreshAvailability() {
+      const { track } = getCurrentPlayingTrack();
+      if (!track) { available = false; updateToggleVisibility(); return; }
+
+      if (isOfficialVideoResolved(track)) {
+        available = !!getCachedOfficialVideoId(track);
+        updateToggleVisibility();
+        return;
+      }
+
+      // Ainda não resolvido: dispara detecção e atualiza ao concluir.
+      available = false;
+      updateToggleVisibility();
+      const keyAtRequest = getTrackKey(track);
+      ensureOfficialVideo(track).then(id => {
+        const cur = getCurrentPlayingTrack().track;
+        if (!cur || getTrackKey(cur) !== keyAtRequest) return;
+        available = !!id;
+        updateToggleVisibility();
+        maybeAutoRestore();
+      });
+    }
+
+    function maybeAutoRestore() {
+      if (userPreference === 'video' && available && !ytEngineActive &&
+          isExpandedCoverOpen() && isPageVisible()) {
+        enterVideoMode();
+      }
+    }
+
+    // ---- Hooks externos ----
+    function onExpandedCoverOpen() {
+      applyModeVisual('cover');
+      refreshAvailability();
+      maybeAutoRestore();
+    }
+
+    function onExpandedCoverClose() {
+      if (ytEngineActive) enterCoverMode({ resume: true });
+    }
+
+    function onTrackChanged() {
+      if (ytEngineActive) stopVideo();
+      currentMode = 'cover';
+      loadedVideoId = null;
+      applyModeVisual('cover');
+      refreshAvailability();
+    }
+
+    function init() {
+      const { toggle } = getEls();
+      toggle?.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const mode = btn.dataset.mode;
+          if (mode === 'video') {
+            userPreference = 'video';
+            if (available) enterVideoMode();
+          } else {
+            userPreference = 'cover';
+            enterCoverMode({ resume: true });
+          }
+        });
+      });
+
+      // Bloqueio de tela / troca de aba / minimizar o app: volta para a Capa
+      // (o YouTube embed não toca em segundo plano), mantendo o áudio via MP3.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          if (ytEngineActive) enterCoverMode({ resume: true }); // mantém userPreference
+        } else {
+          maybeAutoRestore();
+        }
+      });
+      // Navegação para fora da página.
+      window.addEventListener('pagehide', () => { if (ytEngineActive) enterCoverMode({ resume: true }); });
+    }
+
+    return {
+      init,
+      onExpandedCoverOpen,
+      onExpandedCoverClose,
+      onTrackChanged,
+      refreshAvailability,
+      // engine (roteamento de controles)
+      isVideo: () => ytEngineActive,
+      getCurrentTime: () => {
+        try { return (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0; } catch (e) { return 0; }
+      },
+      getDuration: () => {
+        try { return (ytPlayer && ytReady) ? (ytPlayer.getDuration() || 0) : 0; } catch (e) { return 0; }
+      },
+      isPaused: () => {
+        try {
+          const S = window.YT && YT.PlayerState;
+          return !(ytPlayer && ytReady) || !S || ytPlayer.getPlayerState() !== S.PLAYING;
+        } catch (e) { return true; }
+      },
+      togglePlay: () => {
+        if (!ytPlayer || !ytReady) return;
+        try {
+          const S = YT.PlayerState;
+          if (ytPlayer.getPlayerState() === S.PLAYING) ytPlayer.pauseVideo();
+          else ytPlayer.playVideo();
+        } catch (e) {}
+      },
+      seekTo: (sec) => {
+        try { if (ytPlayer && ytReady) ytPlayer.seekTo(sec, true); } catch (e) {}
+      }
+    };
+  })();
 
   function trackAudioError(index) {
     if (!Number.isInteger(index)) return 1;
@@ -1539,9 +2000,13 @@ const MUSIC_PLAYER = (() => {
       handleAudioError(e);
     },
     play: () => {
+      // No modo Vídeo o MP3 é manipulado internamente; ignore os efeitos de UI.
+      if (videoMode.isVideo()) return;
       handlePlaybackStarted();
     },
     pause: () => {
+      // No modo Vídeo o MP3 é pausado internamente; não altere estado/UI.
+      if (videoMode.isVideo()) return;
       state.isPlaying = false;
       updateUiState();
       stopPlaybackCountdown({ resetLabel: false });
@@ -2234,10 +2699,14 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha
-    ui.expandedCoverWrapper?.addEventListener('click', () => {
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e no player de vídeo)
+    ui.expandedCoverWrapper?.addEventListener('click', (e) => {
+      if (e.target.closest('#cover-mode-toggle') || e.target.closest('#expanded-video-wrapper')) return;
       toggleExpandedCover(false);
     });
+
+    // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
+    videoMode.init();
 
     // Clique no blur de fundo fecha a capa
     document.getElementById('expanded-cover-blur')?.addEventListener('click', () => {
@@ -2265,6 +2734,12 @@ const MUSIC_PLAYER = (() => {
       coverBlur.classList.toggle('opacity-0', !show);
       coverBlur.classList.toggle('invisible', !show);
       coverBlur.style.pointerEvents = show ? 'auto' : 'none';
+    }
+    // Integração com o modo Vídeo (clipe oficial).
+    if (show) {
+      videoMode.onExpandedCoverOpen();
+    } else {
+      videoMode.onExpandedCoverClose();
     }
   }
 
@@ -3929,8 +4404,19 @@ const MUSIC_PLAYER = (() => {
       const clientX = getClientX(event, isTouch);
       const clickX = clientX - rect.left;
       const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-      const seekTime = (percentage * durationMs) / 1000;
 
+      // No modo Vídeo, o seek é relativo à duração do clipe do YouTube.
+      if (videoMode.isVideo()) {
+        const ytDuration = videoMode.getDuration();
+        if (ytDuration > 0) {
+          const ytSeekTime = percentage * ytDuration;
+          videoMode.seekTo(ytSeekTime);
+          onSeek?.({ percentage, seekTime: ytSeekTime, durationMs: ytDuration * 1000, element });
+          return true;
+        }
+      }
+
+      const seekTime = (percentage * durationMs) / 1000;
       audio.currentTime = seekTime;
       onSeek?.({ percentage, seekTime, durationMs, element });
       return true;
@@ -7631,6 +8117,9 @@ const MUSIC_PLAYER = (() => {
     }
     updateUiState();
 
+    // Reseta o modo Vídeo para a nova faixa (re-detecta o clipe e reentra se aplicável).
+    videoMode.onTrackChanged();
+
     debouncedSave();
 
     try {
@@ -7740,6 +8229,12 @@ const MUSIC_PLAYER = (() => {
   function togglePlayback() {
     // Se a rádio está tocando, para a rádio
     if (handleCtrlPlayForRadio()) return;
+
+    // No modo Vídeo, o play/pause controla o player do YouTube.
+    if (videoMode.isVideo()) {
+      videoMode.togglePlay();
+      return;
+    }
 
     // Se estiver reproduzindo no YouTube, controla o áudio normalmente
     if (isPlayingFromYouTube()) {

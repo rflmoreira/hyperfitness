@@ -385,7 +385,21 @@
 <div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
   <!-- Capa expandida (flutuante acima da barra) -->
   <div id="expanded-cover-wrapper" class="expanded-cover-wrapper">
-    <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">
+    <!-- Alternador Capa/Vídeo (sempre visível; Vídeo desabilita quando não há clipe) -->
+    <div id="cover-mode-toggle" class="cover-mode-toggle" role="tablist" aria-label="Alternar entre capa e vídeo">
+      <button type="button" class="cover-mode-btn active" data-mode="cover" role="tab" aria-label="Capa">
+        <i class="ph-bold ph-headphones" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="cover-mode-btn" data-mode="video" role="tab" aria-label="Vídeo" disabled aria-disabled="true">
+        <i class="ph-bold ph-video-camera" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="expanded-cover-stage">
+      <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">
+      <div id="expanded-video-wrapper" class="expanded-video-wrapper" aria-hidden="true">
+        <div id="yt-video-host"></div>
+      </div>
+    </div>
   </div>
   <div class="controls-inner">
     <div class="controls-group">
