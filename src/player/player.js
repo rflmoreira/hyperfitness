@@ -913,6 +913,16 @@ const MUSIC_PLAYER = (() => {
         const p = new YT.Player(host, {
           width: '100%',
           height: '100%',
+          // Conjunto MÁXIMO de opções suportadas pela IFrame Player API para
+          // ocultar/limitar os controles nativos do YouTube:
+          // - controls: 0    -> remove a barra de controles (play/pause, progresso, volume, engrenagem, legendas, tela cheia)
+          // - fs: 0          -> remove o botão de tela cheia nativo (usamos o nosso)
+          // - disablekb: 1   -> desativa os atalhos de teclado do player
+          // - iv_load_policy: 3 -> não exibe anotações/cards interativos
+          // - cc_load_policy: 0 -> não força a exibição de legendas
+          // - rel: 0         -> limita os vídeos relacionados ao mesmo canal
+          // - playsinline: 1 -> reprodução inline (sem fullscreen forçado no iOS)
+          // - modestbranding: 1 -> (descontinuado pelo YouTube, mantido por compatibilidade)
           playerVars: {
             playsinline: 1,
             controls: 0,
@@ -920,7 +930,8 @@ const MUSIC_PLAYER = (() => {
             rel: 0,
             fs: 0,
             iv_load_policy: 3,
-            disablekb: 1
+            disablekb: 1,
+            cc_load_policy: 0
           },
           events: {
             onReady: () => { ytReady = true; resolve(p); },
