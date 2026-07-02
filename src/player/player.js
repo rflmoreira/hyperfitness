@@ -2514,9 +2514,31 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Trata conexão fraca - salva posição e tenta reconectar
+  // ===== Helpers de fonte 4shared =====
+  // Uma URL de stream do 4shared passa pelo proxy /fourshared (Range em chunks).
+  function isFoursharedUrl(url) {
+    return typeof url === 'string' && url.includes('/fourshared');
+  }
+  // A reprodução atual está usando o stream do 4shared?
+  function isFoursharedActive() {
+    return isFoursharedUrl(state.currentAttemptUrl) ||
+      isFoursharedUrl(audio.currentSrc) ||
+      isFoursharedUrl(audio.src);
+  }
+
   function handleSlowConnection() {
     if (state.reconnectAttempts > 0) return; // Já está tentando
     if (state.audioRecoveryInProgress) return; // Não interfere com recovery em andamento
+
+    // O 4shared serve o áudio via proxy em chunks (Range de 2MB), o que é lento
+    // para bufferizar. A rotina de reconexão (que pausa e re-resolve via /audio)
+    // atrapalha e interrompe o play(), gerando loops. Para 4shared, deixamos o
+    // elemento <audio> bufferizar naturalmente, sem reconectar.
+    if (isFoursharedActive()) {
+      clearBufferingTimer();
+      state.isBuffering = false;
+      return;
+    }
 
     state.savedPlaybackTime = audio.currentTime || 0;
     clearBufferingTimer();
@@ -3601,6 +3623,11 @@ const MUSIC_PLAYER = (() => {
 
   let updateDiscoverSpacerLayout = null;
 
+  // Stub para compatibilidade: referência histórica sem implementação (o efeito de
+  // marquee das playlists não existe mais). Mantido como no-op para evitar
+  // ReferenceError durante a troca de abas/abertura do modal.
+  function initPlaylistsMarquee() { /* no-op */ }
+
   // ====== Discover Banner Carousel ======
   function renderDiscoverCarousel() {
     const track = document.getElementById('discover-carousel-track');
@@ -3614,7 +3641,7 @@ const MUSIC_PLAYER = (() => {
       const count = getPlaylistTrackCount(pl);
       return `
         <div class="discover-carousel-slide${i === 0 ? ' active' : ''}" data-carousel-id="${pl.id}" data-index="${i}">
-          <img src="${pl.cover}" alt="${pl.name}" onerror="this.src='src/imagens/genericCover.png'" loading="lazy">
+          <img src="${pl.cover}" alt="${pl.name}" onerror="this.onerror=null;this.src='src/imagens/genericCover.png'" loading="lazy">
           <div class="carousel-slide-overlay"></div>
           <div class="carousel-slide-content">
             <div class="carousel-slide-info">
@@ -3824,7 +3851,7 @@ const MUSIC_PLAYER = (() => {
             <img src="${playlist.cover}" 
                  alt="${playlist.name}" 
                  class="w-full h-full object-cover"
-                 onerror="this.src='src/imagens/genericCover.png'">
+                 onerror="this.onerror=null;this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             <div class="absolute top-2 right-2">
               <i class="ph-fill ph-lightning text-orange-500 text-lg drop-shadow-lg"></i>
@@ -3877,7 +3904,7 @@ const MUSIC_PLAYER = (() => {
             <img src="${playlist.cover}" 
                  alt="${playlist.name}" 
                  class="w-full h-full object-cover"
-                 onerror="this.src='src/imagens/genericCover.png'">
+                 onerror="this.onerror=null;this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             <div class="discover-play-wrapper">
               <button class="featured-play-btn discover-play-circle" style="--btn-color: #f97316;">
@@ -4524,7 +4551,7 @@ const MUSIC_PLAYER = (() => {
            data-author="${escapeHTML(cleanPlaylistAuthor(playlist.author))}"
            data-video-count="${playlist.videoCount}">
         <div class="relative flex-shrink-0">
-          <img src="${playlist.thumbnail || 'src/imagens/genericCover.png'}" alt="" class="w-20 h-14 object-cover rounded-lg bg-white/10" onerror="this.src='src/imagens/genericCover.png'"/>
+          <img src="${playlist.thumbnail || 'src/imagens/genericCover.png'}" alt="" class="w-20 h-14 object-cover rounded-lg bg-white/10" onerror="this.onerror=null;this.src='src/imagens/genericCover.png'"/>
           <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center">
             <i class="ph-bold ph-playlist text-white text-lg"></i>
           </div>
@@ -4691,7 +4718,7 @@ const MUSIC_PLAYER = (() => {
                data-duration="${video.lengthSeconds}"
                data-thumb="${thumb}">
             <div class="relative flex-shrink-0 w-20 h-[45px]">
-              <img src="${thumb}" alt="" class="w-full h-full object-cover rounded-lg bg-white/10" onerror="this.src='src/imagens/genericCover.png'"/>
+              <img src="${thumb}" alt="" class="w-full h-full object-cover rounded-lg bg-white/10" onerror="this.onerror=null;this.src='src/imagens/genericCover.png'"/>
               <div class="sound-wave-overlay">
                 <div class="sound-wave-bar"></div>
                 <div class="sound-wave-bar"></div>
@@ -6918,7 +6945,7 @@ const MUSIC_PLAYER = (() => {
             <img src="${imageUrl}" 
                  alt="${playlist.name}" 
                  class="w-full h-full object-cover"
-                 onerror="this.src='src/imagens/genericCover.png'">
+                 onerror="this.onerror=null;this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             ${!isWatchLater ? `
             <button class="delete-playlist-btn absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
@@ -7918,6 +7945,11 @@ const MUSIC_PLAYER = (() => {
       lengthSeconds: 0 // Será detectado via getAudioDuration
     };
 
+    // Marca a faixa como fonte 4shared de forma PERSISTENTE na sessão. Este campo
+    // NÃO é apagado pelas rotinas de recuperação (que só mexem em _videoId), então
+    // qualquer re-resolução volta a usar o 4shared — nunca a API /audio.
+    track._foursharedFileId = searchResult.fileId;
+
     // Cache o resultado
     const key = getTrackKey(track);
     if (key) {
@@ -7940,6 +7972,28 @@ const MUSIC_PLAYER = (() => {
     }
 
     try {
+      // Fonte 4shared "grudenta": se a faixa já foi resolvida via 4shared nesta
+      // sessão, re-resolve SEMPRE pelo 4shared (stream fresco do mesmo arquivo),
+      // sem nunca chamar a API /audio. Isso impede que reconexão/recuperação
+      // sobrescrevam a URL do 4shared por uma URL inválida do YouTube.
+      if (track._foursharedFileId) {
+        const streamUrl = await get4sharedStreamUrl(track._foursharedFileId);
+        if (streamUrl) {
+          const fsResult = {
+            videoId: `4s-${track._foursharedFileId}`,
+            instance: '4shared-fallback',
+            audioUrl: streamUrl,
+            lengthSeconds: Math.floor((track.duration_ms || 0) / 1000)
+          };
+          if (key) setCacheEntry(state.searchCache, key, fsResult);
+          return fsResult;
+        }
+        // Se não obteve o stream do mesmo arquivo, tenta nova busca no 4shared.
+        const rebuilt = await tryFoursharedFallback(track, index);
+        if (rebuilt) return rebuilt;
+        return null;
+      }
+
       let video;
       
       // Se a faixa já tem videoId (busca manual ou definido na playlist), usa diretamente
@@ -8003,9 +8057,61 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
+  // Recuperação dedicada e enxuta para fontes 4shared: re-resolve APENAS via
+  // 4shared (stream fresco), com no máximo 2 tentativas, sem busca alternativa no
+  // YouTube e sem apagar o marcador _foursharedFileId. Evita loops e /audio.
+  async function recoverFoursharedTrack(index, track, requestId) {
+    if (state.audioRecoveryInProgress) return;
+    const isStale = () => requestId !== state.playRequestId || state.currentTrackIndex !== index;
+
+    const attempt = trackAudioError(index);
+    if (attempt > 2) {
+      console.warn(`⏭️ [4SHARED] Recuperação esgotada para track ${index}, marcando indisponível`);
+      if (!isStale()) handleUnavailableTrack(index);
+      return;
+    }
+
+    state.audioRecoveryInProgress = true;
+    try {
+      let streamUrl = null;
+      if (track._foursharedFileId) {
+        state.audioCache.delete(`4s-${track._foursharedFileId}`);
+        streamUrl = await get4sharedStreamUrl(track._foursharedFileId);
+      }
+      if (!streamUrl) {
+        const fb = await tryFoursharedFallback(track, index);
+        streamUrl = fb?.audioUrl || null;
+      }
+      if (isStale() || !streamUrl) return;
+
+      await resetAudioWithDelay();
+      if (isStale()) return;
+      loadAudioSource(streamUrl);
+      const played = await tryPlayElement(audio);
+      if (isStale()) return;
+      if (played) {
+        markPlaybackSuccess(index);
+        console.log(`✅ [4SHARED] Recuperação bem-sucedida para track ${index}`);
+      } else {
+        handleUnavailableTrack(index);
+      }
+    } catch (e) {
+      console.warn(`❌ [4SHARED] Falha na recuperação: ${e.message}`);
+      if (!isStale()) handleUnavailableTrack(index);
+    } finally {
+      state.audioRecoveryInProgress = false;
+    }
+  }
+
   async function handleAudioError(event = null) {
     const failingIndex = state.currentTrackIndex;
     if (failingIndex < 0 || state.audioRecoveryInProgress) return;
+
+    // Durante o carregamento inicial, o próprio playTrackInternal já trata falhas
+    // (com sua recuperação e fallback). Reagir aqui em paralelo causaria um
+    // pause()/reset() concorrente que interrompe o play() pendente
+    // ("The play() request was interrupted by a call to pause()").
+    if (state.isLoadingTrack) return;
 
     const track = state.tracks[failingIndex];
     if (!track) return;
@@ -8045,6 +8151,12 @@ const MUSIC_PLAYER = (() => {
 
     // Verifica se o usuário já clicou em outra música
     if (isStale()) {
+      return;
+    }
+
+    // Fonte 4shared: usa a recuperação dedicada (sem YouTube, sem loops, sem /audio).
+    if (isFoursharedActive() || track._foursharedFileId) {
+      await recoverFoursharedTrack(failingIndex, track, currentRequestId);
       return;
     }
 
