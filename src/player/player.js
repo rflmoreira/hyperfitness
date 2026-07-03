@@ -868,6 +868,7 @@ const MUSIC_PLAYER = (() => {
     let progressRaf = null;
     let videoResumeAt = 0;           // posição do clipe salva ao minimizar (restauração)
     let videoWasPlaying = false;     // intenção de reprodução ao minimizar
+    let bgHandoffAttempted = false;  // evita repetir o handoff (visibilitychange + pagehide)
 
     function getEls() {
       return {
@@ -1481,34 +1482,64 @@ const MUSIC_PLAYER = (() => {
         });
       });
 
-      // Segundo plano (Opção C): NÃO fazemos handoff para MP3. No modo Vídeo o
-      // áudio vem do próprio YouTube (sincronia perfeita) e, ao minimizar, o
-      // iOS pausa o iframe (o vídeo não toca em segundo plano) — comportamento
-      // esperado. Porém, ao voltar, o iOS pode ter descartado/recarregado o
-      // iframe, que retorna mudo e do início. Este handler apenas PRESERVA e
-      // RESTAURA o estado do modo Vídeo:
-      //  - ao ocultar: salva a posição e a intenção de reprodução (não destrói
-      //    o player — deixa o iOS pausar);
-      //  - ao voltar: re-sincroniza a posição (se resetou), desmuta e retoma,
-      //    sem recarregar desnecessariamente.
-      document.addEventListener('visibilitychange', () => {
-        if (!ytEngineActive) return; // só age no modo Vídeo
-        if (document.visibilityState === 'hidden') {
-          try {
-            const cur = (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0;
-            if (cur > 0) videoResumeAt = cur;
-          } catch (e) {}
-          // Captura a intenção de reprodução antes de o iOS pausar o iframe.
-          let playing = state.isPlaying;
-          try {
-            const S = window.YT && YT.PlayerState;
-            if (S && ytPlayer && ytReady) playing = playing || (ytPlayer.getPlayerState() === S.PLAYING);
-          } catch (e) {}
-          videoWasPlaying = playing;
-        } else {
+      // Continuidade em segundo plano no modo Vídeo (TENTATIVA de handoff).
+      //
+      // Ciclo de vida da página — do mais cedo ao mais tarde:
+      //  - 'visibilitychange'→hidden: sinal CONFIÁVEL mais precoce de que o app
+      //    está indo para segundo plano. É aqui que agimos.
+      //  - 'pagehide': reforço (dispara em navegação/bfcache); pode ocorrer em
+      //    paralelo. Usado como gatilho adicional (deduplicado por flag).
+      //  - 'freeze' (Page Lifecycle API): TARDE demais (a página já foi
+      //    suspensa) e não suportado no iOS Safari — inútil aqui.
+      //
+      // No instante da transição, transferimos Vídeo→Áudio e tentamos tocar o
+      // MP3 IMEDIATAMENTE, para manter a Media Session viva sem exigir Play ao
+      // voltar. IMPORTANTE: no iOS, iniciar a reprodução de um elemento PAUSADO
+      // durante a ida para segundo plano costuma ser BLOQUEADO — só continua o
+      // que já estava tocando. Portanto esta tentativa pode não surtir efeito;
+      // se o play for bloqueado, a reprodução é retomada ao retornar.
+      const onPageHidden = () => {
+        if (!ytEngineActive) return;
+        // Salva posição/intenção para retomar o vídeo caso o handoff não vingue.
+        try {
+          const cur = (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0;
+          if (cur > 0) videoResumeAt = cur;
+        } catch (e) {}
+        let playing = state.isPlaying;
+        try {
+          const S = window.YT && YT.PlayerState;
+          if (S && ytPlayer && ytReady) playing = playing || (ytPlayer.getPlayerState() === S.PLAYING);
+        } catch (e) {}
+        videoWasPlaying = playing;
+        if (!playing || bgHandoffAttempted) return;
+        bgHandoffAttempted = true;
+        // Handoff imediato Vídeo→Áudio: encerra o vídeo (síncrono/confiável) e
+        // tenta iniciar o MP3 já, na esperança de manter a sessão em background.
+        enterCoverMode({ resume: true });
+      };
+      const onPageVisible = () => {
+        bgHandoffAttempted = false;
+        if (ytEngineActive) {
+          // Não houve handoff (vídeo estava pausado): restaura o vídeo.
           restoreVideoOnReturn();
+          return;
         }
+        // Handoff para áudio ocorreu.
+        const backToVideo = userPreference === 'video' && available &&
+          isExpandedCoverOpen() && isPageVisible();
+        if (backToVideo) {
+          maybeAutoRestore(); // reentra no vídeo na posição atual
+        } else if (state.isPlaying && audio.paused && audio.src) {
+          // O play do MP3 pode ter sido bloqueado em segundo plano: retoma agora.
+          const p = audio.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
+      };
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') onPageHidden();
+        else onPageVisible();
       });
+      window.addEventListener('pagehide', onPageHidden);
 
       // Mantém o vídeo alinhado quando o viewport muda (rotação, barra de URL
       // mostrando/ocultando, tela cheia). Como o iframe tem tamanho de layout
