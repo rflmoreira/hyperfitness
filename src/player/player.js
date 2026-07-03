@@ -1206,11 +1206,19 @@ const MUSIC_PLAYER = (() => {
       let t = 0;
       try { if (ytPlayer && ytReady) t = ytPlayer.getCurrentTime() || 0; } catch (e) {}
       const shouldPlay = state.isPlaying;
-      // Encerra a reprodução do vídeo (fonte única).
-      try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
 
+      // Marca o engine como inativo ANTES de encerrar o vídeo, para que a
+      // mudança de estado do YouTube (disparada por stopVideo) não seja tratada
+      // como fim de faixa (evita avanço indevido).
       ytEngineActive = false;
       stopProgressLoop();
+
+      // Encerra a reprodução do vídeo. Usa stopVideo() (não pauseVideo()) para
+      // LIBERAR a sessão de mídia do iframe do YouTube — ele registra a própria
+      // MediaSession e, se apenas pausado, continua "dono" dos controles do
+      // sistema, impedindo que a MediaSession do nosso <audio> (MP3) apareça em
+      // segundo plano. Descarregar o vídeo devolve o controle ao <audio>.
+      try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
 
       // Handoff de posição (melhor esforço) para o MP3.
       if (Number.isFinite(t) && t > 0 && audio.src) {
@@ -1227,6 +1235,9 @@ const MUSIC_PLAYER = (() => {
       } else {
         updateUiState();
       }
+      // Reafirma os metadados/controles da MediaSession para o <audio> assumir
+      // os controles do sistema após a liberação do iframe.
+      updateMediaSession();
     }
 
     function stopVideo() {
