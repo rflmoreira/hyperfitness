@@ -867,7 +867,7 @@ const MUSIC_PLAYER = (() => {
     let available = false;           // faixa atual tem clipe?
     let progressRaf = null;
     let videoResumeAt = 0;           // posição do clipe salva ao minimizar (restauração)
-    let videoWasPlaying = false;     // intenção de reprodução ao minimizar
+    let videoWasPlaying = false;     // intenção de reprodução do usuário no modo Vídeo (mantida continuamente)
 
     function getEls() {
       return {
@@ -986,10 +986,18 @@ const MUSIC_PLAYER = (() => {
         // AQUI, quando o vídeo já está de fato tocando, é o momento em que o
         // unMute() "gruda" (nunca mutamos o player intencionalmente no modo Vídeo).
         try { ytPlayer?.unMute(); } catch (e) {}
+        // Reprodução confirmada: registra a intenção de reprodução. Ela é
+        // mantida continuamente (e não recalculada ao minimizar), pois o iOS
+        // pausa o iframe ANTES do visibilitychange e apagaria a intenção.
+        videoWasPlaying = true;
         state.isPlaying = true;
         updateUiState();
         startProgressLoop();
       } else if (e.data === S.PAUSED) {
+        // NÃO limpa videoWasPlaying aqui: este PAUSED pode ser do SISTEMA
+        // (iOS ao minimizar/app switcher/bloqueio) e a intenção do usuário
+        // precisa sobreviver para a retomada automática ao voltar ao app.
+        // Pausas do usuário passam por togglePlay, que atualiza a intenção.
         state.isPlaying = false;
         updateUiState();
       }
@@ -1136,6 +1144,8 @@ const MUSIC_PLAYER = (() => {
       ytEngineActive = true;
       currentMode = 'video';
       userPreference = 'video';
+      videoWasPlaying = wasPlaying;
+      videoResumeAt = 0; // posição salva pertence ao clipe anterior
       applyModeVisual('video');
 
       // Exclusividade: silencia COMPLETAMENTE o MP3 (pause + mute) para evitar
@@ -1196,6 +1206,7 @@ const MUSIC_PLAYER = (() => {
       // mudança de estado do YouTube (disparada por stopVideo) não seja tratada
       // como fim de faixa (evita avanço indevido).
       ytEngineActive = false;
+      videoWasPlaying = false;
       stopProgressLoop();
 
       // Encerra a reprodução do vídeo. Usa stopVideo() (não pauseVideo()) para
@@ -1231,6 +1242,7 @@ const MUSIC_PLAYER = (() => {
 
     function stopVideo() {
       ytEngineActive = false;
+      videoWasPlaying = false;
       stopProgressLoop();
       exitFullscreenIfActive();
       // DESTRÓI o iframe (remoção do DOM), em vez de apenas stopVideo(). Na troca
@@ -1494,8 +1506,8 @@ const MUSIC_PLAYER = (() => {
       // esperado. Porém, ao voltar, o iOS pode ter descartado/recarregado o
       // iframe, que retorna mudo e do início. Este handler apenas PRESERVA e
       // RESTAURA o estado do modo Vídeo:
-      //  - ao ocultar: salva a posição e a intenção de reprodução (não destrói
-      //    o player — deixa o iOS pausar);
+      //  - ao ocultar: salva a posição (não destrói o player — deixa o iOS
+      //    pausar); a intenção de reprodução é mantida continuamente;
       //  - ao voltar: re-sincroniza a posição (se resetou), desmuta e retoma,
       //    sem recarregar desnecessariamente.
       document.addEventListener('visibilitychange', () => {
@@ -1505,13 +1517,20 @@ const MUSIC_PLAYER = (() => {
             const cur = (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0;
             if (cur > 0) videoResumeAt = cur;
           } catch (e) {}
-          // Captura a intenção de reprodução antes de o iOS pausar o iframe.
-          let playing = state.isPlaying;
+          // NÃO recalcula a intenção de reprodução aqui: no iOS a interrupção
+          // de áudio pausa o iframe ANTES do visibilitychange (ex.: app
+          // switcher/bloqueio), então o PAUSED do sistema já zerou
+          // state.isPlaying/getPlayerState(). Recalcular neste ponto perdia a
+          // intenção (videoWasPlaying = false) e, ao voltar,
+          // restoreVideoOnReturn não retomava nada — o som "sumia" nos dois
+          // modos. A intenção é mantida continuamente (PLAYING/togglePlay);
+          // aqui apenas a REFORÇAMOS se o clipe ainda estiver tocando.
           try {
             const S = window.YT && YT.PlayerState;
-            if (S && ytPlayer && ytReady) playing = playing || (ytPlayer.getPlayerState() === S.PLAYING);
+            if (state.isPlaying || (S && ytPlayer && ytReady && ytPlayer.getPlayerState() === S.PLAYING)) {
+              videoWasPlaying = true;
+            }
           } catch (e) {}
-          videoWasPlaying = playing;
         } else {
           restoreVideoOnReturn();
         }
@@ -1559,8 +1578,13 @@ const MUSIC_PLAYER = (() => {
         if (!ytPlayer || !ytReady) return;
         try {
           const S = YT.PlayerState;
-          if (ytPlayer.getPlayerState() === S.PLAYING) ytPlayer.pauseVideo();
-          else ytPlayer.playVideo();
+          if (ytPlayer.getPlayerState() === S.PLAYING) {
+            videoWasPlaying = false; // pausa explícita do usuário
+            ytPlayer.pauseVideo();
+          } else {
+            videoWasPlaying = true;
+            ytPlayer.playVideo();
+          }
         } catch (e) {}
       },
       seekTo: (sec) => {
