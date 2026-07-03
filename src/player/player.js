@@ -866,6 +866,8 @@ const MUSIC_PLAYER = (() => {
     let userPreference = 'cover';    // último modo escolhido pelo usuário
     let available = false;           // faixa atual tem clipe?
     let progressRaf = null;
+    let videoResumeAt = 0;           // posição do clipe salva ao minimizar (restauração)
+    let videoWasPlaying = false;     // intenção de reprodução ao minimizar
 
     function getEls() {
       return {
@@ -1239,6 +1241,29 @@ const MUSIC_PLAYER = (() => {
       audio.muted = false;
     }
 
+    // Restaura o modo Vídeo ao voltar ao app após minimizar. O iOS pausa o
+    // iframe em segundo plano e pode descartá-lo/recarregá-lo, fazendo-o voltar
+    // MUDO e/ou do início. Aqui, SEM recarregar o player: re-sincronizamos a
+    // posição (se o iframe resetou), DESMUTAMOS o clipe e retomamos a reprodução
+    // se ela estava ativa antes de minimizar — preservando estado e áudio.
+    function restoreVideoOnReturn() {
+      if (!ytPlayer || !ytReady) return;
+      let cur = 0;
+      try { cur = ytPlayer.getCurrentTime() || 0; } catch (e) {}
+      // Se o iframe voltou do início mas tínhamos uma posição salva, re-sincroniza.
+      if (videoResumeAt > 1 && cur < 1) {
+        try { ytPlayer.seekTo(videoResumeAt, true); } catch (e) {}
+      }
+      // O iOS/autoplay pode retornar o clipe mudo — garante o áudio de volta.
+      try { ytPlayer.unMute(); } catch (e) {}
+      if (videoWasPlaying) {
+        try { ytPlayer.playVideo(); } catch (e) {}
+        state.isPlaying = true;
+      }
+      updateUiState();
+      updateMediaSession();
+    }
+
     // ---- Overlay de controles personalizados + tela cheia ----
     const OVERLAY_HIDE_DELAY_MS = 2800;
     let overlayHideTimer = null;
@@ -1456,13 +1481,34 @@ const MUSIC_PLAYER = (() => {
         });
       });
 
-      // Segundo plano (bloqueio de tela / troca de aba / minimizar): NÃO fazemos
-      // handoff para MP3. No modo Vídeo, o áudio vem do próprio YouTube
-      // (sincronia perfeita). Ao minimizar no iOS, o iframe do YouTube pausa e
-      // expõe os controles de mídia do sistema; o usuário retoma a reprodução
-      // com um único toque em Play (comportamento padrão de web no iOS). Por
-      // isso não há tratamento de 'visibilitychange' aqui — deixamos o
-      // comportamento nativo do iframe agir.
+      // Segundo plano (Opção C): NÃO fazemos handoff para MP3. No modo Vídeo o
+      // áudio vem do próprio YouTube (sincronia perfeita) e, ao minimizar, o
+      // iOS pausa o iframe (o vídeo não toca em segundo plano) — comportamento
+      // esperado. Porém, ao voltar, o iOS pode ter descartado/recarregado o
+      // iframe, que retorna mudo e do início. Este handler apenas PRESERVA e
+      // RESTAURA o estado do modo Vídeo:
+      //  - ao ocultar: salva a posição e a intenção de reprodução (não destrói
+      //    o player — deixa o iOS pausar);
+      //  - ao voltar: re-sincroniza a posição (se resetou), desmuta e retoma,
+      //    sem recarregar desnecessariamente.
+      document.addEventListener('visibilitychange', () => {
+        if (!ytEngineActive) return; // só age no modo Vídeo
+        if (document.visibilityState === 'hidden') {
+          try {
+            const cur = (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0;
+            if (cur > 0) videoResumeAt = cur;
+          } catch (e) {}
+          // Captura a intenção de reprodução antes de o iOS pausar o iframe.
+          let playing = state.isPlaying;
+          try {
+            const S = window.YT && YT.PlayerState;
+            if (S && ytPlayer && ytReady) playing = playing || (ytPlayer.getPlayerState() === S.PLAYING);
+          } catch (e) {}
+          videoWasPlaying = playing;
+        } else {
+          restoreVideoOnReturn();
+        }
+      });
 
       // Mantém o vídeo alinhado quando o viewport muda (rotação, barra de URL
       // mostrando/ocultando, tela cheia). Como o iframe tem tamanho de layout
