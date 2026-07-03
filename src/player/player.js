@@ -1237,18 +1237,11 @@ const MUSIC_PLAYER = (() => {
       }
       // Reafirma os METADADOS de forma síncrona para o <audio> assumir os
       // controles do sistema após a liberação do iframe (faz os controles
-      // aparecerem em segundo plano).
+      // aparecerem imediatamente). A re-registração atrasada dos action handlers
+      // (para reabilitar avançar/retroceder) é feita em handlePlaybackStarted,
+      // disparado pelo evento 'play' do <audio> — cobrindo também o caso do
+      // vídeo terminar em segundo plano e avançar para a próxima faixa.
       updateMediaSession();
-      // Re-registra os action handlers (play/pause/prev/next) com um pequeno
-      // ATRASO. Fazer isso de forma síncrona logo após o stopVideo faz o iOS
-      // descartar a sessão recém-criada (controles somem); com o atraso, o iOS
-      // já reavaliou a sessão do <audio> e apenas reabilitamos os botões
-      // avançar/retroceder, que o takeover do iframe havia desabilitado.
-      setTimeout(() => {
-        if (ytEngineActive) return; // voltou ao modo Vídeo nesse intervalo
-        setupMediaSessionHandlers();
-        updateMediaSession();
-      }, 400);
     }
 
     function stopVideo() {
@@ -2025,6 +2018,22 @@ const MUSIC_PLAYER = (() => {
     // Reseta fallback de fim de faixa e agenda watchdog para a nova faixa
     resetTrackEndFallback();
     scheduleTrackEndWatchdog();
+
+    // Reafirma a MediaSession (handlers + metadados) com um pequeno atraso ao
+    // iniciar a reprodução do <audio>. Isso cobre TODAS as transições do modo
+    // Vídeo para o modo Áudio — inclusive quando o vídeo TERMINA em segundo
+    // plano e avança para a próxima faixa (fluxo que não passa por
+    // enterCoverMode). Nesses casos o iframe do YouTube era o dono da sessão;
+    // sem reafirmar, os controles do sistema não aparecem ou vêm com
+    // avançar/retroceder desabilitados. O atraso evita reafirmar durante a
+    // transição de sessão do iOS (síncrono demais faz o iOS descartar a sessão).
+    if (!isPlayingFromYouTube()) {
+      setTimeout(() => {
+        if (videoMode.isVideo()) return; // voltou ao modo Vídeo nesse intervalo
+        setupMediaSessionHandlers();
+        updateMediaSession();
+      }, 400);
+    }
   }
 
   function cancelCrossfade() {
