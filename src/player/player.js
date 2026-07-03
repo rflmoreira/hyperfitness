@@ -868,6 +868,7 @@ const MUSIC_PLAYER = (() => {
     let progressRaf = null;
     let videoResumeAt = 0;           // posição do clipe salva ao minimizar (restauração)
     let videoWasPlaying = false;     // intenção de reprodução do usuário no modo Vídeo (mantida continuamente)
+    let videoHandoffPending = false; // handoff Vídeo→MP3 feito ao minimizar; reentra no Vídeo ao voltar
 
     function getEls() {
       return {
@@ -1503,38 +1504,49 @@ const MUSIC_PLAYER = (() => {
         });
       });
 
-      // Segundo plano (Opção C): NÃO fazemos handoff para MP3. No modo Vídeo o
-      // áudio vem do próprio YouTube (sincronia perfeita) e, ao minimizar, o
-      // iOS pausa o iframe (o vídeo não toca em segundo plano) — comportamento
-      // esperado. Porém, ao voltar, o iOS pode ter descartado/recarregado o
-      // iframe, que retorna mudo e do início. Este handler apenas PRESERVA e
-      // RESTAURA o estado do modo Vídeo:
-      //  - ao ocultar: salva a posição (não destrói o player — deixa o iOS
-      //    pausar); a intenção de reprodução é mantida continuamente;
-      //  - ao voltar: re-sincroniza a posição (se resetou), desmuta e retoma,
-      //    sem recarregar desnecessariamente.
+      // Segundo plano (handoff imediato): ao minimizar no modo Vídeo, o iOS
+      // pausa o iframe e congela a página — nada tocaria em segundo plano e a
+      // Media Session morreria. Para preservá-la, forçamos o AUTOPLAY do MP3 no
+      // ponto MAIS PRECOCE e confiável do ciclo de vida: SINCRONAMENTE dentro
+      // do próprio 'visibilitychange: hidden'.
+      //  - 'blur' dispara antes, mas tem falsos positivos (teclado, diálogos,
+      //    app switcher sem minimizar) e derrubaria o modo Vídeo à toa;
+      //  - 'pagehide' NÃO dispara ao minimizar (só em navegação) e 'freeze'
+      //    não existe no WebKit;
+      //  - setTimeout/promessas NÃO servem: timers congelam em segundo plano.
+      // Tudo acontece na MESMA task do evento, antes da suspensão:
+      // enterCoverMode captura a posição do clipe, DESTRÓI o iframe (libera a
+      // Media Session dele de forma síncrona), desmuta e dá play() no MP3 — o
+      // <audio> já tem ativação de usuário na sessão, então o autoplay é
+      // permitido — e reafirma metadados/posição na Media Session. Ao voltar,
+      // reentramos no modo Vídeo na posição atual do MP3.
       document.addEventListener('visibilitychange', () => {
-        if (!ytEngineActive) return; // só age no modo Vídeo
         if (document.visibilityState === 'hidden') {
+          if (!ytEngineActive) return; // só age no modo Vídeo
           try {
             const cur = (ytPlayer && ytReady) ? (ytPlayer.getCurrentTime() || 0) : 0;
             if (cur > 0) videoResumeAt = cur;
           } catch (e) {}
-          // NÃO recalcula a intenção de reprodução aqui: no iOS a interrupção
-          // de áudio pausa o iframe ANTES do visibilitychange (ex.: app
-          // switcher/bloqueio), então o PAUSED do sistema já zerou
-          // state.isPlaying/getPlayerState(). Recalcular neste ponto perdia a
-          // intenção (videoWasPlaying = false) e, ao voltar,
-          // restoreVideoOnReturn não retomava nada — o som "sumia" nos dois
-          // modos. A intenção é mantida continuamente (PLAYING/togglePlay);
-          // aqui apenas a REFORÇAMOS se o clipe ainda estiver tocando.
-          try {
-            const S = window.YT && YT.PlayerState;
-            if (state.isPlaying || (S && ytPlayer && ytReady && ytPlayer.getPlayerState() === S.PLAYING)) {
-              videoWasPlaying = true;
-            }
-          } catch (e) {}
-        } else {
+          // Intenção preservada (videoWasPlaying é mantida continuamente): o
+          // PAUSED do sistema pode ter zerado state.isPlaying ANTES deste
+          // evento (app switcher/bloqueio) — restaura para o handoff retomar.
+          if (videoWasPlaying) state.isPlaying = true;
+          videoHandoffPending = true;
+          enterCoverMode({ resume: true });
+        } else if (videoHandoffPending) {
+          videoHandoffPending = false;
+          // O play() do handoff pode ter sido bloqueado em segundo plano;
+          // retoma agora que a página está visível.
+          if (state.isPlaying && audio.paused && audio.src) {
+            const p = audio.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          }
+          // Reentra no modo Vídeo na posição atual do MP3 (se a preferência
+          // continuar sendo Vídeo, com clipe disponível e capa aberta).
+          maybeAutoRestore();
+        } else if (ytEngineActive) {
+          // Fallback: engine ainda ativo sem handoff pendente — restaura o
+          // estado do próprio iframe (posição/reprodução).
           restoreVideoOnReturn();
         }
       });
