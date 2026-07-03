@@ -1235,12 +1235,20 @@ const MUSIC_PLAYER = (() => {
       } else {
         updateUiState();
       }
-      // Reafirma os handlers (play/pause/prev/next) E os metadados da
-      // MediaSession. Após o iframe do YouTube liberar a sessão, é preciso
-      // RE-REGISTRAR os action handlers no contexto do app — caso contrário os
-      // botões avançar/retroceder ficam desabilitados na tela de bloqueio.
-      setupMediaSessionHandlers();
+      // Reafirma os METADADOS de forma síncrona para o <audio> assumir os
+      // controles do sistema após a liberação do iframe (faz os controles
+      // aparecerem em segundo plano).
       updateMediaSession();
+      // Re-registra os action handlers (play/pause/prev/next) com um pequeno
+      // ATRASO. Fazer isso de forma síncrona logo após o stopVideo faz o iOS
+      // descartar a sessão recém-criada (controles somem); com o atraso, o iOS
+      // já reavaliou a sessão do <audio> e apenas reabilitamos os botões
+      // avançar/retroceder, que o takeover do iframe havia desabilitado.
+      setTimeout(() => {
+        if (ytEngineActive) return; // voltou ao modo Vídeo nesse intervalo
+        setupMediaSessionHandlers();
+        updateMediaSession();
+      }, 400);
     }
 
     function stopVideo() {
