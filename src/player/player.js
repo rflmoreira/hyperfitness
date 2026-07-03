@@ -994,6 +994,30 @@ const MUSIC_PLAYER = (() => {
       return ytPlayer;
     }
 
+    // Destrói COMPLETAMENTE o player do YouTube (remove o <iframe> do DOM).
+    // Diferente de pauseVideo()/stopVideo() (comandos via postMessage, que NÃO
+    // são processados de forma confiável com o iframe em segundo plano), a
+    // remoção do DOM é síncrona e funciona sempre — garantindo que o iframe
+    // libere a Media Session e pare de tocar. O host é recriado para permitir
+    // recriar o player sob demanda depois.
+    function destroyPlayer() {
+      try { if (ytPlayer && typeof ytPlayer.destroy === 'function') ytPlayer.destroy(); } catch (e) {}
+      ytPlayer = null;
+      ytReady = false;
+      playerCreating = null;
+      // Recria o host dentro do wrapper de vídeo de nível superior. Se destroy()
+      // falhou e o <iframe> permaneceu, remove-o manualmente do DOM — é a
+      // remoção do DOM que efetivamente encerra a mídia e libera a Media Session.
+      const vw = document.getElementById('expanded-video-wrapper');
+      if (vw) {
+        const existing = document.getElementById('yt-video-host');
+        if (existing) { try { existing.remove(); } catch (e) {} }
+        const host = document.createElement('div');
+        host.id = 'yt-video-host';
+        vw.insertBefore(host, vw.firstChild);
+      }
+    }
+
     function onYtStateChange(e) {
       if (!ytEngineActive) return;
       const S = window.YT && YT.PlayerState;
@@ -1248,7 +1272,15 @@ const MUSIC_PLAYER = (() => {
       ytEngineActive = false;
       stopProgressLoop();
       exitFullscreenIfActive();
-      try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
+      // DESTRÓI o iframe (remoção do DOM), em vez de apenas stopVideo(). Na troca
+      // de faixa vinda do modo Vídeo — especialmente quando o vídeo termina em
+      // SEGUNDO PLANO e avança para a próxima música — um simples stopVideo()
+      // (postMessage) não é processado com o app em background: o iframe fica
+      // "vivo", segura a Media Session (metadados/estado antigos), pode ser
+      // retomado pelo Play do sistema e volta a tocar em paralelo com o MP3 ao
+      // reabrir o app. Remover o iframe do DOM encerra tudo isso de forma
+      // síncrona e confiável.
+      destroyPlayer();
       // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
       audio.muted = false;
     }
