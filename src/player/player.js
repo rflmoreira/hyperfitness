@@ -1160,12 +1160,24 @@ const MUSIC_PLAYER = (() => {
       userPreference = 'video';
       applyModeVisual('video');
 
-      // Exclusividade: silencia COMPLETAMENTE o MP3 (pause + mute) para evitar
-      // qualquer sobreposição com o áudio do clipe, mesmo se algum watchdog
-      // tentar retomar o <audio> enquanto o vídeo estiver ativo.
+      // Exclusividade de ÁUDIO: silencia o MP3 (mute) para que só o áudio do
+      // clipe seja audível. Porém, em vez de PAUSAR o MP3, mantemos o elemento
+      // tocando MUDO ("shadow") e em loop. Assim ele permanece no estado
+      // "playing"; ao ir para segundo plano basta DESMUTÁ-LO (operação que o iOS
+      // permite em elemento já tocando) para o áudio assumir a reprodução — em
+      // vez de um play() em elemento pausado, que o iOS bloqueia em background.
       prevMuted = audio.muted;
-      try { audio.pause(); } catch (e) {}
       audio.muted = true;
+      if (wasPlaying && audio.src) {
+        audio.loop = true; // impede que o shadow termine e saia do estado "playing"
+        if (audio.paused) {
+          const sp = audio.play();
+          if (sp && typeof sp.catch === 'function') sp.catch(() => {});
+        }
+      } else {
+        audio.loop = false;
+        try { audio.pause(); } catch (e) {}
+      }
 
       const player = await ensurePlayer();
       if (!player) {
@@ -1173,8 +1185,9 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        audio.loop = false;
         audio.muted = prevMuted;
-        if (wasPlaying) { try { audio.play(); } catch (e) {} }
+        if (wasPlaying && audio.paused) { try { audio.play(); } catch (e) {} }
         return false;
       }
 
@@ -1186,8 +1199,9 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
+        audio.loop = false;
         audio.muted = prevMuted;
-        if (wasPlaying) { try { audio.play(); } catch (e2) {} }
+        if (wasPlaying && audio.paused) { try { audio.play(); } catch (e2) {} }
         return false;
       }
 
@@ -1221,14 +1235,24 @@ const MUSIC_PLAYER = (() => {
         try { audio.currentTime = t; } catch (e) {}
       }
 
-      // Restaura o áudio do MP3 (remove o mute aplicado no modo Vídeo).
+      // Restaura o áudio do MP3: desativa o loop do "shadow" e remove o mute.
+      audio.loop = false;
       audio.muted = prevMuted;
 
       if (resume && shouldPlay) {
-        startPlaying();
-        startPlaybackCountdown();
+        // O MP3 pode já estar tocando (shadow do modo Vídeo). Se estiver, apenas
+        // executa a rotina de "reprodução iniciada"; senão, inicia a reprodução.
+        state.isPlaying = true;
+        if (audio.paused) {
+          startPlaying();
+          startPlaybackCountdown();
+        } else {
+          handlePlaybackStarted();
+        }
         updateUiState();
       } else {
+        // Não deve continuar tocando: encerra o shadow, se estiver ativo.
+        if (!audio.paused) { try { audio.pause(); } catch (e) {} }
         updateUiState();
       }
     }
@@ -1238,7 +1262,8 @@ const MUSIC_PLAYER = (() => {
       stopProgressLoop();
       exitFullscreenIfActive();
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
-      // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
+      // Garante que o MP3 volte ao estado normal ao encerrar o vídeo.
+      audio.loop = false;
       audio.muted = prevMuted;
     }
 
@@ -1269,14 +1294,19 @@ const MUSIC_PLAYER = (() => {
       // impede que o evento PAUSED corrompa state.isPlaying.
       try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
 
-      // Prepara e inicia o MP3 imediatamente para assumir a reprodução.
-      if (Number.isFinite(t) && t > 0 && audio.src) {
-        try { audio.currentTime = t; } catch (e) {}
-      }
-      audio.muted = prevMuted;
       if (handoffWasPlaying && audio.src) {
-        const p = audio.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
+        // O MP3 já está tocando MUDO (shadow). Sincroniza a posição com o clipe
+        // e apenas DESMUTA — o iOS permite tornar audível um elemento que já está
+        // tocando, mesmo em segundo plano (ao contrário de play() em elemento
+        // pausado). É isto que faz a reprodução continuar automaticamente.
+        audio.loop = false;
+        try { audio.currentTime = t; } catch (e) {}
+        audio.muted = prevMuted;
+        if (audio.paused) {
+          // Segurança: se o shadow não estava tocando por algum motivo, tenta iniciar.
+          const p = audio.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
       }
 
       // Mantém o player de mídia do sistema ativo com os metadados atuais.
@@ -1292,6 +1322,7 @@ const MUSIC_PLAYER = (() => {
       stopProgressLoop();
       applyModeVisual('cover');
       exitFullscreenIfActive();
+      audio.loop = false;
 
       if (!audio.paused) {
         // MP3 realmente tocando em segundo plano: executa a rotina padrão de
@@ -1307,11 +1338,18 @@ const MUSIC_PLAYER = (() => {
     }
 
     // Reverte o handoff quando a página voltou a ficar visível rapidamente
-    // (rotação/tela cheia transitória): re-silencia o MP3 e retoma o YouTube.
+    // (rotação/tela cheia transitória): devolve o MP3 ao estado de "shadow"
+    // (mudo, em loop e ainda tocando) e retoma o áudio do YouTube.
     function revertVisibilityHandoff() {
       handoffInProgress = false;
-      try { audio.pause(); } catch (e) {}
       audio.muted = true;
+      if (handoffWasPlaying && audio.src) {
+        audio.loop = true;
+        if (audio.paused) {
+          const p = audio.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
+      }
       try { if (ytPlayer && ytReady) ytPlayer.playVideo(); } catch (e) {}
     }
 
@@ -1637,8 +1675,20 @@ const MUSIC_PLAYER = (() => {
         if (!ytPlayer || !ytReady) return;
         try {
           const S = YT.PlayerState;
-          if (ytPlayer.getPlayerState() === S.PLAYING) ytPlayer.pauseVideo();
-          else ytPlayer.playVideo();
+          if (ytPlayer.getPlayerState() === S.PLAYING) {
+            ytPlayer.pauseVideo();
+            // Mantém o shadow MP3 em espelho com o vídeo (pausa o shadow mudo).
+            try { audio.pause(); } catch (e) {}
+          } else {
+            ytPlayer.playVideo();
+            // Retoma o shadow MP3 (mudo, em loop) para preservar o handoff em background.
+            if (audio.src) {
+              audio.muted = true;
+              audio.loop = true;
+              const p = audio.play();
+              if (p && typeof p.catch === 'function') p.catch(() => {});
+            }
+          }
         } catch (e) {}
       },
       seekTo: (sec) => {
@@ -2074,6 +2124,9 @@ const MUSIC_PLAYER = (() => {
   // Chamado por timeupdate e pelo watchdog timer.
   function maybeForceTrackEnd() {
     if (crossfadeInProgress || crossfadePending) return;
+    // Modo Vídeo ativo: o MP3 é apenas um "shadow" mudo; sua linha do tempo não
+    // deve disparar o fim da faixa (o clipe controla o avanço).
+    if (videoMode.isVideo()) return;
     if (state.isLoadingTrack || advancingToNext || advanceScheduled) return;
     if (handlingEnded) return;
     // Se o usuário pausou explicitamente, não tratar como fim da faixa
@@ -2317,6 +2370,8 @@ const MUSIC_PLAYER = (() => {
 
   function maybeTriggerAutoCrossfade() {
     if (crossfadeInProgress || crossfadePending) return;
+    // Modo Vídeo ativo: MP3 é shadow mudo; não iniciar crossfade pela sua linha do tempo.
+    if (videoMode.isVideo()) return;
     if (state.isLoadingTrack) return;
     if (advancingToNext || advanceScheduled) return;
     if (!state.isPlaying || audio.paused || audio.ended) return;
@@ -2393,6 +2448,8 @@ const MUSIC_PLAYER = (() => {
   // Event listeners para garantir reprodução estável
   const audioHandlers = {
     ended: () => {
+      // Modo Vídeo ativo: o MP3 é um "shadow" mudo (em loop); ignore seu 'ended'.
+      if (videoMode.isVideo()) return;
       if (crossfadeInProgress || state.isLoadingTrack || advancingToNext || advanceScheduled) {
         // Já avançamos via crossfade; não dispare novo avanço
         return;
@@ -2448,6 +2505,8 @@ const MUSIC_PLAYER = (() => {
       if (ignoringErrorsSet.has(audio)) {
         return;
       }
+      // Modo Vídeo ativo: erros do MP3 shadow não devem afetar a UI/avanço.
+      if (videoMode.isVideo()) return;
       if (isPlayingFromYouTube()) {
         console.warn(`⚠️ [AUDIO] Error during YouTube playback, skipping to next result`);
         stopYouTubeSearchCountdown();
@@ -2481,6 +2540,7 @@ const MUSIC_PLAYER = (() => {
       }
     },
     stalled: () => {
+      if (videoMode.isVideo()) return; // shadow mudo: não tratar como conexão fraca
       if (!hasValidTrack()) return;
       if (state.connectionLost || state.reconnectAttempts > 0) return;
       if (state.stalledTimer) return; // Já tem um timer pendente
@@ -2503,6 +2563,7 @@ const MUSIC_PLAYER = (() => {
       }, STALLED_DELAY_MS);
     },
     waiting: () => {
+      if (videoMode.isVideo()) return; // shadow mudo: ignora buffering
       if (!hasValidTrack()) return;
       if (state.connectionLost || state.reconnectAttempts > 0) return;
       if (state.isBuffering) return; // Já está tratando
@@ -2564,6 +2625,7 @@ const MUSIC_PLAYER = (() => {
       }
     },
     timeupdate: () => {
+      if (videoMode.isVideo()) return; // shadow mudo não dirige crossfade/fim de faixa
       maybeTriggerAutoCrossfade();
       maybeForceTrackEnd();
     }
