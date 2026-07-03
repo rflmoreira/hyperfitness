@@ -1209,12 +1209,15 @@ const MUSIC_PLAYER = (() => {
       videoWasPlaying = false;
       stopProgressLoop();
 
-      // Encerra a reprodução do vídeo. Usa stopVideo() (não pauseVideo()) para
-      // LIBERAR a sessão de mídia do iframe do YouTube — ele registra a própria
-      // MediaSession e, se apenas pausado, continua "dono" dos controles do
-      // sistema, impedindo que a MediaSession do nosso <audio> (MP3) apareça em
-      // segundo plano. Descarregar o vídeo devolve o controle ao <audio>.
-      try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
+      // Encerra o vídeo DESTRUINDO o iframe (remoção do DOM), como na troca de
+      // faixa (stopVideo). Um stopVideo() via postMessage deixa o iframe vivo e
+      // ele permanece registrado na Media Session do sistema: ao minimizar, o
+      // iOS mantém a sessão presa ao iframe e ignora a posição do nosso <audio>
+      // (setPositionState) — a barra de progresso do sistema congela mesmo com
+      // o MP3 tocando. Remover o iframe libera a sessão de forma síncrona e
+      // confiável; o player é recriado sob demanda ao reentrar no modo Vídeo
+      // (enterVideoMode sempre recarrega o clipe via loadVideoById/cueVideoById).
+      destroyPlayer();
 
       // Handoff de posição (melhor esforço) para o MP3.
       if (Number.isFinite(t) && t > 0 && audio.src) {
