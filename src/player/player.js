@@ -2504,6 +2504,8 @@ const MUSIC_PLAYER = (() => {
     timeupdate: () => {
       maybeTriggerAutoCrossfade();
       maybeForceTrackEnd();
+      // Mantém a barra de progresso da Media Session sincronizada.
+      updateMediaPositionState();
     }
   };
 
@@ -2781,10 +2783,33 @@ const MUSIC_PLAYER = (() => {
     
     // Atualiza o estado de reprodução
     navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
-    
+
+    // Atualiza a posição/duração para a barra de progresso da Media Session.
+    updateMediaPositionState();
+
     // Força remoção dos handlers de seek após atualizar metadata
     // Alguns navegadores podem resetar os handlers ao mudar metadata
     forceRemoveSeekHandlers();
+  }
+
+  // Informa duração/posição atuais à Media Session para que a barra de progresso
+  // do sistema funcione (o iOS extrapola a posição a partir do playbackRate).
+  // Sem isto, após a transição Vídeo→Áudio (iframe destruído) o iOS não rastreia
+  // a posição do <audio> e a barra fica parada em 0:00.
+  function updateMediaPositionState() {
+    if (!('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
+    try {
+      const dur = audio.duration;
+      if (!Number.isFinite(dur) || dur <= 0) {
+        navigator.mediaSession.setPositionState(); // limpa quando a duração é desconhecida
+        return;
+      }
+      const pos = Math.min(Math.max(audio.currentTime || 0, 0), dur);
+      const rate = audio.playbackRate > 0 ? audio.playbackRate : 1;
+      navigator.mediaSession.setPositionState({ duration: dur, playbackRate: rate, position: pos });
+    } catch (e) {
+      // Valores inválidos (ex.: durante troca de faixa) — ignora.
+    }
   }
 
   function setupMediaSessionHandlers() {
