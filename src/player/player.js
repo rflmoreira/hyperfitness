@@ -981,6 +981,11 @@ const MUSIC_PLAYER = (() => {
       if (e.data === S.ENDED) { handleEnded(); return; }
       if (e.data === S.PLAYING) {
         try { ytPlayer?.setPlaybackQuality('large'); } catch (e) {}
+        // Garante o áudio do clipe: ao voltar do segundo plano, o iOS pode ter
+        // retomado/recarregado o iframe MUDO (política de autoplay). Desmutar
+        // AQUI, quando o vídeo já está de fato tocando, é o momento em que o
+        // unMute() "gruda" (nunca mutamos o player intencionalmente no modo Vídeo).
+        try { ytPlayer?.unMute(); } catch (e) {}
         state.isPlaying = true;
         updateUiState();
         startProgressLoop();
@@ -1254,8 +1259,10 @@ const MUSIC_PLAYER = (() => {
       if (videoResumeAt > 1 && cur < 1) {
         try { ytPlayer.seekTo(videoResumeAt, true); } catch (e) {}
       }
-      // O iOS/autoplay pode retornar o clipe mudo — garante o áudio de volta.
-      try { ytPlayer.unMute(); } catch (e) {}
+      // Retoma a reprodução. O áudio é garantido no handler de PLAYING
+      // (onYtStateChange), que desmuta o clipe quando ele volta a tocar —
+      // o momento correto para o unMute() "grudar" após a política de autoplay
+      // do iOS. Desmutar aqui (antes de tocar) não gruda.
       if (videoWasPlaying) {
         try { ytPlayer.playVideo(); } catch (e) {}
         state.isPlaying = true;
