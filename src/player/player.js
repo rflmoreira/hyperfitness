@@ -1235,8 +1235,11 @@ const MUSIC_PLAYER = (() => {
       } else {
         updateUiState();
       }
-      // Reafirma os metadados/controles da MediaSession para o <audio> assumir
-      // os controles do sistema após a liberação do iframe.
+      // Reafirma os handlers (play/pause/prev/next) E os metadados da
+      // MediaSession. Após o iframe do YouTube liberar a sessão, é preciso
+      // RE-REGISTRAR os action handlers no contexto do app — caso contrário os
+      // botões avançar/retroceder ficam desabilitados na tela de bloqueio.
+      setupMediaSessionHandlers();
       updateMediaSession();
     }
 
