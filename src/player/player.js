@@ -911,7 +911,6 @@ const MUSIC_PLAYER = (() => {
     let userPreference = 'cover';    // último modo escolhido pelo usuário
     let available = false;           // faixa atual tem clipe?
     let progressRaf = null;
-    let prevMuted = false;           // estado de mute do MP3 antes do modo Vídeo
 
     function getEls() {
       return {
@@ -1157,7 +1156,10 @@ const MUSIC_PLAYER = (() => {
       // Exclusividade: silencia COMPLETAMENTE o MP3 (pause + mute) para evitar
       // qualquer sobreposição com o áudio do clipe, mesmo se algum watchdog
       // tentar retomar o <audio> enquanto o vídeo estiver ativo.
-      prevMuted = audio.muted;
+      // OBS.: audio.muted é usado EXCLUSIVAMENTE pelo modo Vídeo (o mudo do app
+      // é baseado em volume/userVolume). Por isso ao sair restauramos sempre
+      // audio.muted = false, de forma determinística — nunca dependemos de um
+      // estado capturado, que poderia ficar preso em "true" (som some no áudio).
       try { audio.pause(); } catch (e) {}
       audio.muted = true;
 
@@ -1167,7 +1169,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
-        audio.muted = prevMuted;
+        audio.muted = false;
         if (wasPlaying) { try { audio.play(); } catch (e) {} }
         return false;
       }
@@ -1180,7 +1182,7 @@ const MUSIC_PLAYER = (() => {
         ytEngineActive = false;
         currentMode = 'cover';
         applyModeVisual('cover');
-        audio.muted = prevMuted;
+        audio.muted = false;
         if (wasPlaying) { try { audio.play(); } catch (e2) {} }
         return false;
       }
@@ -1216,7 +1218,7 @@ const MUSIC_PLAYER = (() => {
       }
 
       // Restaura o áudio do MP3 (remove o mute aplicado no modo Vídeo).
-      audio.muted = prevMuted;
+      audio.muted = false;
 
       if (resume && shouldPlay) {
         startPlaying();
@@ -1233,7 +1235,7 @@ const MUSIC_PLAYER = (() => {
       exitFullscreenIfActive();
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
       // Garante que o MP3 volte a ser audível ao encerrar o vídeo.
-      audio.muted = prevMuted;
+      audio.muted = false;
     }
 
     // ---- Overlay de controles personalizados + tela cheia ----
