@@ -116,51 +116,6 @@ const MUSIC_PLAYER = (() => {
     event.stopPropagation();
   }
 
-  // Scroll horizontal via wheel
-  function enableHorizontalWheelScroll(element, options = {}) {
-    if (!element) return;
-    const { capture = false, parentElement = null } = options;
-
-    const applyDelta = (delta, deltaMode = 0) => {
-      if (!delta) return;
-      if (element.scrollWidth <= element.clientWidth) return;
-      const multiplier = deltaMode === 1 ? 16 : deltaMode === 2 ? element.clientWidth : 1;
-      element.scrollLeft += delta * multiplier;
-    };
-
-    const handler = (e) => {
-      if (parentElement) {
-        const rect = element.getBoundingClientRect();
-        const isOver = e.clientX >= rect.left && e.clientX <= rect.right && 
-                       e.clientY >= rect.top && e.clientY <= rect.bottom;
-        if (!isOver) return;
-        if (element.style.pointerEvents === 'none') return;
-      }
-      const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-      if (delta === 0) return;
-      e.preventDefault();
-      if (capture) e.stopPropagation();
-      applyDelta(delta, e.deltaMode);
-    };
-    
-    const target = parentElement || element;
-    target.addEventListener('wheel', handler, { passive: false, capture });
-    target.addEventListener('mousewheel', (e) => {
-      if (parentElement) {
-        const rect = element.getBoundingClientRect();
-        const isOver = e.clientX >= rect.left && e.clientX <= rect.right && 
-                       e.clientY >= rect.top && e.clientY <= rect.bottom;
-        if (!isOver) return;
-        if (element.style.pointerEvents === 'none') return;
-      }
-      const delta = e.wheelDelta ? -e.wheelDelta / 120 : e.detail || 0;
-      if (!delta) return;
-      e.preventDefault();
-      if (capture) e.stopPropagation();
-      applyDelta(delta, 1);
-    }, { passive: false, capture });
-  }
-  
   // Múltiplos proxies para Deezer API com fallback
   const DEEZER_PROXIES = localDevFlag
     ? [
@@ -911,14 +866,12 @@ const MUSIC_PLAYER = (() => {
     let userPreference = 'cover';    // último modo escolhido pelo usuário
     let available = false;           // faixa atual tem clipe?
     let progressRaf = null;
-    let lastVideoPosSync = 0;        // throttle p/ setPositionState no modo Vídeo
 
     function getEls() {
       return {
         wrapper: document.getElementById('expanded-cover-wrapper'),
         toggle: document.getElementById('cover-mode-toggle'),
-        host: document.getElementById('yt-video-host'),
-        coverImg: document.getElementById('ctrl-expanded-cover')
+        host: document.getElementById('yt-video-host')
       };
     }
 
@@ -1029,18 +982,6 @@ const MUSIC_PLAYER = (() => {
         state.isPlaying = true;
         updateUiState();
         startProgressLoop();
-        // FORÇA a reafirmação da Media Session do app no modo Vídeo, tentando
-        // sobrepor a sessão do próprio iframe do YouTube para habilitar
-        // avançar/retroceder. Re-registra os handlers (mode-aware) e reafirma
-        // metadados/posição. OBS.: no iOS o iframe costuma manter a posse da
-        // sessão; esta é a tentativa mais forte possível dentro da Opção C.
-        setupMediaSessionHandlers();
-        updateMediaSession();
-        setTimeout(() => {
-          if (!ytEngineActive) return;
-          setupMediaSessionHandlers();
-          updateMediaSession();
-        }, 500);
       } else if (e.data === S.PAUSED) {
         state.isPlaying = false;
         updateUiState();
@@ -1087,14 +1028,6 @@ const MUSIC_PLAYER = (() => {
       const remainingMs = Math.max(0, (dur - cur) * 1000);
       setTrackDurationLabel(index, remainingMs);
       updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
-      // Mantém a barra de progresso da Media Session sincronizada no modo Vídeo
-      // (throttle ~1s). O loop roda via requestAnimationFrame (~60fps), então
-      // limitamos a frequência de setPositionState.
-      const now = Date.now();
-      if (now - lastVideoPosSync > 1000) {
-        lastVideoPosSync = now;
-        updateMediaPositionState();
-      }
     }
 
     // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
@@ -1561,7 +1494,6 @@ const MUSIC_PLAYER = (() => {
       onExpandedCoverClose,
       onTrackChanged,
       onTrackPlaying,
-      refreshAvailability,
       // engine (roteamento de controles)
       isVideo: () => ytEngineActive,
       getCurrentTime: () => {
@@ -1569,12 +1501,6 @@ const MUSIC_PLAYER = (() => {
       },
       getDuration: () => {
         try { return (ytPlayer && ytReady) ? (ytPlayer.getDuration() || 0) : 0; } catch (e) { return 0; }
-      },
-      isPaused: () => {
-        try {
-          const S = window.YT && YT.PlayerState;
-          return !(ytPlayer && ytReady) || !S || ytPlayer.getPlayerState() !== S.PLAYING;
-        } catch (e) { return true; }
       },
       togglePlay: () => {
         if (!ytPlayer || !ytReady) return;
@@ -2820,16 +2746,13 @@ const MUSIC_PLAYER = (() => {
   function updateMediaPositionState() {
     if (!('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
     try {
-      // No modo Vídeo a posição/duração vêm do player do YouTube; caso contrário, do <audio>.
-      const inVideo = videoMode.isVideo();
-      const dur = inVideo ? videoMode.getDuration() : audio.duration;
+      const dur = audio.duration;
       if (!Number.isFinite(dur) || dur <= 0) {
         navigator.mediaSession.setPositionState(); // limpa quando a duração é desconhecida
         return;
       }
-      const rawPos = inVideo ? videoMode.getCurrentTime() : (audio.currentTime || 0);
-      const pos = Math.min(Math.max(rawPos || 0, 0), dur);
-      const rate = (!inVideo && audio.playbackRate > 0) ? audio.playbackRate : 1;
+      const pos = Math.min(Math.max(audio.currentTime || 0, 0), dur);
+      const rate = audio.playbackRate > 0 ? audio.playbackRate : 1;
       navigator.mediaSession.setPositionState({ duration: dur, playbackRate: rate, position: pos });
     } catch (e) {
       // Valores inválidos (ex.: durante troca de faixa) — ignora.
@@ -2840,11 +2763,6 @@ const MUSIC_PLAYER = (() => {
     if (!('mediaSession' in navigator)) return;
     
     navigator.mediaSession.setActionHandler('play', () => {
-      // No modo Vídeo o play/pause controla o player do YouTube.
-      if (videoMode.isVideo()) {
-        if (videoMode.isPaused()) videoMode.togglePlay();
-        return;
-      }
       if (audio.paused) {
         startPlaying();
         updateUiState();
@@ -2853,10 +2771,6 @@ const MUSIC_PLAYER = (() => {
     });
     
     navigator.mediaSession.setActionHandler('pause', () => {
-      if (videoMode.isVideo()) {
-        if (!videoMode.isPaused()) videoMode.togglePlay();
-        return;
-      }
       if (!audio.paused) {
         pausePlaying();
         updateUiState();
@@ -2864,8 +2778,6 @@ const MUSIC_PLAYER = (() => {
       }
     });
     
-    // Avançar/retroceder funcionam em AMBOS os modos: sempre navegam pela fila de
-    // faixas do app (a nova faixa toca em áudio ou reentra em vídeo conforme o caso).
     navigator.mediaSession.setActionHandler('previoustrack', () => {
       playPreviousTrack();
     });
@@ -8983,8 +8895,6 @@ const MUSIC_PLAYER = (() => {
     { id: 'blue',      name: 'Blue',            desc: 'Chillout, Lounge & Ambient',           icon: 'ph-cloud',           color: '#60a5fa', cover: 'src/imagens/radio/blue.webp',       url: 'https://stream.sunshine-live.de/Blue/mp3-128' },
     { id: 'calmflow',  name: 'Calm Flow',       desc: 'Lo-fi, Downtempo & relaxamento',       icon: 'ph-leaf',            color: '#34d399', cover: 'src/imagens/radio/calmflow_plain_1.webp',   url: 'https://stream.sunshine-live.de/calmflow/mp3-128', featured: true },
   ];
-
-  const RADIO_DEFAULT_COVER = 'src/imagens/radio/default.svg';
 
   let radioAudio = null;
   let radioPlaying = false;
