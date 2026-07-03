@@ -911,9 +911,7 @@ const MUSIC_PLAYER = (() => {
     let userPreference = 'cover';    // último modo escolhido pelo usuário
     let available = false;           // faixa atual tem clipe?
     let progressRaf = null;
-    let prevMuted = false;           // estado de mute do MP3 antes do modo Vídeo
-    let handoffInProgress = false;   // handoff Vídeo→Áudio (segundo plano) em curso
-    let handoffWasPlaying = false;   // intenção de reprodução capturada antes do handoff
+    let handoffInProgress = false;   // transição Vídeo→Áudio em curso (evita corromper state.isPlaying)
 
     function getEls() {
       return {
@@ -1152,7 +1150,9 @@ const MUSIC_PLAYER = (() => {
       if (!videoId) return false;
 
       const startAt = Math.max(0, audio.currentTime || 0);
-      const wasPlaying = state.isPlaying && !audio.paused;
+      // Intenção de reprodução (não exige !audio.paused: o MP3 pode estar
+      // momentaneamente pausado enquanto ainda "tocando" logicamente).
+      const wasPlaying = state.isPlaying;
       // Marca engine como YouTube ANTES de silenciar o MP3 para que o handler
       // de 'pause' do áudio não altere o estado/UI.
       ytEngineActive = true;
@@ -1166,7 +1166,8 @@ const MUSIC_PLAYER = (() => {
       // "playing"; ao ir para segundo plano basta DESMUTÁ-LO (operação que o iOS
       // permite em elemento já tocando) para o áudio assumir a reprodução — em
       // vez de um play() em elemento pausado, que o iOS bloqueia em background.
-      prevMuted = audio.muted;
+      // OBS.: audio.muted é usado EXCLUSIVAMENTE para o shadow (o mudo do app é
+      // baseado em volume), então restauramos sempre para false ao sair.
       audio.muted = true;
       if (wasPlaying && audio.src) {
         audio.loop = true; // impede que o shadow termine e saia do estado "playing"
@@ -1186,7 +1187,7 @@ const MUSIC_PLAYER = (() => {
         currentMode = 'cover';
         applyModeVisual('cover');
         audio.loop = false;
-        audio.muted = prevMuted;
+        audio.muted = false;
         if (wasPlaying && audio.paused) { try { audio.play(); } catch (e) {} }
         return false;
       }
@@ -1200,7 +1201,7 @@ const MUSIC_PLAYER = (() => {
         currentMode = 'cover';
         applyModeVisual('cover');
         audio.loop = false;
-        audio.muted = prevMuted;
+        audio.muted = false;
         if (wasPlaying && audio.paused) { try { audio.play(); } catch (e2) {} }
         return false;
       }
@@ -1221,40 +1222,49 @@ const MUSIC_PLAYER = (() => {
         return;
       }
 
+      // Impede que o evento PAUSED do YouTube (disparado abaixo) corrompa
+      // state.isPlaying durante a transição.
+      handoffInProgress = true;
+
       let t = 0;
       try { if (ytPlayer && ytReady) t = ytPlayer.getCurrentTime() || 0; } catch (e) {}
-      const shouldPlay = state.isPlaying;
-      // Encerra a reprodução do vídeo (fonte única).
-      try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
+      const shouldPlay = resume && state.isPlaying;
 
-      ytEngineActive = false;
-      stopProgressLoop();
-
-      // Handoff de posição (melhor esforço) para o MP3.
+      // TRANSFERÊNCIA DA SESSÃO DE ÁUDIO (crucial p/ reprodução em segundo plano
+      // no iOS): tornamos o MP3 AUDÍVEL *antes* de pausar o YouTube. O MP3 já
+      // está tocando (shadow mudo); desmutá-lo faz o <audio> assumir a sessão de
+      // áudio enquanto o YouTube ainda a mantém, e só então pausamos o YouTube.
+      // Desmutar um elemento que já toca não é bloqueado em segundo plano (ao
+      // contrário de play() em elemento pausado).
+      audio.loop = false; // desativa o loop do shadow
       if (Number.isFinite(t) && t > 0 && audio.src) {
         try { audio.currentTime = t; } catch (e) {}
       }
+      audio.muted = false;
+      if (shouldPlay && audio.paused && audio.src) {
+        const p = audio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } else if (!shouldPlay && !audio.paused) {
+        try { audio.pause(); } catch (e) {}
+      }
 
-      // Restaura o áudio do MP3: desativa o loop do "shadow" e remove o mute.
-      audio.loop = false;
-      audio.muted = prevMuted;
+      // Agora encerra o YouTube (libera a sessão de áudio do iframe).
+      try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
+      ytEngineActive = false;
+      handoffInProgress = false;
+      stopProgressLoop();
 
-      if (resume && shouldPlay) {
-        // O MP3 pode já estar tocando (shadow do modo Vídeo). Se estiver, apenas
-        // executa a rotina de "reprodução iniciada"; senão, inicia a reprodução.
+      if (shouldPlay) {
         state.isPlaying = true;
-        if (audio.paused) {
-          startPlaying();
-          startPlaybackCountdown();
-        } else {
-          handlePlaybackStarted();
-        }
+        // Se o MP3 já está tocando (shadow), executa a rotina de início
+        // manualmente (o evento 'play' foi ignorado enquanto era shadow).
+        if (!audio.paused) handlePlaybackStarted();
+        else startPlaybackCountdown();
         updateUiState();
       } else {
-        // Não deve continuar tocando: encerra o shadow, se estiver ativo.
-        if (!audio.paused) { try { audio.pause(); } catch (e) {} }
         updateUiState();
       }
+      try { updateMediaSession(); } catch (e) {}
     }
 
     function stopVideo() {
@@ -1264,93 +1274,7 @@ const MUSIC_PLAYER = (() => {
       try { if (ytPlayer && ytReady) ytPlayer.stopVideo(); } catch (e) {}
       // Garante que o MP3 volte ao estado normal ao encerrar o vídeo.
       audio.loop = false;
-      audio.muted = prevMuted;
-    }
-
-    // ---- Handoff Vídeo→Áudio para reprodução em segundo plano ----
-    //
-    // Ao ocultar a página (bloqueio de tela / minimizar / trocar de aba), o
-    // <iframe> do YouTube não reproduz de forma confiável em segundo plano. Por
-    // isso transferimos a reprodução para o <audio> (MP3), que toca em segundo
-    // plano e mantém o player de mídia do sistema (MediaSession) ativo.
-    //
-    // O handoff é iniciado IMEDIATAMENTE dentro do evento de visibilidade — o
-    // momento com maior probabilidade de o navegador autorizar a reprodução em
-    // segundo plano. O player do YouTube é apenas pausado (não destruído), o que
-    // permite reverter de forma barata quando a ocultação foi transitória
-    // (rotação do dispositivo / entrada e saída de tela cheia no iOS).
-
-    // Início imediato do handoff (dentro do evento visibilitychange:hidden).
-    function beginVisibilityHandoff() {
-      // Captura a intenção real de reprodução ANTES de mexer no YouTube.
-      handoffWasPlaying = state.isPlaying;
-      handoffInProgress = true;
-
-      // Posição atual do clipe para sincronizar o MP3.
-      let t = 0;
-      try { if (ytPlayer && ytReady) t = ytPlayer.getCurrentTime() || 0; } catch (e) {}
-
-      // Pausa o YouTube (não toca em segundo plano). O guard handoffInProgress
-      // impede que o evento PAUSED corrompa state.isPlaying.
-      try { if (ytPlayer && ytReady) ytPlayer.pauseVideo(); } catch (e) {}
-
-      if (handoffWasPlaying && audio.src) {
-        // O MP3 já está tocando MUDO (shadow). Sincroniza a posição com o clipe
-        // e apenas DESMUTA — o iOS permite tornar audível um elemento que já está
-        // tocando, mesmo em segundo plano (ao contrário de play() em elemento
-        // pausado). É isto que faz a reprodução continuar automaticamente.
-        audio.loop = false;
-        try { audio.currentTime = t; } catch (e) {}
-        audio.muted = prevMuted;
-        if (audio.paused) {
-          // Segurança: se o shadow não estava tocando por algum motivo, tenta iniciar.
-          const p = audio.play();
-          if (p && typeof p.catch === 'function') p.catch(() => {});
-        }
-      }
-
-      // Mantém o player de mídia do sistema ativo com os metadados atuais.
-      try { updateMediaSession(); } catch (e) {}
-    }
-
-    // Torna o modo Áudio (cover) definitivo — a ocultação persistiu (segundo
-    // plano real). O MP3 já está tocando desde beginVisibilityHandoff().
-    function finalizeVisibilityHandoff() {
-      handoffInProgress = false;
-      ytEngineActive = false;
-      currentMode = 'cover';
-      stopProgressLoop();
-      applyModeVisual('cover');
-      exitFullscreenIfActive();
-      audio.loop = false;
-
-      if (!audio.paused) {
-        // MP3 realmente tocando em segundo plano: executa a rotina padrão de
-        // "reprodução iniciada" (agende watchdog, contagem, volume, etc.), que
-        // foi ignorada pelo handler de 'play' enquanto o vídeo ainda era a fonte.
-        handlePlaybackStarted();
-      } else {
-        // play() bloqueado em segundo plano: preserva a intenção e o player do
-        // sistema; a reprodução é retomada ao voltar à página (visibilitychange).
-        updateUiState();
-      }
-      try { updateMediaSession(); } catch (e) {}
-    }
-
-    // Reverte o handoff quando a página voltou a ficar visível rapidamente
-    // (rotação/tela cheia transitória): devolve o MP3 ao estado de "shadow"
-    // (mudo, em loop e ainda tocando) e retoma o áudio do YouTube.
-    function revertVisibilityHandoff() {
-      handoffInProgress = false;
-      audio.muted = true;
-      if (handoffWasPlaying && audio.src) {
-        audio.loop = true;
-        if (audio.paused) {
-          const p = audio.play();
-          if (p && typeof p.catch === 'function') p.catch(() => {});
-        }
-      }
-      try { if (ytPlayer && ytReady) ytPlayer.playVideo(); } catch (e) {}
+      audio.muted = false;
     }
 
     // ---- Overlay de controles personalizados + tela cheia ----
@@ -1570,52 +1494,32 @@ const MUSIC_PLAYER = (() => {
         });
       });
 
-      // Bloqueio de tela / troca de aba / minimizar o app: faz handoff imediato
-      // do YouTube para MP3, permitindo reprodução em segundo plano.
+      // Bloqueio de tela / troca de aba / minimizar o app: transfere IMEDIATAMENTE
+      // a reprodução do YouTube (que não toca em segundo plano) para o <audio>
+      // (MP3), que toca em segundo plano e mantém o player de mídia do sistema.
       //
-      // IMPORTANTE: iOS/Safari disparam 'visibilitychange: hidden' TRANSITÓRIO ao
-      // girar o dispositivo ou entrar/sair de tela cheia. Para distinguir rotação
-      // (transitório) de minimizar/bloquear (persistente), usamos um debounce:
-      //  - Se voltar a ficar visible em <500ms: foi rotação — cancela o handoff
-      //    e apenas resume o YouTube pausado.
-      //  - Se permanecer hidden por 500ms: minimizar/bloqueio real — faz handoff
-      //    completo para MP3 (que pode tocar em segundo plano).
-      let hiddenTimer = null;
-      let videoPausedByVisibility = false;
-      const clearHiddenTimer = () => { if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; } };
-
+      // IMPORTANTE: o commit é SÍNCRONO, dentro do próprio evento. NÃO usamos
+      // setTimeout para "confirmar" o handoff porque timers são congelados em
+      // segundo plano no mobile — o callback só rodaria ao reabrir o app, tarde
+      // demais. A transferência da sessão de áudio (desmutar o MP3 ANTES de
+      // pausar o YouTube) é feita dentro de enterCoverMode().
+      //
+      // Ao voltar (visible), se a preferência for Vídeo e a capa estiver aberta,
+      // reentramos no modo Vídeo (recarrega o clipe na posição atual). Isso
+      // também cobre o caso de rotação/tela cheia transitória no iOS.
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-          clearHiddenTimer();
-          if (ytEngineActive && !videoPausedByVisibility) {
-            videoPausedByVisibility = true;
-            // Handoff IMEDIATO Vídeo→Áudio (dentro do próprio evento de
-            // transição, maximizando a permissão de reprodução em segundo
-            // plano). Mantém o YouTube apenas pausado para reversão barata.
-            beginVisibilityHandoff();
-            // Se a página permanecer oculta por 500ms, o handoff torna-se
-            // definitivo (segundo plano real). Se voltar a ficar visible antes
-            // (rotação/tela cheia transitória), revertemos no branch 'else'.
-            hiddenTimer = setTimeout(() => {
-              hiddenTimer = null;
-              videoPausedByVisibility = false;
-              if (ytEngineActive) finalizeVisibilityHandoff();
-            }, 500);
-          }
+          if (ytEngineActive) enterCoverMode({ resume: true });
         } else {
-          clearHiddenTimer();
-          if (videoPausedByVisibility) {
-            // Retorno rápido: ocultação transitória (rotação) — reverte o
-            // handoff e retoma o YouTube de onde parou.
-            videoPausedByVisibility = false;
-            if (ytEngineActive) revertVisibilityHandoff();
+          const willRestoreVideo = userPreference === 'video' && available &&
+            !ytEngineActive && isExpandedCoverOpen() && isPageVisible();
+          if (willRestoreVideo) {
+            maybeAutoRestore();
           } else if (!ytEngineActive && state.isPlaying && audio.paused && audio.src) {
-            // Handoff definitivo já ocorreu, mas o audio.play() pode ter sido
-            // bloqueado em segundo plano. Retoma agora que a página está visível.
+            // A reprodução do MP3 pode ter sido bloqueada em segundo plano
+            // (política do iOS). Retoma agora que a página está visível.
             const p = audio.play();
             if (p && typeof p.catch === 'function') p.catch(() => {});
-          } else {
-            maybeAutoRestore();
           }
         }
       });
