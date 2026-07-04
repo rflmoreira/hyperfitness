@@ -1217,10 +1217,10 @@ body.video-fullscreen-active #quick-actions-nav {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 999px;
+  border-radius: 50%;
   background: transparent;
   color: rgba(255, 255, 255, 0.6);
   font-size: 15px;
