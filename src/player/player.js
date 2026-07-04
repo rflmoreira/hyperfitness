@@ -1211,13 +1211,12 @@ const MUSIC_PLAYER = (() => {
       stopProgressLoop();
 
       // Encerra o vídeo DESTRUINDO o iframe (remoção do DOM), como na troca de
-      // faixa (stopVideo). Um stopVideo() via postMessage deixa o iframe vivo e
-      // ele permanece registrado na Media Session do sistema: ao minimizar, o
-      // iOS mantém a sessão presa ao iframe e ignora a posição do nosso <audio>
-      // (setPositionState) — a barra de progresso do sistema congela mesmo com
-      // o MP3 tocando. Remover o iframe libera a sessão de forma síncrona e
-      // confiável; o player é recriado sob demanda ao reentrar no modo Vídeo
-      // (enterVideoMode sempre recarrega o clipe via loadVideoById/cueVideoById).
+      // faixa. Um stopVideo() via postMessage deixa o iframe vivo e ele
+      // permanece registrado na Media Session do sistema: o iOS mantém a sessão
+      // presa ao iframe (metadados/estado antigos), ignorando o nosso <audio>.
+      // Remover o iframe libera a sessão de forma síncrona e confiável; o player
+      // é recriado sob demanda ao reentrar no modo Vídeo (enterVideoMode sempre
+      // recarrega o clipe via loadVideoById/cueVideoById).
       destroyPlayer();
 
       // Handoff de posição (melhor esforço) para o MP3.
@@ -2518,9 +2517,6 @@ const MUSIC_PLAYER = (() => {
       if (state.reconnectAttempts > 0) {
         resetReconnectState();
       }
-      // Atualiza a barra de progresso da Media Session ao (re)iniciar de fato a
-      // reprodução do <audio> — garante um snapshot válido antes de minimizar.
-      updateMediaPositionState();
     },
     canplaythrough: () => {
       clearBufferingTimer();
@@ -2542,18 +2538,10 @@ const MUSIC_PLAYER = (() => {
       if (state.isPlaying && !audio.paused && !crossfadeInProgress) {
         scheduleTrackEndWatchdog();
       }
-      // Duração agora conhecida: define um snapshot válido de posição para a
-      // barra de progresso da Media Session. Cobre o caso da transição
-      // Vídeo→Áudio, em que handlePlaybackStarted pode ter rodado antes de a
-      // duração do MP3 carregar (o iOS extrapola a posição a partir deste
-      // snapshot, então a barra anda mesmo com o timeupdate suspenso em background).
-      updateMediaPositionState();
     },
     timeupdate: () => {
       maybeTriggerAutoCrossfade();
       maybeForceTrackEnd();
-      // Mantém a barra de progresso da Media Session sincronizada.
-      updateMediaPositionState();
     }
   };
 
@@ -2832,32 +2820,9 @@ const MUSIC_PLAYER = (() => {
     // Atualiza o estado de reprodução
     navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
 
-    // Atualiza a posição/duração para a barra de progresso da Media Session.
-    updateMediaPositionState();
-
     // Força remoção dos handlers de seek após atualizar metadata
     // Alguns navegadores podem resetar os handlers ao mudar metadata
     forceRemoveSeekHandlers();
-  }
-
-  // Informa duração/posição atuais à Media Session para que a barra de progresso
-  // do sistema funcione (o iOS extrapola a posição a partir do playbackRate).
-  // Sem isto, após a transição Vídeo→Áudio (iframe destruído) o iOS não rastreia
-  // a posição do <audio> e a barra fica parada em 0:00.
-  function updateMediaPositionState() {
-    if (!('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
-    try {
-      const dur = audio.duration;
-      if (!Number.isFinite(dur) || dur <= 0) {
-        navigator.mediaSession.setPositionState(); // limpa quando a duração é desconhecida
-        return;
-      }
-      const pos = Math.min(Math.max(audio.currentTime || 0, 0), dur);
-      const rate = audio.playbackRate > 0 ? audio.playbackRate : 1;
-      navigator.mediaSession.setPositionState({ duration: dur, playbackRate: rate, position: pos });
-    } catch (e) {
-      // Valores inválidos (ex.: durante troca de faixa) — ignora.
-    }
   }
 
   function setupMediaSessionHandlers() {
@@ -4216,13 +4181,6 @@ const MUSIC_PLAYER = (() => {
         setInterval(() => {
           if (state.isPlaying || (videoMode && videoMode.isVideo())) {
             saveCurrentStateToStorage();
-          }
-          // Reforça a barra de progresso da Media Session em segundo plano: o
-          // 'timeupdate' do iOS é throttled/suspenso quando o app está oculto,
-          // mas o setInterval continua enquanto há mídia tocando. Só no modo
-          // Áudio (no modo Vídeo o MP3 está pausado e o iframe é dono da sessão).
-          if (state.isPlaying && !(videoMode && videoMode.isVideo())) {
-            updateMediaPositionState();
           }
         }, 4000);
 
