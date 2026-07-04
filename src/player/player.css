@@ -536,6 +536,103 @@
   pointer-events: auto;
 }
 
+/* Header Buttons - Liquid Glass (mesma receita do .player-bar) */
+.player-glass-btn {
+  position: relative;
+  /* Mesma base de vidro do .player-bar */
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(4px) brightness(1.5) saturate(300%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(300%) contrast(1.08);
+  border: 1px solid transparent;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 0 20px rgba(255, 255, 255, 0.04);
+  isolation: isolate;
+  overflow: visible;
+}
+
+/* Refração real via SVG displacement (Chromium apenas) — idêntico ao .player-bar */
+@supports (backdrop-filter: url(#liquid-glass-refract)) and (background: paint(liquid-glass-probe)) {
+  .player-glass-btn {
+    background: rgba(20, 20, 28, 0.18);
+    backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract);
+  }
+
+  @media (max-width: 768px) {
+    .player-glass-btn {
+      backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract-soft);
+    }
+  }
+}
+
+/* Rim de refração (compatível com Safari/iOS) — mesma técnica do .player-bar,
+   com limiares de máscara reduzidos por serem botões menores/circulares. */
+.player-glass-btn .liquid-glass-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(14px) saturate(280%) brightness(1.35) contrast(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(280%) brightness(1.35) contrast(1.08);
+  -webkit-mask:
+    linear-gradient(90deg, #fff 0, rgba(255, 255, 255, 0.9) 4px, transparent 13px, transparent calc(100% - 13px), rgba(255, 255, 255, 0.9) calc(100% - 4px), #fff 100%),
+    linear-gradient(180deg, #fff 0, rgba(255, 255, 255, 0.9) 4px, transparent 13px, transparent calc(100% - 13px), rgba(255, 255, 255, 0.9) calc(100% - 4px), #fff 100%);
+  mask:
+    linear-gradient(90deg, #fff 0, rgba(255, 255, 255, 0.9) 4px, transparent 13px, transparent calc(100% - 13px), rgba(255, 255, 255, 0.9) calc(100% - 4px), #fff 100%),
+    linear-gradient(180deg, #fff 0, rgba(255, 255, 255, 0.9) 4px, transparent 13px, transparent calc(100% - 13px), rgba(255, 255, 255, 0.9) calc(100% - 4px), #fff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Aberração cromática (fringe quente no topo, frio na base) — idêntico ao .player-bar */
+.player-glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 15%, rgba(255, 255, 255, 0.25) 85%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 200, 180, 0.12) 0%, transparent 40%, transparent 60%, rgba(180, 200, 255, 0.12) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Sheen diagonal (superfície glossy do vidro) — idêntico ao .player-bar */
+.player-glass-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      100% 60% at 50% 0%,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      100% 40% at 50% 100%,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 55%
+    ),
+    radial-gradient(12% 60% at 5% 50%, rgba(255, 255, 255, 0.10) 0%, transparent 100%),
+    radial-gradient(12% 60% at 95% 50%, rgba(255, 255, 255, 0.10) 0%, transparent 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Conteúdo (ícone/texto) acima das camadas de vidro */
+.player-glass-btn > i,
+.player-glass-btn > span:not(.liquid-glass-edge) {
+  position: relative;
+  z-index: 2;
+}
+
 /* Player Modal e Screens */
 #player-modal>.player-screen {
   position: relative;
