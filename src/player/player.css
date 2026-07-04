@@ -626,6 +626,7 @@
 @supports (backdrop-filter: url(#liquid-glass-refract)) {
   .player-bar {
     backdrop-filter: blur(5px) saturate(200%) brightness(1.3) url(#liquid-glass-refract);
+    -webkit-backdrop-filter: blur(12px) saturate(200%) brightness(1.3);
   }
 }
 
