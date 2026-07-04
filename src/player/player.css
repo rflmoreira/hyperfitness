@@ -1213,7 +1213,7 @@ body.video-fullscreen-active #quick-actions-nav {
   transition: none;
 }
 
-.cover-mode-btn {
+#player-controls-bar .cover-mode-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1238,7 +1238,7 @@ body.video-fullscreen-active #quick-actions-nav {
   transform: none;
 }
 
-.cover-mode-btn.active {
+#player-controls-bar .cover-mode-btn.active {
   background: rgba(255, 255, 255, 0.95);
   color: #141414;
 }
