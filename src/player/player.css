@@ -1115,8 +1115,13 @@
   pointer-events: auto;
 }
 
-.video-fullscreen-btn:active {
-  transform: scale(0.92);
+.video-overlay.visible .video-fullscreen-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.08);
+}
+
+.video-overlay.visible .video-fullscreen-btn:active {
+  transform: scale(0.95);
 }
 
 /* Tela cheia (nativa) do player de vídeo. !important para vencer os estilos
@@ -2303,9 +2308,13 @@ body.video-fullscreen-active #quick-actions-nav {
   transform: translateY(-10px);
 }
 
-#tracks-container {
+#tracks-container,
+#youtube-search-content {
   --playlist-empty-top-clearance: 130px;
   --playlist-empty-bottom-clearance: calc(180px + env(safe-area-inset-bottom, 0px));
+}
+
+#tracks-container {
   scroll-padding-bottom: var(--playlist-empty-bottom-clearance) !important;
 }
 
@@ -2315,6 +2324,11 @@ body.video-fullscreen-active #quick-actions-nav {
   top: var(--playlist-empty-top-clearance);
   bottom: var(--playlist-empty-bottom-clearance);
   transform: translateY(-8px);
+}
+
+#youtube-empty-state {
+  top: var(--playlist-empty-top-clearance);
+  bottom: var(--playlist-empty-bottom-clearance);
 }
 
 #youtube-search-btn-container {

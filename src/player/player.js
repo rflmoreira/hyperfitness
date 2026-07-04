@@ -4297,10 +4297,13 @@ const MUSIC_PLAYER = (() => {
   }
 
   function updatePlaylistEmptyState() {
-    // Verifica se há playlists visíveis no container
-    const hasVisiblePlaylists = ui.myPlaylistsGrid && ui.myPlaylistsGrid.children.length > 0;
+    // O empty state da Biblioteca deve aparecer quando não há tracks
+    // renderizadas no tracks-container (excluindo o próprio empty state)
+    const hasTracks = ui.tracksContainer && Array.from(ui.tracksContainer.children).some(
+      child => child.id !== 'playlist-empty-state'
+    );
     if (ui.playlistEmptyState) {
-      ui.playlistEmptyState.classList.toggle('hidden', hasVisiblePlaylists);
+      ui.playlistEmptyState.classList.toggle('hidden', hasTracks);
     }
   }
 
@@ -7021,6 +7024,7 @@ const MUSIC_PLAYER = (() => {
 
     if (!state.playlists || state.playlists.length === 0) {
       ui.myPlaylistsSection.style.display = 'none';
+      ui.myPlaylistsGrid.innerHTML = '';
       updatePlaylistEmptyState();
       return;
     }
