@@ -1377,13 +1377,13 @@ body.video-fullscreen-active #quick-actions-nav {
   color: rgba(255, 255, 255, 0.7);
 }
 
-#player-feedback-close {
-  background: rgba(255, 255, 255, 0.15);
-  transition: all 0.2s ease;
-}
-
-#player-feedback-close:hover {
-  background: rgba(255, 255, 255, 0.25);
+.player-feedback-badge {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 /* Import Info Modal */

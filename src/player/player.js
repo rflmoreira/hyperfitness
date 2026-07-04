@@ -1790,7 +1790,6 @@ const MUSIC_PLAYER = (() => {
     feedbackTitle: null,
     feedbackCover: null,
     feedbackIcon: null,
-    feedbackClose: null,
     closePlayerBtn: null,
     tabDiscover: null,
     tabPlaylist: null,
@@ -1868,7 +1867,6 @@ const MUSIC_PLAYER = (() => {
     ui.feedbackTitle = document.getElementById('player-feedback-title');
     ui.feedbackCover = document.getElementById('player-feedback-cover');
     ui.feedbackIcon = document.getElementById('player-feedback-icon');
-    ui.feedbackClose = document.getElementById('player-feedback-close');
     ui.closePlayerBtn = document.getElementById('close-player-btn');
     ui.tabDiscover = document.getElementById('tab-discover');
     ui.tabPlaylist = document.getElementById('tab-playlist');
@@ -3042,7 +3040,6 @@ const MUSIC_PLAYER = (() => {
     ui.reimportBtn?.addEventListener('click', openFilePicker);
     ui.fileInput?.addEventListener('change', handleFileSelection);
     ui.closePlayerBtn?.addEventListener('click', closePlayerModal);
-    ui.feedbackClose?.addEventListener('click', closeFeedback);
     
     // Modal de informações sobre importação
     ui.importInfoBtn?.addEventListener('click', openImportInfoModal);
