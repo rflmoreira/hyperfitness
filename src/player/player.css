@@ -1226,6 +1226,15 @@ body.video-fullscreen-active #quick-actions-nav {
   font-size: 15px;
   cursor: pointer;
   transition: none;
+  transform: none;
+}
+
+#player-controls-bar .cover-mode-btn:hover {
+  transform: none;
+}
+
+#player-controls-bar .cover-mode-btn:active {
+  transform: none;
 }
 
 .cover-mode-btn.active {
