@@ -621,12 +621,11 @@
 }
 
 /* Liquid Glass — refração real via SVG displacement (Chromium apenas).
-   Substitui o blur pesado por deslocamento orgânico — o conteúdo ao fundo
-   se deforma dinamicamente conforme passa por trás do vidro. */
+   Só sobrescreve backdrop-filter (unprefixed) — Safari usa -webkit-backdrop-filter
+   da base, que funciona. Assim o @supports false positive do Safari não quebra o blur. */
 @supports (backdrop-filter: url(#liquid-glass-refract)) {
   .player-bar {
     backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract);
-    -webkit-backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract);
   }
 }
 
@@ -648,17 +647,12 @@
   z-index: 3;
 }
 
-/* Liquid Glass — sheen + camada lens (saturação dinâmica do backdrop).
-   No Safari iOS (sem refração SVG), esta camada compensa aplicando
-   saturação e brilho elevados sobre o backdrop já borrado, criando
-   uma superfície luminosa e vibrante que simula a refração do vidro. */
+/* Liquid Glass — sheen (superfície glossy do vidro) */
 .player-bar::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: saturate(350%) brightness(1.6);
-  backdrop-filter: saturate(350%) brightness(1.6);
   background:
     radial-gradient(
       100% 60% at 50% 0%,
