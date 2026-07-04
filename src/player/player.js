@@ -1070,12 +1070,17 @@ const MUSIC_PLAYER = (() => {
       // Constrói o retângulo 16:9 usando o tamanho de layout (sem scale).
       const width = layoutWidth;
       const height = width * 9 / 16;
-      const left = centerX - width / 2;
-      const top = centerY - height / 2;
+      // Desktop: amplia o wrapper para maior imersão (1.35x sobre a capa).
+      const isDesktop = window.matchMedia('(min-width: 769px)').matches;
+      const scale = isDesktop ? 1.35 : 1;
+      const scaledWidth = width * scale;
+      const scaledHeight = height * scale;
+      const left = centerX - scaledWidth / 2;
+      const top = centerY - scaledHeight / 2;
       wrapper.style.left = `${Math.round(left)}px`;
       wrapper.style.top = `${Math.round(top)}px`;
-      wrapper.style.width = `${Math.round(width)}px`;
-      wrapper.style.height = `${Math.round(height)}px`;
+      wrapper.style.width = `${Math.round(scaledWidth)}px`;
+      wrapper.style.height = `${Math.round(scaledHeight)}px`;
     }
 
     // Coalesce das atualizações: durante rotação/resize o navegador dispara
