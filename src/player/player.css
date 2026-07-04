@@ -630,6 +630,25 @@
   }
 }
 
+/* Liquid Glass — rim de refração (compatível com Safari/iOS).
+   Faixa da borda com blur/brilho intensificados via mask — simula a
+   curvatura do vidro dobrando a luz nas extremidades, onde a refração
+   é mais forte. Funciona sem filtros SVG. */
+.player-bar .liquid-glass-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 6px;
+  backdrop-filter: blur(18px) saturate(240%) brightness(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(240%) brightness(1.5);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Liquid Glass — aberração cromática (fringe quente no topo, frio na base) */
 .player-bar::before {
   content: '';

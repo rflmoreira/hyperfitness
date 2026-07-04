@@ -395,6 +395,10 @@
 
 <!-- Player Controls Bar (fora do modal para blur funcionar) -->
 <div id="player-controls-bar" class="player-bar fixed opacity-0 invisible" style="pointer-events: none;">
+  <!-- Liquid Glass — rim de refração (compatível com Safari/iOS):
+       blur e brilho intensificados apenas na faixa da borda, simulando
+       a curvatura do vidro dobrando a luz nas extremidades. -->
+  <div class="liquid-glass-edge" aria-hidden="true"></div>
   <!-- Capa expandida (flutuante acima da barra) -->
   <div id="expanded-cover-wrapper" class="expanded-cover-wrapper">
     <!-- Alternador Capa/Vídeo (sempre visível; Vídeo desabilita quando não há clipe) -->
