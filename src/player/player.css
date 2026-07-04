@@ -1117,11 +1117,10 @@
 
 .video-overlay.visible .video-fullscreen-btn:hover {
   color: rgba(255, 255, 255, 0.9);
-  transform: scale(1.08);
 }
 
 .video-overlay.visible .video-fullscreen-btn:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 /* Tela cheia (nativa) do player de vídeo. !important para vencer os estilos
