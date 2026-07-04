@@ -1070,9 +1070,9 @@ const MUSIC_PLAYER = (() => {
       // Constrói o retângulo 16:9 usando o tamanho de layout (sem scale).
       const width = layoutWidth;
       const height = width * 9 / 16;
-      // Desktop: amplia o wrapper para maior imersão (1.35x sobre a capa).
+      // Desktop: amplia o wrapper para maior imersão (1.6x sobre a capa).
       const isDesktop = window.matchMedia('(min-width: 769px)').matches;
-      const scale = isDesktop ? 1.35 : 1;
+      const scale = isDesktop ? 1.6 : 1;
       const scaledWidth = width * scale;
       const scaledHeight = height * scale;
       const left = centerX - scaledWidth / 2;
