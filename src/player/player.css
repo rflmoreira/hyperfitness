@@ -1206,8 +1206,8 @@ body.video-fullscreen-active #quick-actions-nav {
 .cover-mode-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
+  gap: 8px;
+  padding: 6px 10px;
   border-radius: 999px;
   pointer-events: auto;
   transition: none;
