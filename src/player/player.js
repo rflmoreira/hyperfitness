@@ -3177,12 +3177,6 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover(false);
     });
 
-    // Botão X fecha a capa
-    document.getElementById('expanded-cover-close')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleExpandedCover(false);
-    });
-
     // Inicializa ícones de volume
     updateMuteIcons();
   }
