@@ -1231,6 +1231,7 @@ body.video-fullscreen-active #quick-actions-nav {
 
 #player-controls-bar .cover-mode-btn:hover {
   transform: none;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 #player-controls-bar .cover-mode-btn:active {
