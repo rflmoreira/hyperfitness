@@ -131,23 +131,14 @@
   flex-shrink: 0;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
-  
-  /* Estado Inativo Padrão (Glass effect suave) */
-  background: rgba(25, 25, 25, 0.35);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: blur(8px) saturate(200%);
-  -webkit-backdrop-filter: blur(8px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
   color: rgba(255, 255, 255, 0.5);
   font-size: 16px;
 }
 
 .track-add-watch-later-btn:hover {
-  transform: scale(1.1);
-  background: rgba(25, 25, 25, 0.55);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(25, 25, 25, 0.45);
   color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 0 2px rgba(255, 255, 255, 0.2) inset;
 }
 
 .track-add-watch-later-btn:active,
@@ -158,16 +149,12 @@
 /* Estado Ativo (Já nos Favoritos) */
 .track-add-watch-later-btn.is-favorite {
   background: rgba(255, 122, 31, 0.15);
-  border: 1px solid rgba(255, 122, 31, 0.3);
   color: #ff7a1f;
-  box-shadow: 0 8px 24px rgba(255, 122, 31, 0.15), 0 0 2px rgba(255, 122, 31, 0.4) inset;
 }
 
 .track-add-watch-later-btn.is-favorite:hover {
   background: rgba(255, 122, 31, 0.25);
-  border-color: rgba(255, 122, 31, 0.4);
   color: #ff8c3a;
-  box-shadow: 0 10px 28px rgba(255, 122, 31, 0.25), 0 0 2px rgba(255, 122, 31, 0.5) inset;
 }
 
 /* Botão de Remover (Lixeira) */
@@ -769,7 +756,13 @@
    masks (união horizontal + vertical) — replica o perfil óptico contínuo
    de um bezel convexo, onde a luz dobra mais nas extremidades.
    Camada única composta na GPU, sem repaints. */
-.player-bar .liquid-glass-edge {
+.player-bar .liquid-glass-edge,
+#cover-mode-toggle .liquid-glass-edge,
+#youtube-search-trigger .liquid-glass-edge,
+#youtube-search-bar .liquid-glass-edge,
+#youtube-search-cancel .liquid-glass-edge,
+.track-add-watch-later-btn .liquid-glass-edge,
+.track-remove-watch-later-btn .liquid-glass-edge {
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -786,7 +779,13 @@
 }
 
 /* Liquid Glass — aberração cromática (fringe quente no topo, frio na base) */
-.player-bar::before {
+.player-bar::before,
+#cover-mode-toggle::before,
+#youtube-search-trigger::before,
+#youtube-search-bar::before,
+#youtube-search-cancel::before,
+.track-add-watch-later-btn::before,
+.track-remove-watch-later-btn::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -804,7 +803,13 @@
 }
 
 /* Liquid Glass — sheen diagonal (superfície glossy do vidro) */
-.player-bar::after {
+.player-bar::after,
+#cover-mode-toggle::after,
+#youtube-search-trigger::after,
+#youtube-search-bar::after,
+#youtube-search-cancel::after,
+.track-add-watch-later-btn::after,
+.track-remove-watch-later-btn::after {
   content: '';
   position: absolute;
   inset: 0;
