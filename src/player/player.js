@@ -3956,7 +3956,8 @@ const MUSIC_PLAYER = (() => {
               <i class="ph-fill ph-lightning text-orange-500 text-lg drop-shadow-lg"></i>
             </div>
             <div class="discover-play-wrapper">
-              <button class="special-play-btn discover-play-circle" style="--btn-color: #eab308;">
+              <button class="special-play-btn discover-play-circle liquid-glass" style="--btn-color: #eab308;">
+                <span class="liquid-glass-edge"></span>
                 <i class="ph-fill ph-play discover-play-icon"></i>
               </button>
             </div>
@@ -4006,7 +4007,8 @@ const MUSIC_PLAYER = (() => {
                  onerror="this.onerror=null;this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             <div class="discover-play-wrapper">
-              <button class="featured-play-btn discover-play-circle" style="--btn-color: #f97316;">
+              <button class="featured-play-btn discover-play-circle liquid-glass" style="--btn-color: #f97316;">
+                <span class="liquid-glass-edge"></span>
                 <i class="ph-fill ph-play discover-play-icon"></i>
               </button>
             </div>
@@ -4654,9 +4656,10 @@ const MUSIC_PLAYER = (() => {
           <p class="text-sm text-white font-medium line-clamp-2">${escapeHTML(playlist.title)}</p>
           <p class="text-xs text-white/50 truncate mt-0.5">${escapeHTML(cleanPlaylistAuthor(playlist.author))}</p>
         </div>
-        <button class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
+        <button class="liquid-glass flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
           style="background: rgba(147, 51, 234, 0.65); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.3);"
           title="Importar playlist">
+          <span class="liquid-glass-edge"></span>
           <i class="ph-bold ph-plus text-base"></i>
         </button>
       </div>
@@ -4825,9 +4828,10 @@ const MUSIC_PLAYER = (() => {
               <p class="text-xs text-white/50 truncate leading-tight m-0 p-0 mt-0.5">${escapeHTML(video.author)}</p>
             </div>
             <span class="search-item-duration text-xs text-white/40 flex-shrink-0">${duration}</span>
-            <button class="add-to-playlist-btn flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
+            <button class="add-to-playlist-btn liquid-glass flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95" 
               style="background: rgba(255, 122, 31, 0.65); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 122, 31, 0.3);"
               title="Adicionar à playlist">
+              <span class="liquid-glass-edge"></span>
               <i class="ph-bold ph-plus text-base"></i>
             </button>
           </div>
@@ -5045,8 +5049,10 @@ const MUSIC_PLAYER = (() => {
 
     const modalHtml = `
       <div id="youtube-playlist-import-modal" class="fixed inset-0 overlay-blur z-[70] flex items-center justify-center p-4" style="pointer-events: auto;">
-        <div class="relative w-full max-w-sm glass-effect rounded-3xl p-5 pt-7 overflow-hidden">
-          <button id="cancel-playlist-import" class="absolute top-3 right-3 glass-effect text-white/90 w-9 h-9 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90 shadow-lg" aria-label="Fechar">
+        <div class="liquid-glass relative w-full max-w-sm glass-effect rounded-3xl p-5 pt-7 overflow-hidden">
+          <span class="liquid-glass-edge"></span>
+          <button id="cancel-playlist-import" class="player-glass-btn absolute top-3 right-3 text-white/90 w-9 h-9 rounded-full hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90" aria-label="Fechar">
+            <span class="liquid-glass-edge"></span>
             <i class="ph-bold ph-x text-sm"></i>
           </button>
 
@@ -7042,7 +7048,8 @@ const MUSIC_PLAYER = (() => {
                  onerror="this.onerror=null;this.src='src/imagens/genericCover.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
             ${!isWatchLater ? `
-            <button class="delete-playlist-btn absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
+            <button class="delete-playlist-btn liquid-glass absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center z-10 hover:bg-red-500/90 shadow-lg" title="Excluir Playlist">
+              <span class="liquid-glass-edge"></span>
               <i class="ph-bold ph-trash text-white text-[14px]"></i>
             </button>
             ` : `
@@ -7051,7 +7058,8 @@ const MUSIC_PLAYER = (() => {
             </div>
             `}
             <div class="discover-play-wrapper">
-              <button class="my-playlist-play-btn discover-play-circle" style="--btn-color: #f97316;">
+              <button class="my-playlist-play-btn discover-play-circle liquid-glass" style="--btn-color: #f97316;">
+                <span class="liquid-glass-edge"></span>
                 <i class="ph-fill ph-play discover-play-icon"></i>
               </button>
             </div>
@@ -7650,16 +7658,18 @@ const MUSIC_PLAYER = (() => {
 
       // Botão de ação: remover se estiver nos favoritos, senão adicionar
       const actionButton = isWatchLaterPlaylist
-        ? `<button class="track-remove-watch-later-btn" 
+        ? `<button class="track-remove-watch-later-btn liquid-glass" 
             data-remove-index="${index}" 
             aria-label="Remover dos favoritos" 
             title="Remover dos favoritos">
+            <span class="liquid-glass-edge"></span>
             <i class="ph-bold ph-trash text-base"></i>
           </button>`
-        : `<button class="track-add-watch-later-btn ${isInFavorites ? 'is-favorite' : ''}" 
+        : `<button class="track-add-watch-later-btn liquid-glass ${isInFavorites ? 'is-favorite' : ''}" 
             data-add-index="${index}" 
             aria-label="${isInFavorites ? 'Já nos favoritos' : 'Adicionar aos favoritos'}" 
             title="${isInFavorites ? 'Já nos favoritos' : 'Adicionar aos favoritos'}">
+            <span class="liquid-glass-edge"></span>
             <i class="${isInFavorites ? 'ph-fill' : 'ph-bold'} ph-heart text-base"></i>
           </button>`;
 
@@ -9001,7 +9011,7 @@ const MUSIC_PLAYER = (() => {
   function renderRadioChannels(container, channels, btnColor = 'blue') {
     const btnHex = btnColor === 'purple' ? '#8b5cf6' : '#3b82f6';
     container.innerHTML = channels.map(ch => `
-      <div class="radio-channel-card group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
+      <div class="radio-channel-card group cursor-pointer rounded-xl overflow-hidden transition-all duration-300" 
            data-radio-id="${ch.id}" style="--accent: ${ch.color}; --btn-color: ${btnHex};">
         <div class="relative aspect-square">
           <img src="${ch.cover}" 
@@ -9012,8 +9022,9 @@ const MUSIC_PLAYER = (() => {
           ${btnColor === 'purple' ? '<div class="absolute top-2 right-2 z-[2]"><i class="ph-fill ph-lightning text-orange-500 text-lg drop-shadow-lg"></i></div>' : ''}
           <div class="radio-card-darken"></div>
           <div class="radio-play-wrapper">
-            <button class="radio-play-circle" type="button">
-              <i class="ph-fill ph-play radio-icon-play"></i>
+            <button class="radio-play-circle discover-play-circle liquid-glass" type="button" style="--btn-color: ${btnHex};">
+              <span class="liquid-glass-edge"></span>
+              <i class="ph-fill ph-play radio-icon-play discover-play-icon"></i>
               <i class="ph ph-spinner radio-icon-spinner"></i>
             </button>
           </div>
