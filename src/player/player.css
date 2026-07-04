@@ -1210,7 +1210,7 @@ body.video-fullscreen-active #quick-actions-nav {
   padding: 4px;
   border-radius: 999px;
   pointer-events: auto;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: none;
 }
 
 .cover-mode-btn {
@@ -1225,11 +1225,7 @@ body.video-fullscreen-active #quick-actions-nav {
   color: rgba(255, 255, 255, 0.6);
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease, transform 0.2s ease;
-}
-
-.cover-mode-btn:not(:disabled):active {
-  transform: scale(0.94);
+  transition: none;
 }
 
 .cover-mode-btn.active {
