@@ -505,6 +505,10 @@
   pointer-events: none;
 }
 
+#playlist-empty-state.hidden {
+  display: none !important;
+}
+
 #playlist-empty-state button,
 #playlist-empty-state a,
 #playlist-empty-state input {

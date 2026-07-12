@@ -7267,6 +7267,7 @@ const MUSIC_PLAYER = (() => {
     if (!ui.tracksContainer) return;
 
     if (!state.tracks.length) {
+      renderTracks([]);
       if (playlist.id !== WATCH_LATER_PLAYLIST_ID) {
         setFeedback('Playlist vazia', 'error', getPlaylistFeedbackInfo(playlist));
       }
