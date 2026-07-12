@@ -1782,8 +1782,12 @@ const MUSIC_PLAYER = (() => {
     reorderPlaylistsBtn: null,
     tracksContainer: null,
     playlistEmptyState: null,
-    emptyStateImportBtn: null,
     reimportBtn: null,
+    playerSettingsBtn: null,
+    playerSettingsDropdown: null,
+    playerSettingsOverlay: null,
+    settingsImportCsvBtn: null,
+    settingsImportInfoBtn: null,
     fileInput: null,
     feedback: null,
     feedbackText: null,
@@ -1824,7 +1828,6 @@ const MUSIC_PLAYER = (() => {
     searchTypeTracks: null,
     searchTypePlaylists: null,
     importInfoModal: null,
-    importInfoBtn: null,
     closeImportInfoBtn: null,
     ctrlPlay: null,
     ctrlPrev: null,
@@ -1859,8 +1862,12 @@ const MUSIC_PLAYER = (() => {
     ui.reorderPlaylistsBtn = document.getElementById('reorder-playlists-btn');
     ui.tracksContainer = document.getElementById('tracks-container');
     ui.playlistEmptyState = document.getElementById('playlist-empty-state');
-    ui.emptyStateImportBtn = document.getElementById('empty-state-import-btn');
     ui.reimportBtn = document.getElementById('reimport-btn');
+    ui.playerSettingsBtn = document.getElementById('player-settings-btn');
+    ui.playerSettingsDropdown = document.getElementById('player-settings-dropdown');
+    ui.playerSettingsOverlay = document.getElementById('player-settings-overlay');
+    ui.settingsImportCsvBtn = document.getElementById('settings-import-csv-btn');
+    ui.settingsImportInfoBtn = document.getElementById('settings-import-info-btn');
     ui.fileInput = document.getElementById('csv-file-input');
     ui.feedback = document.getElementById('player-feedback');
     ui.feedbackText = document.getElementById('player-feedback-text');
@@ -1901,7 +1908,6 @@ const MUSIC_PLAYER = (() => {
     ui.searchTypeTracks = document.getElementById('search-type-tracks');
     ui.searchTypePlaylists = document.getElementById('search-type-playlists');
     ui.importInfoModal = document.getElementById('import-info-modal');
-    ui.importInfoBtn = document.getElementById('import-info-btn');
     ui.closeImportInfoBtn = document.getElementById('close-import-info-modal');
     ui.ctrlPlay = document.getElementById('ctrl-play');
     ui.ctrlPrev = document.getElementById('ctrl-prev');
@@ -2996,6 +3002,54 @@ const MUSIC_PLAYER = (() => {
     hideVisibleElement(ui.feedback);
   }
 
+  function showSettingsOverlay() {
+    if (!ui.playerSettingsOverlay) return;
+    ui.playerSettingsOverlay.style.display = '';
+    void ui.playerSettingsOverlay.offsetWidth;
+    ui.playerSettingsOverlay.classList.remove('pointer-events-none');
+    ui.playerSettingsOverlay.classList.add('pointer-events-auto');
+    ui.playerSettingsOverlay.style.opacity = '1';
+  }
+
+  function hideSettingsOverlay() {
+    if (!ui.playerSettingsOverlay) return;
+    ui.playerSettingsOverlay.style.opacity = '0';
+    ui.playerSettingsOverlay.classList.add('pointer-events-none');
+    ui.playerSettingsOverlay.classList.remove('pointer-events-auto');
+    setTimeout(() => {
+      if (ui.playerSettingsOverlay.style.opacity === '0') {
+        ui.playerSettingsOverlay.style.display = 'none';
+      }
+    }, 260);
+  }
+
+  function positionSettingsDropdown() {
+    if (!ui.playerSettingsBtn || !ui.playerSettingsDropdown) return;
+    const rect = ui.playerSettingsBtn.getBoundingClientRect();
+    ui.playerSettingsDropdown.style.top = `${rect.bottom + 8}px`;
+    ui.playerSettingsDropdown.style.left = `${rect.left}px`;
+  }
+
+  function toggleSettingsDropdown() {
+    if (!ui.playerSettingsDropdown) return;
+    const isOpen = !ui.playerSettingsDropdown.classList.contains('hidden');
+    if (isOpen) {
+      closeSettingsDropdown();
+    } else {
+      positionSettingsDropdown();
+      ui.playerSettingsDropdown.classList.remove('hidden');
+      showSettingsOverlay();
+      requestAnimationFrame(() => ui.playerSettingsDropdown.classList.remove('opacity-0', 'scale-95'));
+    }
+  }
+
+  function closeSettingsDropdown() {
+    if (!ui.playerSettingsDropdown) return;
+    ui.playerSettingsDropdown.classList.add('opacity-0', 'scale-95');
+    hideSettingsOverlay();
+    setTimeout(() => ui.playerSettingsDropdown.classList.add('hidden'), 200);
+  }
+
   function openImportInfoModal() {
     if (!ui.importInfoModal) return;
     
@@ -3036,13 +3090,22 @@ const MUSIC_PLAYER = (() => {
   }
 
   function bindUi() {
-    ui.emptyStateImportBtn?.addEventListener('click', openFilePicker);
-    ui.reimportBtn?.addEventListener('click', openFilePicker);
     ui.fileInput?.addEventListener('change', handleFileSelection);
     ui.closePlayerBtn?.addEventListener('click', closePlayerModal);
-    
+
+    // Settings dropdown
+    ui.playerSettingsBtn?.addEventListener('click', toggleSettingsDropdown);
+    ui.settingsImportCsvBtn?.addEventListener('click', () => {
+      closeSettingsDropdown();
+      openFilePicker();
+    });
+    ui.settingsImportInfoBtn?.addEventListener('click', () => {
+      closeSettingsDropdown();
+      openImportInfoModal();
+    });
+    ui.playerSettingsOverlay?.addEventListener('click', closeSettingsDropdown);
+
     // Modal de informações sobre importação
-    ui.importInfoBtn?.addEventListener('click', openImportInfoModal);
     ui.closeImportInfoBtn?.addEventListener('click', closeImportInfoModal);
     ui.importInfoModal?.addEventListener('click', (e) => {
       if (e.target === ui.importInfoModal) closeImportInfoModal();
@@ -4220,6 +4283,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function closePlayerModal() {
+    closeSettingsDropdown();
     setFeedback('');
     togglePlayerModal(false);
   }

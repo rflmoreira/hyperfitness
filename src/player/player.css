@@ -766,7 +766,9 @@
 #youtube-search-bar .liquid-glass-edge,
 #youtube-search-cancel .liquid-glass-edge,
 .track-add-watch-later-btn .liquid-glass-edge,
-.track-remove-watch-later-btn .liquid-glass-edge {
+.track-remove-watch-later-btn .liquid-glass-edge,
+#settings-import-csv-btn .liquid-glass-edge,
+#settings-import-info-btn .liquid-glass-edge {
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -789,7 +791,9 @@
 #youtube-search-bar::before,
 #youtube-search-cancel::before,
 .track-add-watch-later-btn::before,
-.track-remove-watch-later-btn::before {
+.track-remove-watch-later-btn::before,
+#settings-import-csv-btn::before,
+#settings-import-info-btn::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -813,7 +817,9 @@
 #youtube-search-bar::after,
 #youtube-search-cancel::after,
 .track-add-watch-later-btn::after,
-.track-remove-watch-later-btn::after {
+.track-remove-watch-later-btn::after,
+#settings-import-csv-btn::after,
+#settings-import-info-btn::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -2337,7 +2343,7 @@ body.video-fullscreen-active #quick-actions-nav {
 #playlist-empty-state {
   top: var(--playlist-empty-top-clearance);
   bottom: var(--playlist-empty-bottom-clearance);
-  transform: translateY(-8px);
+  transform: translateY(24px);
 }
 
 #youtube-empty-state {

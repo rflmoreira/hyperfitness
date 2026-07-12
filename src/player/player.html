@@ -107,41 +107,36 @@
       <!-- Empty state com passo a passo de importação -->
       <div id="playlist-empty-state"
         class="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
-        <i class="ph-bold ph-music-notes-plus text-3xl sm:text-4xl text-white/20 mb-2 sm:mb-3"></i>
-        <p class="text-white/60 text-xs sm:text-sm font-medium mb-3 sm:mb-4">Importe sua biblioteca de músicas</p>
+        <i class="ph-bold ph-music-notes-plus text-2xl sm:text-3xl text-white/20 mb-1.5 sm:mb-2"></i>
+        <p class="text-white/60 text-[11px] sm:text-xs font-medium mb-2 sm:mb-3">Importe sua biblioteca de músicas</p>
 
-        <div class="w-full max-w-xs space-y-2 text-left mb-3 sm:mb-4">
-          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
-            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">1</div>
-            <div class="text-[11px] text-white/70 leading-snug">
-              <p class="font-medium text-white/90 mb-0.5">Selecionar a fonte</p>
-              <p>Abra o <a class="underline text-orange-400 hover:text-orange-300" href="https://www.tunemymusic.com/pt/transfer" target="_blank" rel="noopener noreferrer">TuneMyMusic</a>, escolha o serviço de origem e faça login</p>
+        <div class="w-full max-w-[260px] space-y-1.5 text-left mb-2 sm:mb-3">
+          <div class="flex gap-1.5 items-start p-1.5 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-4 h-4 rounded bg-orange-500/20 flex items-center justify-center text-[9px] font-bold text-orange-400 shrink-0">1</div>
+            <div class="text-[10px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0">Selecionar a fonte</p>
+              <p>Abra o <a class="underline text-orange-400 hover:text-orange-300" href="https://www.tunemymusic.com/pt/transfer" target="_blank" rel="noopener noreferrer">TuneMyMusic</a>, escolha a origem e faça login</p>
             </div>
           </div>
 
-          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
-            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">2</div>
-            <div class="text-[11px] text-white/70 leading-snug">
-              <p class="font-medium text-white/90 mb-0.5">Exportar CSV</p>
-              <p>Escolha "Exportar para ARQUIVO" e selecione o formato CSV</p>
+          <div class="flex gap-1.5 items-start p-1.5 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-4 h-4 rounded bg-orange-500/20 flex items-center justify-center text-[9px] font-bold text-orange-400 shrink-0">2</div>
+            <div class="text-[10px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0">Exportar CSV</p>
+              <p>Escolha "Exportar para ARQUIVO" e selecione CSV</p>
             </div>
           </div>
 
-          <div class="flex gap-2 items-start p-2 rounded-lg bg-white/5 border border-white/10">
-            <div class="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-400 shrink-0">3</div>
-            <div class="text-[11px] text-white/70 leading-snug">
-              <p class="font-medium text-white/90 mb-0.5">Importar no HyperFitness</p>
-              <p>Clique no botão abaixo e selecione o arquivo .csv</p>
+          <div class="flex gap-1.5 items-start p-1.5 rounded-lg bg-white/5 border border-white/10">
+            <div class="w-4 h-4 rounded bg-orange-500/20 flex items-center justify-center text-[9px] font-bold text-orange-400 shrink-0">3</div>
+            <div class="text-[10px] text-white/70 leading-snug">
+              <p class="font-medium text-white/90 mb-0">Importar no HyperMusic</p>
+              <p>Toque no ícone de configurações no topo e selecione "Importar CSV"</p>
             </div>
           </div>
         </div>
 
-        <button id="empty-state-import-btn"
-          class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full text-xs sm:text-sm shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5">
-          <i class="ph-bold ph-file-csv text-base"></i>
-          Importar CSV
-        </button>
-        <p class="text-white/40 text-[9px] sm:text-[10px] mt-2">Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
+        <p class="text-white/40 text-[8px] sm:text-[9px] mt-1">Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
       </div>
     </div>
   </div>
@@ -191,27 +186,41 @@
 
 <!-- Botões do Player (fora do modal para blur funcionar) -->
 <div id="player-header-buttons" class="fixed top-0 left-0 right-0 z-[52] flex items-center justify-between px-4 sm:px-6 pt-4 opacity-0 invisible transition-opacity duration-300" style="pointer-events: none;">
-  <div class="flex items-center gap-2">
-    <button id="reimport-btn"
-      class="player-glass-btn h-10 px-4 rounded-full flex items-center justify-center gap-2 text-white/70 hover:text-white transition-all duration-300"
-      aria-label="Importar CSV">
-      <span class="liquid-glass-edge"></span>
-      <i class="ph-bold ph-file-csv text-base" aria-hidden="true"></i>
-      <span class="text-[11px] font-medium whitespace-nowrap">Importar CSV</span>
-    </button>
-    <button id="import-info-btn"
-      class="player-glass-btn w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300"
-      aria-label="Informações sobre importação">
-      <span class="liquid-glass-edge"></span>
-      <i class="ph-bold ph-info text-base" aria-hidden="true"></i>
-    </button>
-  </div>
+  <button id="player-settings-btn"
+    class="player-glass-btn w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300"
+    aria-label="Configurações do player">
+    <span class="liquid-glass-edge"></span>
+    <i class="ph-bold ph-gear-six text-base transition-transform duration-300 hover:rotate-90" aria-hidden="true"></i>
+  </button>
   <button id="close-player-btn"
-    class="player-glass-btn w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:rotate-90"
+    class="player-glass-btn w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300"
     aria-label="Fechar player">
     <span class="liquid-glass-edge"></span>
-    <i class="ph-bold ph-x text-base" aria-hidden="true"></i>
+    <i class="ph-bold ph-x text-base transition-transform duration-300 hover:rotate-90" aria-hidden="true"></i>
   </button>
+</div>
+
+<!-- Player Settings Overlay -->
+<div id="player-settings-overlay" class="fixed inset-0 z-[55] pointer-events-none overlay-blur"
+  style="display:none; transition: opacity 0.25s ease;"></div>
+
+<!-- Player Settings Dropdown -->
+<div id="player-settings-dropdown" class="fixed z-[56] hidden opacity-0 transition-all duration-200 origin-top-left scale-95"
+  style="min-width: 200px;">
+  <div class="flex items-center gap-2">
+    <button id="settings-import-csv-btn"
+      class="player-glass-btn flex-1 px-4 py-3 flex items-center gap-3 text-white/70 hover:text-white transition-all duration-300 text-sm rounded-full">
+      <span class="liquid-glass-edge"></span>
+      <i class="ph-bold ph-file-csv"></i>
+      Importar CSV
+    </button>
+    <button id="settings-import-info-btn"
+      class="player-glass-btn w-12 h-12 flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 text-sm shrink-0 rounded-full"
+      aria-label="Como importar">
+      <span class="liquid-glass-edge"></span>
+      <i class="ph-bold ph-info"></i>
+    </button>
+  </div>
 </div>
 
 <!-- Player Feedback -->
@@ -235,60 +244,57 @@
 <div id="import-info-modal"
   class="fixed inset-0 overlay-blur z-[60] flex items-center justify-center p-4 opacity-0 invisible transition-opacity duration-300"
   role="dialog" aria-labelledby="import-info-title" style="pointer-events: none;">
-  <div class="modal-card liquid-glass relative w-full max-w-sm glass-effect rounded-3xl p-5 pt-7 transform scale-95 transition-all duration-300 overflow-hidden"
+  <div class="modal-card liquid-glass relative w-full max-w-sm glass-effect rounded-3xl p-5 pt-4 transform scale-95 transition-all duration-300 overflow-hidden"
     tabindex="-1">
-    <button id="close-import-info-modal"
-      class="player-glass-btn absolute top-3 right-3 text-white/90 w-9 h-9 rounded-full hover:text-white flex items-center justify-center z-30 transition-all transform hover:scale-110 hover:rotate-90"
-      aria-label="Fechar">
-      <span class="liquid-glass-edge"></span>
-      <i class="ph-bold ph-x text-sm" aria-hidden="true"></i>
-    </button>
-
-    <h2 id="import-info-title" class="text-sm font-semibold text-white/80 text-center mb-4">Importe suas playlists em poucos passos.</h2>
+    <div class="flex items-center justify-center relative mb-4">
+      <h2 id="import-info-title" class="text-sm font-semibold text-white/80 text-center">Traga suas playlists</h2>
+      <button id="close-import-info-modal"
+        class="player-glass-btn absolute right-0 text-white/90 w-9 h-9 rounded-full hover:text-white flex items-center justify-center transition-all duration-300 shrink-0"
+        aria-label="Fechar">
+        <span class="liquid-glass-edge"></span>
+        <i class="ph-bold ph-x text-sm transition-transform duration-300 hover:rotate-90" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <!-- Content -->
-    <div class="space-y-3 max-h-[60vh] overflow-y-auto scrollbar-hide">
-      <div class="space-y-2.5">
-        <div class="flex items-start gap-2.5">
-          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span class="text-orange-400 text-[10px] font-bold">1</span>
+    <div class="space-y-2 max-h-[60vh] overflow-y-auto scrollbar-hide -mt-5">
+      <div>
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-orange-400 text-[10px] font-bold leading-none">1</span>
           </div>
-          <div>
-            <h3 class="text-white font-semibold text-xs mb-0.5">Exportar sua Playlist</h3>
-            <p class="text-white/70 text-xs leading-relaxed">Acesse <a href="https://www.tunemymusic.com" target="_blank" class="text-orange-400 hover:text-orange-300 underline">TuneMyMusic</a> e exporte sua playlist para CSV.</p>
-            <p class="text-white/50 text-[10px] mt-0.5">Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
-          </div>
+          <h3 class="text-white font-semibold text-xs leading-none">Exportar sua Playlist</h3>
         </div>
-
-        <div class="flex items-start gap-2.5">
-          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span class="text-orange-400 text-[10px] font-bold">2</span>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-xs mb-0.5">Importar no HyperMusic</h3>
-            <p class="text-white/70 text-xs leading-relaxed">Clique em "Importar CSV" e selecione o arquivo baixado.</p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-2.5">
-          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span class="text-orange-400 text-[10px] font-bold">3</span>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-xs mb-0.5">Aproveite!</h3>
-            <p class="text-white/70 text-xs leading-relaxed">Suas músicas serão importadas e você poderá ouvi-las no player.</p>
-          </div>
-        </div>
+        <p class="text-white/70 text-[11px] leading-snug -mt-0.5 pl-7">Acesse <a href="https://www.tunemymusic.com" target="_blank" class="text-orange-400 hover:text-orange-300 underline">TuneMyMusic</a> e exporte sua playlist para CSV.</p>
+        <p class="text-white/50 text-[10px] leading-snug mt-0.5 pl-7"><i class="ph ph-info"></i> Compatível com Spotify, TIDAL, Apple Music, YouTube Music e outros</p>
       </div>
 
-      <div class="mt-4 p-3 rounded-xl bg-orange-500/10">
-        <div class="flex items-start gap-2">
-          <i class="ph-bold ph-lightbulb text-orange-400 text-sm flex-shrink-0 mt-0.5"></i>
-          <div>
-            <h4 class="text-orange-300 font-semibold text-xs mb-0.5">Dica</h4>
-            <p class="text-white/70 text-[11px] leading-relaxed">Você também pode importar playlists do YouTube pela aba "YouTube" no player!</p>
+      <div>
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-orange-400 text-[10px] font-bold leading-none">2</span>
           </div>
+          <h3 class="text-white font-semibold text-xs leading-none">Importar no HyperMusic</h3>
         </div>
+        <p class="text-white/70 text-[11px] leading-snug -mt-0.5 pl-7">Toque no ícone de configurações no topo do player e selecione "Importar CSV".</p>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="text-orange-400 text-[10px] font-bold leading-none">3</span>
+          </div>
+          <h3 class="text-white font-semibold text-xs leading-none">Aproveite!</h3>
+        </div>
+        <p class="text-white/70 text-[11px] leading-snug -mt-0.5 pl-7">Suas músicas serão importadas e você poderá ouvi-las no player.</p>
+      </div>
+
+      <div class="mt-8 p-3 rounded-xl bg-orange-500/10">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-lightbulb text-orange-400 text-sm flex-shrink-0 leading-none"></i>
+          <h4 class="text-orange-300 font-semibold text-xs leading-none">Dica</h4>
+        </div>
+        <p class="text-white/70 text-[11px] leading-snug -mt-0.5 pl-[26px]">Você também pode importar playlists do YouTube pela aba "YouTube" no player!</p>
       </div>
     </div>
   </div>
