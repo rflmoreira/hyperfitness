@@ -7634,10 +7634,8 @@ const MUSIC_PLAYER = (() => {
 
     clearTracksContent();
 
-    // Esconde o empty state quando há tracks
-    updatePlaylistEmptyState();
-
     if (!tracks.length) {
+      updatePlaylistEmptyState();
       return;
     }
 
@@ -7704,6 +7702,8 @@ const MUSIC_PLAYER = (() => {
     }).join('');
 
     ui.tracksContainer.insertAdjacentHTML('beforeend', tracksHtml);
+
+    updatePlaylistEmptyState();
 
     ui.tracksContainer.querySelectorAll('.track-item').forEach(item => {
       const index = Number(item.dataset.trackIndex);
