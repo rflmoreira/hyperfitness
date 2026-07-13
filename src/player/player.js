@@ -3346,6 +3346,7 @@ const MUSIC_PLAYER = (() => {
     if (w) {
       w.classList.toggle('has-lyrics', mode === 'lyrics');
       w.classList.toggle('no-lyrics', mode === 'empty');
+      w.classList.toggle('loading-lyrics', mode === 'loading');
     }
     if (ui.expandedLyrics) {
       ui.expandedLyrics.setAttribute('aria-hidden', mode === 'lyrics' ? 'false' : 'true');
@@ -3365,6 +3366,12 @@ const MUSIC_PLAYER = (() => {
   function clearLyrics() {
     clearLyricLines();
     setLyricsMode('hidden');
+  }
+
+  // Limpa as linhas e mostra o indicador de carregamento ("...").
+  function showLyricsLoading() {
+    clearLyricLines();
+    setLyricsMode('loading');
   }
 
   // Limpa as linhas e mostra o aviso de indisponível.
@@ -3425,8 +3432,8 @@ const MUSIC_PLAYER = (() => {
     if (key === lyricsState.key || key === lyricsState.requestedKey) return; // já carregada / em andamento
     lyricsState.requestedKey = key;
     const token = ++lyricsState.loadToken;
-    // Faixa nova: esconde a letra anterior enquanto busca a nova.
-    clearLyrics();
+    // Faixa nova: mostra "..." enquanto busca a letra da nova faixa.
+    showLyricsLoading();
 
     try {
       const synced = await fetchSyncedLyrics(title, artist);

@@ -1033,7 +1033,8 @@
 /* Aparece com a letra sincronizada (has-lyrics) ou com o aviso de indisponível
    (no-lyrics). Em ambos os casos ocupa o espaço reservado às letras. */
 #player-controls-bar .expanded-cover-wrapper.has-lyrics .expanded-lyrics,
-#player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics {
+#player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics,
+#player-controls-bar .expanded-cover-wrapper.loading-lyrics .expanded-lyrics {
   display: flex;
   animation: lyrics-area-in 0.4s ease;
 }
@@ -1059,6 +1060,25 @@
 }
 
 #player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics .lyrics-empty {
+  display: block;
+}
+
+/* Estado de carregamento: exibe "..." enquanto busca a letra. */
+#player-controls-bar .expanded-lyrics .lyrics-loading {
+  display: none;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+#player-controls-bar .expanded-cover-wrapper.loading-lyrics .expanded-lyrics .lyrics-line {
+  display: none;
+}
+
+#player-controls-bar .expanded-cover-wrapper.loading-lyrics .expanded-lyrics .lyrics-loading {
   display: block;
 }
 
