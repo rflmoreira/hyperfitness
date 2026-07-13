@@ -1063,6 +1063,50 @@
   display: block;
 }
 
+/* Ajuste fino de sincronização — visível somente quando há letra. */
+#player-controls-bar .expanded-lyrics .lyrics-sync {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  pointer-events: auto;
+}
+
+#player-controls-bar .expanded-cover-wrapper.has-lyrics .expanded-lyrics .lyrics-sync {
+  display: flex;
+}
+
+#player-controls-bar .expanded-lyrics .lyrics-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+#player-controls-bar .expanded-lyrics .lyrics-sync-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+#player-controls-bar .expanded-lyrics .lyrics-sync-value {
+  min-width: 66px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.3px;
+  text-align: center;
+  user-select: none;
+}
+
 /* Estado de carregamento: exibe "..." enquanto busca a letra. */
 #player-controls-bar .expanded-lyrics .lyrics-loading {
   display: none;

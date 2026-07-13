@@ -432,6 +432,16 @@
       <p class="lyrics-line lyrics-next"></p>
       <p class="lyrics-loading">...</p>
       <p class="lyrics-empty">Letras não disponíveis</p>
+      <!-- Ajuste fino de sincronização (offset) — só aparece com letra. -->
+      <div id="lyrics-sync" class="lyrics-sync">
+        <button type="button" class="lyrics-sync-btn" data-delta="-0.3" aria-label="Atrasar letra">
+          <i class="ph-bold ph-minus" aria-hidden="true"></i>
+        </button>
+        <span id="lyrics-sync-value" class="lyrics-sync-value">Sinc. 0,0s</span>
+        <button type="button" class="lyrics-sync-btn" data-delta="0.3" aria-label="Adiantar letra">
+          <i class="ph-bold ph-plus" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
     <div class="expanded-cover-stage">
       <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">

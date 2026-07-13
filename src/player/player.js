@@ -1927,6 +1927,8 @@ const MUSIC_PLAYER = (() => {
     ui.lyricsPrev = ui.expandedLyrics?.querySelector('.lyrics-prev') || null;
     ui.lyricsCurrent = ui.expandedLyrics?.querySelector('.lyrics-current') || null;
     ui.lyricsNext = ui.expandedLyrics?.querySelector('.lyrics-next') || null;
+    ui.lyricsSync = document.getElementById('lyrics-sync');
+    ui.lyricsSyncValue = document.getElementById('lyrics-sync-value');
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -3232,10 +3234,21 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo)
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e nos
+    // controles de sincronização das letras).
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
       if (e.target.closest('#cover-mode-toggle')) return;
+      if (e.target.closest('#lyrics-sync')) return;
       toggleExpandedCover(false);
+    });
+
+    // Controles de ajuste fino de sincronização das letras.
+    ui.lyricsSync?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.lyrics-sync-btn');
+      if (!btn) return;
+      e.stopPropagation();
+      const delta = parseFloat(btn.dataset.delta);
+      if (Number.isFinite(delta)) nudgeLyricsOffset(delta);
     });
 
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
@@ -3286,8 +3299,50 @@ const MUSIC_PLAYER = (() => {
     lines: [],        // [{ time: <segundos>, text }]
     currentIndex: -1, // índice da linha destacada
     loadToken: 0,     // invalida requisições antigas em trocas rápidas de faixa
-    requestedKey: null
+    requestedKey: null,
+    offset: 0         // ajuste fino de sincronização (segundos) da faixa atual
   };
+
+  // Persistência dos offsets de sincronização por faixa (calibração manual).
+  const LYRICS_OFFSETS_STORAGE_KEY = 'hyperfitness-lyrics-offsets';
+  function loadLyricsOffsets() {
+    try {
+      const stored = localStorage.getItem(LYRICS_OFFSETS_STORAGE_KEY);
+      const data = stored ? JSON.parse(stored) : null;
+      return (data && typeof data === 'object') ? data : {};
+    } catch (_) { return {}; }
+  }
+  let lyricsOffsets = loadLyricsOffsets();
+  function saveLyricsOffset(key, offset) {
+    if (!key) return;
+    try {
+      if (offset) lyricsOffsets[key] = offset;
+      else delete lyricsOffsets[key];
+      localStorage.setItem(LYRICS_OFFSETS_STORAGE_KEY, JSON.stringify(lyricsOffsets));
+    } catch (_) { }
+  }
+
+  // Atualiza o texto do controle de sincronização (ex.: "Sinc. +0,4s").
+  function updateLyricsSyncLabel() {
+    if (!ui.lyricsSyncValue) return;
+    const o = lyricsState.offset || 0;
+    const sign = o > 0 ? '+' : (o < 0 ? '−' : '');
+    const abs = Math.abs(o).toFixed(1).replace('.', ',');
+    ui.lyricsSyncValue.textContent = `Sinc. ${sign}${abs}s`;
+  }
+
+  // Ajusta o offset da faixa atual, persiste e re-sincroniza imediatamente.
+  function nudgeLyricsOffset(delta) {
+    if (!lyricsState.key) return;
+    let o = (lyricsState.offset || 0) + delta;
+    o = Math.max(-8, Math.min(8, Math.round(o * 10) / 10));
+    lyricsState.offset = o;
+    saveLyricsOffset(lyricsState.key, o);
+    updateLyricsSyncLabel();
+    // Força re-avaliação da linha destacada com o novo offset.
+    lyricsState.currentIndex = -2;
+    updateLyricHighlight();
+  }
 
   // Normaliza título/artista para melhorar o casamento na busca de letra.
   function cleanLyricsQueryText(str) {
@@ -3399,7 +3454,8 @@ const MUSIC_PLAYER = (() => {
   function updateLyricHighlight() {
     const { lines } = lyricsState;
     if (!lines.length) return;
-    const pos = getPlaybackPositionSec();
+    // Posição efetiva = tempo real + offset de calibração da faixa.
+    const pos = getPlaybackPositionSec() + (lyricsState.offset || 0);
     // Encontra a última linha cujo tempo já passou.
     let idx = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -3447,6 +3503,9 @@ const MUSIC_PLAYER = (() => {
       lyricsState.requestedKey = null;
       if (!lines.length) { showLyricsUnavailable(); return; }
       lyricsState.lines = lines;
+      // Restaura o offset calibrado para esta faixa (se houver).
+      lyricsState.offset = Number(lyricsOffsets[key]) || 0;
+      updateLyricsSyncLabel();
       // Sentinela (-2) garante que a primeira chamada de sincronização sempre
       // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
       lyricsState.currentIndex = -2;
