@@ -3232,14 +3232,19 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo)
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e na
+    // área de letras, que tem interação própria de ajuste de sincronia)
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
       if (e.target.closest('#cover-mode-toggle')) return;
+      if (e.target.closest('#expanded-lyrics')) return;
       toggleExpandedCover(false);
     });
 
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
     videoMode.init();
+
+    // Inicializa o ajuste manual de sincronia da letra (arrastar horizontal)
+    initLyricsSyncDrag();
 
     // Clique no blur de fundo fecha a capa
     document.getElementById('expanded-cover-blur')?.addEventListener('click', () => {
@@ -3286,8 +3291,35 @@ const MUSIC_PLAYER = (() => {
     lines: [],        // [{ time: <segundos>, text }]
     currentIndex: -1, // índice da linha destacada
     loadToken: 0,     // invalida requisições antigas em trocas rápidas de faixa
-    requestedKey: null
+    requestedKey: null,
+    offset: 0         // ajuste manual de sincronia em segundos (+ atrasa a letra)
   };
+
+  // Offsets de sincronia salvos por faixa (persistidos no localStorage).
+  const LYRIC_OFFSETS_STORAGE_KEY = 'hyperfitness_lyric_offsets';
+  const LYRIC_OFFSET_MAX = 30; // limite de ±30s para o ajuste manual
+
+  function loadLyricOffsets() {
+    try {
+      return JSON.parse(localStorage.getItem(LYRIC_OFFSETS_STORAGE_KEY)) || {};
+    } catch (_) { return {}; }
+  }
+
+  function getStoredLyricOffset(key) {
+    if (!key) return 0;
+    const val = loadLyricOffsets()[key];
+    return Number.isFinite(val) ? val : 0;
+  }
+
+  function storeLyricOffset(key, offset) {
+    if (!key) return;
+    try {
+      const all = loadLyricOffsets();
+      if (!offset) delete all[key]; // não guarda 0 (mantém o storage limpo)
+      else all[key] = Math.round(offset * 100) / 100;
+      localStorage.setItem(LYRIC_OFFSETS_STORAGE_KEY, JSON.stringify(all));
+    } catch (_) { }
+  }
 
   // Normaliza título/artista para melhorar o casamento na busca de letra.
   function cleanLyricsQueryText(str) {
@@ -3396,10 +3428,11 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Atualiza a linha destacada conforme o tempo de reprodução.
+  // O offset manual desloca a sincronia: offset > 0 atrasa a letra.
   function updateLyricHighlight() {
     const { lines } = lyricsState;
     if (!lines.length) return;
-    const pos = getPlaybackPositionSec();
+    const pos = getPlaybackPositionSec() - (lyricsState.offset || 0);
     // Encontra a última linha cujo tempo já passou.
     let idx = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -3427,10 +3460,6 @@ const MUSIC_PLAYER = (() => {
     const title = cleanLyricsQueryText(getTrackTitle(track));
     const artist = cleanLyricsQueryText(getTrackArtists(track));
     if (!title) { clearLyrics(); lyricsState.key = null; return; }
-    // Duração da faixa (s) para escolher a versão de letra mais alinhada
-    // (mesma introdução instrumental ⇒ mesma sincronia).
-    const durMs = getTrackDurationMs(track);
-    const durationSec = Number.isFinite(durMs) && durMs > 0 ? durMs / 1000 : 0;
 
     const key = `${artist}::${title}`.toLowerCase();
     if (key === lyricsState.key || key === lyricsState.requestedKey) return; // já carregada / em andamento
@@ -3440,13 +3469,15 @@ const MUSIC_PLAYER = (() => {
     showLyricsLoading();
 
     try {
-      const synced = await fetchSyncedLyrics(title, artist, durationSec);
+      const synced = await fetchSyncedLyrics(title, artist);
       if (token !== lyricsState.loadToken) return; // faixa mudou nesse meio tempo
       const lines = parseLrc(synced);
       lyricsState.key = key;
       lyricsState.requestedKey = null;
       if (!lines.length) { showLyricsUnavailable(); return; }
       lyricsState.lines = lines;
+      // Restaura o ajuste manual de sincronia salvo para esta faixa.
+      lyricsState.offset = getStoredLyricOffset(key);
       // Sentinela (-2) garante que a primeira chamada de sincronização sempre
       // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
       lyricsState.currentIndex = -2;
@@ -3461,12 +3492,10 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Consulta o LRCLIB por letra sincronizada (LRC). Retorna string LRC ou ''.
-  // Usa o endpoint /search (responde 200 com array, evitando os 404 do /get)
-  // e coleta candidatos de várias buscas. Quando a duração da faixa é
-  // conhecida, escolhe a versão de letra com duração mais próxima — assim,
-  // faixas com introdução instrumental casam com a letra da mesma versão,
-  // corrigindo a letra "adiantada".
-  async function fetchSyncedLyrics(title, artist, durationSec) {
+  // Usa apenas o endpoint /search: ele responde 200 com um array (vazio quando
+  // não encontra), evitando os 404 barulhentos do endpoint /get e ainda faz
+  // casamento aproximado — melhor para títulos vindos do YouTube.
+  async function fetchSyncedLyrics(title, artist) {
     const base = 'https://lrclib.net/api';
     const withTimeout = (url) => {
       const controller = new AbortController();
@@ -3475,45 +3504,129 @@ const MUSIC_PLAYER = (() => {
         .finally(() => clearTimeout(t));
     };
 
-    // Ordem das buscas: estruturada (precisa) → ampla (título+artista) →
-    // só título (útil quando o "artista" é um canal do YouTube).
-    const queries = [];
-    if (artist) queries.push(`${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`);
-    if (artist) queries.push(`${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`);
-    queries.push(`${base}/search?q=${encodeURIComponent(title)}`);
+    const pickSynced = (list) => {
+      if (!Array.isArray(list)) return '';
+      const hit = list.find(item => item && item.syncedLyrics);
+      return hit ? hit.syncedLyrics : '';
+    };
 
-    const candidates = [];
-    const seen = new Set();
-    for (const url of queries) {
+    // 1) Busca estruturada (track_name + artist_name) — mais precisa.
+    if (artist) {
       try {
+        const url = `${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
         const res = await withTimeout(url);
-        if (!res.ok) continue;
-        const list = await res.json();
-        if (!Array.isArray(list)) continue;
-        for (const item of list) {
-          if (item && item.syncedLyrics && !seen.has(item.id)) {
-            seen.add(item.id);
-            candidates.push(item);
-          }
+        if (res.ok) {
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
         }
       } catch (_) { }
-      // Sem duração para desempatar, o 1º candidato já serve — evita requests extras.
-      if (candidates.length && !(durationSec > 0)) break;
-      // Com duração, um lote (busca ampla retorna ~20) já dá opções suficientes.
-      if (candidates.length >= 6) break;
     }
 
-    if (!candidates.length) return '';
-    if (!(durationSec > 0)) return candidates[0].syncedLyrics;
-
-    // Escolhe a versão cuja duração mais se aproxima da faixa tocando.
-    let best = candidates[0];
-    let bestDiff = Math.abs((best.duration || 0) - durationSec);
-    for (const item of candidates) {
-      const diff = Math.abs((item.duration || 0) - durationSec);
-      if (diff < bestDiff) { best = item; bestDiff = diff; }
+    // 2) Fallback: busca ampla por termo livre (título + artista).
+    if (artist) {
+      try {
+        const url = `${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`;
+        const res = await withTimeout(url);
+        if (res.ok) {
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
+        }
+      } catch (_) { }
     }
-    return best.syncedLyrics;
+
+    // 3) Último recurso: só o título. Ajuda quando o "artista" é, na verdade,
+    // um canal do YouTube (ex.: "Racionais TV"), que atrapalha o casamento.
+    try {
+      const url = `${base}/search?q=${encodeURIComponent(title)}`;
+      const res = await withTimeout(url);
+      if (res.ok) {
+        const synced = pickSynced(await res.json());
+        if (synced) return synced;
+      }
+    } catch (_) { }
+
+    return '';
+  }
+
+  // ====== Ajuste manual de sincronia (arrastar a letra) ======
+  // Alguns áudios têm introdução instrumental, deixando a letra adiantada.
+  // Arrastar horizontalmente a área de letras corrige a sincronia:
+  //   arrastar para a direita → atrasa a letra (offset +)
+  //   arrastar para a esquerda → adianta a letra (offset −)
+  // O ajuste é salvo por faixa.
+  const LYRIC_SYNC_SEC_PER_PX = 0.02; // sensibilidade do arraste
+
+  function formatLyricOffset(sec) {
+    const rounded = Math.round(sec * 10) / 10;
+    const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : '';
+    return `${sign}${Math.abs(rounded).toFixed(1).replace('.', ',')}s`;
+  }
+
+  function showSyncIndicator(persist) {
+    const el = ui.lyricsSyncIndicator;
+    if (!el) return;
+    el.textContent = formatLyricOffset(lyricsState.offset || 0);
+    el.classList.add('visible');
+    if (lyricsSyncIndicatorTimer) clearTimeout(lyricsSyncIndicatorTimer);
+    if (!persist) {
+      lyricsSyncIndicatorTimer = setTimeout(() => el.classList.remove('visible'), 1200);
+    }
+  }
+
+  let lyricsSyncIndicatorTimer = null;
+
+  function initLyricsSyncDrag() {
+    const el = ui.expandedLyrics;
+    if (!el) return;
+    ui.lyricsSyncIndicator = el.querySelector('.lyrics-sync-indicator');
+
+    let dragging = false;
+    let startX = 0;
+    let startOffset = 0;
+    let pointerId = null;
+
+    const canAdjust = () => ui.expandedCoverWrapper?.classList.contains('has-lyrics');
+
+    el.addEventListener('pointerdown', (e) => {
+      if (!canAdjust()) return;
+      dragging = true;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startOffset = lyricsState.offset || 0;
+      try { el.setPointerCapture(pointerId); } catch (_) { }
+      ui.expandedCoverWrapper?.classList.add('lyrics-adjusting');
+      showSyncIndicator(true);
+      e.stopPropagation();
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      const deltaSec = (e.clientX - startX) * LYRIC_SYNC_SEC_PER_PX;
+      let next = startOffset + deltaSec;
+      next = Math.max(-LYRIC_OFFSET_MAX, Math.min(LYRIC_OFFSET_MAX, next));
+      lyricsState.offset = next;
+      // Reavalia a linha atual imediatamente (permite render mesmo sem mudar idx).
+      lyricsState.currentIndex = -2;
+      updateLyricHighlight();
+      showSyncIndicator(true);
+    });
+
+    const endDrag = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      try { if (pointerId !== null) el.releasePointerCapture(pointerId); } catch (_) { }
+      pointerId = null;
+      ui.expandedCoverWrapper?.classList.remove('lyrics-adjusting');
+      storeLyricOffset(lyricsState.key, lyricsState.offset || 0);
+      showSyncIndicator(false); // some após um instante
+      if (e) e.stopPropagation();
+    };
+
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+    // Evita que um clique após o arraste feche a capa expandida.
+    el.addEventListener('click', (e) => e.stopPropagation());
   }
 
   // Estado de shuffle e repeat

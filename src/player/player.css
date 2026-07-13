@@ -1027,7 +1027,47 @@
   margin: 0 auto;
   padding: 0 12px;
   text-align: center;
+  /* Interativo: permite arrastar horizontalmente para ajustar a sincronia. */
+  pointer-events: auto;
+  cursor: ew-resize;
+  touch-action: none;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Durante o arraste de sincronia, sem transições/animações para acompanhar
+   o dedo sem flicker. */
+#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .expanded-lyrics .lyrics-line {
+  transition: none;
+  animation: none;
+}
+
+#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .expanded-lyrics {
+  cursor: grabbing;
+}
+
+/* Indicador do ajuste de sincronia (ex.: "+1,5s"). */
+#player-controls-bar .lyrics-sync-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#player-controls-bar .expanded-lyrics .lyrics-sync-indicator.visible {
+  opacity: 1;
 }
 
 /* Aparece com a letra sincronizada (has-lyrics) ou com o aviso de indisponível
