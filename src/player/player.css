@@ -1027,24 +1027,61 @@
   margin: 0 auto;
   padding: 0 12px;
   text-align: center;
-  /* Interativo: permite arrastar horizontalmente para ajustar a sincronia. */
+  /* Interativo: a lista de letras rola verticalmente para escolher o ponto
+     exato de sincronização. */
   pointer-events: auto;
-  cursor: ew-resize;
-  touch-action: none;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Durante o arraste de sincronia, sem transições/animações para acompanhar
-   o dedo sem flicker. */
-#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .expanded-lyrics .lyrics-line {
-  transition: none;
-  animation: none;
+/* Lista rolável das letras. Rolar (ou tocar numa linha) define o ponto de
+   sincronia; a partir daí a reprodução segue sincronizada normalmente. */
+#player-controls-bar .lyrics-scroll {
+  display: none;
+  width: 100%;
+  height: 96px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Espaço para centralizar a primeira e a última linha. */
+  padding-block: 34px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%);
 }
 
-#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .expanded-lyrics {
+#player-controls-bar .lyrics-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+#player-controls-bar .expanded-cover-wrapper.has-lyrics .lyrics-scroll {
+  display: block;
+}
+
+/* Modo de ajuste: cursor de agarrar (desktop). */
+#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .lyrics-scroll {
   cursor: grabbing;
+}
+
+/* Guia central discreto durante o ajuste, indicando a linha escolhida. */
+#player-controls-bar .expanded-cover-wrapper.lyrics-adjusting .expanded-lyrics::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  height: 30px;
+  transform: translateY(-50%);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* Indicador do ajuste de sincronia (ex.: "+1,5s"). */
@@ -1122,51 +1159,31 @@
   display: block;
 }
 
-#player-controls-bar .expanded-lyrics .lyrics-line {
+#player-controls-bar .lyrics-scroll .lyrics-line {
   margin: 0;
+  padding: 5px 2px;
   width: 100%;
-  line-height: 1.35;
+  line-height: 1.3;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.34);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  transition: color 0.4s ease, opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), font-size 0.4s ease;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+  /* Sem transição de layout (font-size fixo) para o scroll não "pular". */
+  transition: color 0.35s ease, opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
 }
 
-/* Linhas de contexto (anterior e próxima): apagadas e menores. */
-#player-controls-bar .expanded-lyrics .lyrics-prev,
-#player-controls-bar .expanded-lyrics .lyrics-next {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  opacity: 0.6;
-  transform: scale(0.94);
-}
-
-/* Linha atual: destacada com brilho, peso e escala maiores. */
-#player-controls-bar .expanded-lyrics .lyrics-current {
-  font-size: 16px;
-  font-weight: 700;
+/* Linha atual (sincronizada) ou candidata (durante o ajuste): destacada. */
+#player-controls-bar .lyrics-scroll .lyrics-line.is-current,
+#player-controls-bar .lyrics-scroll .lyrics-line.is-candidate {
   color: rgba(255, 255, 255, 0.98);
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Reforço da transição suave ao trocar de linha. */
-#player-controls-bar .expanded-lyrics .lyrics-current.lyrics-advance {
-  animation: lyrics-line-in 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-@keyframes lyrics-line-in {
-  0% { opacity: 0.2; transform: scale(0.9) translateY(6px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* Oculta linhas de contexto vazias para não deixar espaços mortos. */
-#player-controls-bar .expanded-lyrics .lyrics-line:empty {
-  display: none;
+  font-weight: 700;
+  transform: scale(1.04);
 }
 
 /* ====== Player Controls Bar — Expanded Cover ====== */

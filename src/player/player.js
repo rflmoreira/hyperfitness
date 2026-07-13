@@ -1924,9 +1924,7 @@ const MUSIC_PLAYER = (() => {
     ui.ctrlExpandedCover = document.getElementById('ctrl-expanded-cover');
     ui.expandedCoverWrapper = document.getElementById('expanded-cover-wrapper');
     ui.expandedLyrics = document.getElementById('expanded-lyrics');
-    ui.lyricsPrev = ui.expandedLyrics?.querySelector('.lyrics-prev') || null;
-    ui.lyricsCurrent = ui.expandedLyrics?.querySelector('.lyrics-current') || null;
-    ui.lyricsNext = ui.expandedLyrics?.querySelector('.lyrics-next') || null;
+    ui.lyricsScroll = ui.expandedLyrics?.querySelector('.lyrics-scroll') || null;
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -3243,8 +3241,8 @@ const MUSIC_PLAYER = (() => {
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
     videoMode.init();
 
-    // Inicializa o ajuste manual de sincronia da letra (arrastar horizontal)
-    initLyricsSyncDrag();
+    // Inicializa o ajuste manual de sincronia da letra (rolar a lista)
+    initLyricsSyncScroll();
 
     // Clique no blur de fundo fecha a capa
     document.getElementById('expanded-cover-blur')?.addEventListener('click', () => {
@@ -3289,10 +3287,12 @@ const MUSIC_PLAYER = (() => {
   const lyricsState = {
     key: null,        // identificador da faixa cuja letra está carregada
     lines: [],        // [{ time: <segundos>, text }]
+    lineEls: [],      // elementos DOM de cada linha (na lista rolável)
     currentIndex: -1, // índice da linha destacada
     loadToken: 0,     // invalida requisições antigas em trocas rápidas de faixa
     requestedKey: null,
-    offset: 0         // ajuste manual de sincronia em segundos (+ atrasa a letra)
+    offset: 0,        // ajuste manual de sincronia em segundos (+ atrasa a letra)
+    adjusting: false  // usuário rolando a letra para escolher o ponto de sincronia
   };
 
   // Offsets de sincronia salvos por faixa (persistidos no localStorage).
@@ -3388,10 +3388,11 @@ const MUSIC_PLAYER = (() => {
   // Limpa as linhas de letra (mantém o modo à escolha do chamador).
   function clearLyricLines() {
     lyricsState.lines = [];
+    lyricsState.lineEls = [];
     lyricsState.currentIndex = -1;
-    if (ui.lyricsPrev) ui.lyricsPrev.textContent = '';
-    if (ui.lyricsCurrent) ui.lyricsCurrent.textContent = '';
-    if (ui.lyricsNext) ui.lyricsNext.textContent = '';
+    lyricsState.adjusting = false;
+    ui.expandedCoverWrapper?.classList.remove('lyrics-adjusting');
+    if (ui.lyricsScroll) ui.lyricsScroll.innerHTML = '';
   }
 
   // Limpa e oculta totalmente a área.
@@ -3412,19 +3413,38 @@ const MUSIC_PLAYER = (() => {
     setLyricsMode('empty');
   }
 
-  // Renderiza a janela de 3 linhas (anterior, atual, próxima) e anima a troca.
-  function renderLyricsWindow(index) {
-    const { lines } = lyricsState;
-    if (!lines.length || index < 0) return;
-    if (ui.lyricsPrev) ui.lyricsPrev.textContent = lines[index - 1]?.text || '';
-    if (ui.lyricsNext) ui.lyricsNext.textContent = lines[index + 1]?.text || '';
-    if (ui.lyricsCurrent) {
-      ui.lyricsCurrent.textContent = lines[index]?.text || '';
-      // Reinicia a animação de entrada da linha atual.
-      ui.lyricsCurrent.classList.remove('lyrics-advance');
-      void ui.lyricsCurrent.offsetWidth; // reflow para reiniciar a animação
-      ui.lyricsCurrent.classList.add('lyrics-advance');
-    }
+  // Monta a lista rolável com todas as linhas da letra.
+  function renderAllLyricLines() {
+    if (!ui.lyricsScroll) return;
+    ui.lyricsScroll.innerHTML = '';
+    lyricsState.lineEls = lyricsState.lines.map((line, i) => {
+      const p = document.createElement('p');
+      p.className = 'lyrics-line';
+      p.textContent = line.text || '♪';
+      p.dataset.index = String(i);
+      ui.lyricsScroll.appendChild(p);
+      return p;
+    });
+  }
+
+  // Rola a lista para centralizar a linha indicada.
+  let lyricsAutoScrolling = false;
+  let lyricsAutoScrollTimer = null;
+  function scrollLyricLineToCenter(index, smooth = true) {
+    const el = lyricsState.lineEls[index];
+    const container = ui.lyricsScroll;
+    if (!el || !container) return;
+    const target = el.offsetTop - (container.clientHeight / 2) + (el.offsetHeight / 2);
+    lyricsAutoScrolling = true;
+    if (lyricsAutoScrollTimer) clearTimeout(lyricsAutoScrollTimer);
+    container.scrollTo({ top: Math.max(0, target), behavior: smooth ? 'smooth' : 'auto' });
+    // Libera o flag depois que a rolagem programática deve ter terminado.
+    lyricsAutoScrollTimer = setTimeout(() => { lyricsAutoScrolling = false; }, smooth ? 600 : 60);
+  }
+
+  // Aplica a classe de destaque a uma única linha.
+  function setActiveLyricLine(index, cls) {
+    lyricsState.lineEls.forEach((el, i) => el.classList.toggle(cls, i === index));
   }
 
   // Atualiza a linha destacada conforme o tempo de reprodução.
@@ -3432,6 +3452,8 @@ const MUSIC_PLAYER = (() => {
   function updateLyricHighlight() {
     const { lines } = lyricsState;
     if (!lines.length) return;
+    // Enquanto o usuário ajusta manualmente, não mexe no scroll/destaque.
+    if (lyricsState.adjusting) return;
     const pos = getPlaybackPositionSec() - (lyricsState.offset || 0);
     // Encontra a última linha cujo tempo já passou.
     let idx = -1;
@@ -3441,14 +3463,9 @@ const MUSIC_PLAYER = (() => {
     }
     if (idx === lyricsState.currentIndex) return;
     lyricsState.currentIndex = idx;
-    if (idx < 0) {
-      // Antes da primeira linha: mostra as primeiras como prévia.
-      if (ui.lyricsPrev) ui.lyricsPrev.textContent = '';
-      if (ui.lyricsCurrent) ui.lyricsCurrent.textContent = lines[0]?.text || '';
-      if (ui.lyricsNext) ui.lyricsNext.textContent = lines[1]?.text || '';
-      return;
-    }
-    renderLyricsWindow(idx);
+    const shown = idx < 0 ? 0 : idx; // antes da 1ª linha, mostra a primeira
+    setActiveLyricLine(idx < 0 ? -1 : idx, 'is-current');
+    scrollLyricLineToCenter(shown, true);
   }
 
   // Carrega letras da faixa atual (se ainda não carregadas).
@@ -3476,13 +3493,23 @@ const MUSIC_PLAYER = (() => {
       lyricsState.requestedKey = null;
       if (!lines.length) { showLyricsUnavailable(); return; }
       lyricsState.lines = lines;
+      lyricsState.adjusting = false;
       // Restaura o ajuste manual de sincronia salvo para esta faixa.
       lyricsState.offset = getStoredLyricOffset(key);
+      renderAllLyricLines();
+      setLyricsMode('lyrics');
       // Sentinela (-2) garante que a primeira chamada de sincronização sempre
       // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
       lyricsState.currentIndex = -2;
-      setLyricsMode('lyrics');
-      updateLyricHighlight();
+      // Posiciona a lista na linha atual sem animação (evita rolagem inicial).
+      requestAnimationFrame(() => {
+        if (token !== lyricsState.loadToken) return;
+        const pos = getPlaybackPositionSec() - (lyricsState.offset || 0);
+        let idx = 0;
+        for (let i = 0; i < lines.length; i++) { if (lines[i].time <= pos + 0.15) idx = i; else break; }
+        scrollLyricLineToCenter(idx, false);
+        updateLyricHighlight();
+      });
     } catch (_) {
       if (token !== lyricsState.loadToken) return;
       lyricsState.key = key;
@@ -3548,85 +3575,122 @@ const MUSIC_PLAYER = (() => {
     return '';
   }
 
-  // ====== Ajuste manual de sincronia (arrastar a letra) ======
+  // ====== Ajuste manual de sincronia (rolar a letra) ======
   // Alguns áudios têm introdução instrumental, deixando a letra adiantada.
-  // Arrastar horizontalmente a área de letras corrige a sincronia:
-  //   arrastar para a direita → atrasa a letra (offset +)
-  //   arrastar para a esquerda → adianta a letra (offset −)
-  // O ajuste é salvo por faixa.
-  const LYRIC_SYNC_SEC_PER_PX = 0.02; // sensibilidade do arraste
+  // O usuário rola a lista livremente e escolhe a linha que corresponde ao
+  // momento atual (a linha no centro, ou tocando diretamente numa linha).
+  // A partir desse ponto a reprodução volta a seguir sincronizada.
+  let lyricsSyncIndicatorTimer = null;
+  let lyricsSettleTimer = null;
 
-  function formatLyricOffset(sec) {
-    const rounded = Math.round(sec * 10) / 10;
-    const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : '';
-    return `${sign}${Math.abs(rounded).toFixed(1).replace('.', ',')}s`;
-  }
-
-  function showSyncIndicator(persist) {
+  function showSyncIndicator(text, persist) {
     const el = ui.lyricsSyncIndicator;
     if (!el) return;
-    el.textContent = formatLyricOffset(lyricsState.offset || 0);
+    el.textContent = text;
     el.classList.add('visible');
     if (lyricsSyncIndicatorTimer) clearTimeout(lyricsSyncIndicatorTimer);
     if (!persist) {
-      lyricsSyncIndicatorTimer = setTimeout(() => el.classList.remove('visible'), 1200);
+      lyricsSyncIndicatorTimer = setTimeout(() => el.classList.remove('visible'), 1400);
     }
   }
 
-  let lyricsSyncIndicatorTimer = null;
+  function hideSyncIndicator() {
+    if (lyricsSyncIndicatorTimer) clearTimeout(lyricsSyncIndicatorTimer);
+    ui.lyricsSyncIndicator?.classList.remove('visible');
+  }
 
-  function initLyricsSyncDrag() {
-    const el = ui.expandedLyrics;
-    if (!el) return;
-    ui.lyricsSyncIndicator = el.querySelector('.lyrics-sync-indicator');
+  // Índice da linha mais próxima do centro da lista rolável.
+  function getCenteredLyricIndex() {
+    const container = ui.lyricsScroll;
+    if (!container || !lyricsState.lineEls.length) return -1;
+    const center = container.scrollTop + container.clientHeight / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    lyricsState.lineEls.forEach((el, i) => {
+      const elCenter = el.offsetTop + el.offsetHeight / 2;
+      const dist = Math.abs(elCenter - center);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    return best;
+  }
 
-    let dragging = false;
-    let startX = 0;
-    let startOffset = 0;
-    let pointerId = null;
+  // Confirma o ponto de sincronia escolhido: alinha a linha ao tempo atual.
+  function commitLyricSync(index) {
+    const line = lyricsState.lines[index];
+    if (!line) return;
+    let offset = getPlaybackPositionSec() - line.time;
+    offset = Math.max(-LYRIC_OFFSET_MAX, Math.min(LYRIC_OFFSET_MAX, offset));
+    if (lyricsSettleTimer) { clearTimeout(lyricsSettleTimer); lyricsSettleTimer = null; }
+    lyricsState.offset = offset;
+    storeLyricOffset(lyricsState.key, offset);
+    lyricsState.adjusting = false;
+    ui.expandedCoverWrapper?.classList.remove('lyrics-adjusting');
+    lyricsState.lineEls.forEach(el => el.classList.remove('is-candidate'));
+    lyricsState.currentIndex = -2; // força re-render com o novo offset
+    updateLyricHighlight();
+    showSyncIndicator('Sincronizado', false);
+  }
 
-    const canAdjust = () => ui.expandedCoverWrapper?.classList.contains('has-lyrics');
+  function initLyricsSyncScroll() {
+    const container = ui.lyricsScroll;
+    if (!container) return;
+    ui.lyricsSyncIndicator = ui.expandedLyrics?.querySelector('.lyrics-sync-indicator');
 
-    el.addEventListener('pointerdown', (e) => {
-      if (!canAdjust()) return;
-      dragging = true;
-      pointerId = e.pointerId;
-      startX = e.clientX;
-      startOffset = lyricsState.offset || 0;
-      try { el.setPointerCapture(pointerId); } catch (_) { }
+    let pointerDown = false;
+
+    const enterAdjusting = () => {
+      if (lyricsState.adjusting) return;
+      lyricsState.adjusting = true;
       ui.expandedCoverWrapper?.classList.add('lyrics-adjusting');
-      showSyncIndicator(true);
-      e.stopPropagation();
-    });
-
-    el.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      e.preventDefault();
-      const deltaSec = (e.clientX - startX) * LYRIC_SYNC_SEC_PER_PX;
-      let next = startOffset + deltaSec;
-      next = Math.max(-LYRIC_OFFSET_MAX, Math.min(LYRIC_OFFSET_MAX, next));
-      lyricsState.offset = next;
-      // Reavalia a linha atual imediatamente (permite render mesmo sem mudar idx).
-      lyricsState.currentIndex = -2;
-      updateLyricHighlight();
-      showSyncIndicator(true);
-    });
-
-    const endDrag = (e) => {
-      if (!dragging) return;
-      dragging = false;
-      try { if (pointerId !== null) el.releasePointerCapture(pointerId); } catch (_) { }
-      pointerId = null;
-      ui.expandedCoverWrapper?.classList.remove('lyrics-adjusting');
-      storeLyricOffset(lyricsState.key, lyricsState.offset || 0);
-      showSyncIndicator(false); // some após um instante
-      if (e) e.stopPropagation();
+      // Durante o ajuste, só a linha candidata (no centro) fica destacada.
+      lyricsState.lineEls.forEach(el => el.classList.remove('is-current'));
+      showSyncIndicator('Escolha a linha atual', true);
     };
 
-    el.addEventListener('pointerup', endDrag);
-    el.addEventListener('pointercancel', endDrag);
-    // Evita que um clique após o arraste feche a capa expandida.
-    el.addEventListener('click', (e) => e.stopPropagation());
+    const markCandidate = () => {
+      const idx = getCenteredLyricIndex();
+      if (idx < 0) return;
+      lyricsState.lineEls.forEach((el, i) => el.classList.toggle('is-candidate', i === idx));
+    };
+
+    // Rolagem do usuário → modo de ajuste; ao assentar, confirma o ponto.
+    container.addEventListener('scroll', () => {
+      if (lyricsAutoScrolling) return; // ignora rolagem programática
+      enterAdjusting();
+      markCandidate();
+      if (lyricsSettleTimer) clearTimeout(lyricsSettleTimer);
+      lyricsSettleTimer = setTimeout(() => {
+        if (pointerDown) return; // ainda com o dedo na tela
+        commitLyricSync(getCenteredLyricIndex());
+      }, 450);
+    }, { passive: true });
+
+    // Impede que tocar/rolar na letra feche a capa expandida.
+    container.addEventListener('pointerdown', (e) => {
+      pointerDown = true;
+      e.stopPropagation();
+    });
+    const onPointerUp = () => {
+      pointerDown = false;
+      // Se já parou de rolar, confirma logo após soltar.
+      if (lyricsState.adjusting) {
+        if (lyricsSettleTimer) clearTimeout(lyricsSettleTimer);
+        lyricsSettleTimer = setTimeout(() => {
+          if (!pointerDown) commitLyricSync(getCenteredLyricIndex());
+        }, 250);
+      }
+    };
+    container.addEventListener('pointerup', onPointerUp);
+    container.addEventListener('pointercancel', onPointerUp);
+
+    // Tocar diretamente numa linha define aquele ponto como o momento atual.
+    container.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const lineEl = e.target.closest('.lyrics-line');
+      if (!lineEl) return;
+      const idx = Number(lineEl.dataset.index);
+      if (Number.isInteger(idx)) commitLyricSync(idx);
+    });
   }
 
   // Estado de shuffle e repeat
