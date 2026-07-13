@@ -1044,6 +1044,7 @@ const MUSIC_PLAYER = (() => {
       const remainingMs = Math.max(0, (dur - cur) * 1000);
       setTrackDurationLabel(index, remainingMs);
       updateTrackProgress(index, Math.min(100, (cur / dur) * 100));
+      updateLyricHighlight();
     }
 
     // Posiciona o #expanded-video-wrapper (nível superior, position:fixed) para
@@ -1922,6 +1923,10 @@ const MUSIC_PLAYER = (() => {
     ui.volumeContainer = document.getElementById('volume-slider-container');
     ui.ctrlExpandedCover = document.getElementById('ctrl-expanded-cover');
     ui.expandedCoverWrapper = document.getElementById('expanded-cover-wrapper');
+    ui.expandedLyrics = document.getElementById('expanded-lyrics');
+    ui.lyricsPrev = ui.expandedLyrics?.querySelector('.lyrics-prev') || null;
+    ui.lyricsCurrent = ui.expandedLyrics?.querySelector('.lyrics-current') || null;
+    ui.lyricsNext = ui.expandedLyrics?.querySelector('.lyrics-next') || null;
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -2551,6 +2556,7 @@ const MUSIC_PLAYER = (() => {
     timeupdate: () => {
       maybeTriggerAutoCrossfade();
       maybeForceTrackEnd();
+      updateLyricHighlight();
     }
   };
 
@@ -3271,6 +3277,195 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
+  // ====== Letras sincronizadas ======
+  // Busca letras com timestamps (formato LRC) no LRCLIB (grátis, CORS aberto)
+  // e as exibe entre o alternador Áudio/Vídeo e a capa. A área só aparece
+  // quando há letra sincronizada disponível para a faixa atual.
+  const lyricsState = {
+    key: null,        // identificador da faixa cuja letra está carregada
+    lines: [],        // [{ time: <segundos>, text }]
+    currentIndex: -1, // índice da linha destacada
+    loadToken: 0,     // invalida requisições antigas em trocas rápidas de faixa
+    requestedKey: null
+  };
+
+  // Normaliza título/artista para melhorar o casamento na busca de letra.
+  function cleanLyricsQueryText(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/\([^)]*\)/g, ' ')            // (Official Video), (feat. ...)
+      .replace(/\[[^\]]*\]/g, ' ')           // [Clipe Oficial]
+      .replace(/\b(official|oficial|video|vídeo|clipe|audio|áudio|lyrics?|letra|hd|4k|remaster(ed)?|ao vivo|live)\b/gi, ' ')
+      .replace(/\bfeat\.?\b.*$/i, ' ')       // remove "feat. X"
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Converte o texto LRC ("[mm:ss.xx] linha") em linhas ordenadas por tempo.
+  function parseLrc(lrc) {
+    if (!lrc || typeof lrc !== 'string') return [];
+    const lines = [];
+    const tagRe = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
+    for (const raw of lrc.split(/\r?\n/)) {
+      tagRe.lastIndex = 0;
+      let match;
+      const stamps = [];
+      let lastEnd = 0;
+      while ((match = tagRe.exec(raw)) !== null) {
+        const min = parseInt(match[1], 10) || 0;
+        const sec = parseInt(match[2], 10) || 0;
+        const fracRaw = match[3] || '0';
+        const frac = parseInt(fracRaw, 10) / Math.pow(10, fracRaw.length);
+        stamps.push(min * 60 + sec + frac);
+        lastEnd = tagRe.lastIndex;
+      }
+      if (!stamps.length) continue;
+      const text = raw.slice(lastEnd).trim();
+      for (const time of stamps) lines.push({ time, text });
+    }
+    lines.sort((a, b) => a.time - b.time);
+    return lines;
+  }
+
+  // Posição de reprodução atual em segundos (áudio ou vídeo).
+  function getPlaybackPositionSec() {
+    try {
+      if (videoMode && videoMode.isVideo && videoMode.isVideo()) {
+        return videoMode.getCurrentTime() || 0;
+      }
+    } catch (_) { }
+    return audio.currentTime || 0;
+  }
+
+  // Mostra/oculta a área de letras.
+  function setLyricsVisible(visible) {
+    ui.expandedCoverWrapper?.classList.toggle('has-lyrics', !!visible);
+    if (ui.expandedLyrics) ui.expandedLyrics.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  }
+
+  // Limpa o estado e esconde a área.
+  function clearLyrics() {
+    lyricsState.lines = [];
+    lyricsState.currentIndex = -1;
+    if (ui.lyricsPrev) ui.lyricsPrev.textContent = '';
+    if (ui.lyricsCurrent) ui.lyricsCurrent.textContent = '';
+    if (ui.lyricsNext) ui.lyricsNext.textContent = '';
+    setLyricsVisible(false);
+  }
+
+  // Renderiza a janela de 3 linhas (anterior, atual, próxima) e anima a troca.
+  function renderLyricsWindow(index) {
+    const { lines } = lyricsState;
+    if (!lines.length || index < 0) return;
+    if (ui.lyricsPrev) ui.lyricsPrev.textContent = lines[index - 1]?.text || '';
+    if (ui.lyricsNext) ui.lyricsNext.textContent = lines[index + 1]?.text || '';
+    if (ui.lyricsCurrent) {
+      ui.lyricsCurrent.textContent = lines[index]?.text || '';
+      // Reinicia a animação de entrada da linha atual.
+      ui.lyricsCurrent.classList.remove('lyrics-advance');
+      void ui.lyricsCurrent.offsetWidth; // reflow para reiniciar a animação
+      ui.lyricsCurrent.classList.add('lyrics-advance');
+    }
+  }
+
+  // Atualiza a linha destacada conforme o tempo de reprodução.
+  function updateLyricHighlight() {
+    const { lines } = lyricsState;
+    if (!lines.length) return;
+    const pos = getPlaybackPositionSec();
+    // Encontra a última linha cujo tempo já passou.
+    let idx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].time <= pos + 0.15) idx = i;
+      else break;
+    }
+    if (idx === lyricsState.currentIndex) return;
+    lyricsState.currentIndex = idx;
+    if (idx < 0) {
+      // Antes da primeira linha: mostra as primeiras como prévia.
+      if (ui.lyricsPrev) ui.lyricsPrev.textContent = '';
+      if (ui.lyricsCurrent) ui.lyricsCurrent.textContent = lines[0]?.text || '';
+      if (ui.lyricsNext) ui.lyricsNext.textContent = lines[1]?.text || '';
+      return;
+    }
+    renderLyricsWindow(idx);
+  }
+
+  // Carrega letras da faixa atual (se ainda não carregadas).
+  async function loadLyricsForCurrentTrack() {
+    // Rádio não tem letra sincronizada.
+    if (radioPlaying && radioCurrentChannel) { clearLyrics(); lyricsState.key = null; return; }
+
+    const { track } = getCurrentPlayingTrack();
+    const title = cleanLyricsQueryText(getTrackTitle(track));
+    const artist = cleanLyricsQueryText(getTrackArtists(track));
+    if (!title) { clearLyrics(); lyricsState.key = null; return; }
+
+    const key = `${artist}::${title}`.toLowerCase();
+    if (key === lyricsState.key || key === lyricsState.requestedKey) return; // já carregada / em andamento
+    lyricsState.requestedKey = key;
+    const token = ++lyricsState.loadToken;
+    // Faixa nova: esconde a letra anterior enquanto busca a nova.
+    clearLyrics();
+
+    try {
+      const synced = await fetchSyncedLyrics(title, artist);
+      if (token !== lyricsState.loadToken) return; // faixa mudou nesse meio tempo
+      const lines = parseLrc(synced);
+      lyricsState.key = key;
+      lyricsState.requestedKey = null;
+      if (!lines.length) { clearLyrics(); return; }
+      lyricsState.lines = lines;
+      lyricsState.currentIndex = -1;
+      setLyricsVisible(true);
+      updateLyricHighlight();
+    } catch (_) {
+      if (token !== lyricsState.loadToken) return;
+      lyricsState.key = key;
+      lyricsState.requestedKey = null;
+      clearLyrics();
+    }
+  }
+
+  // Consulta o LRCLIB por letra sincronizada (LRC). Retorna string LRC ou ''.
+  async function fetchSyncedLyrics(title, artist) {
+    const base = 'https://lrclib.net/api';
+    const withTimeout = (url) => {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 8000);
+      return fetch(url, { signal: controller.signal, headers: { 'Accept': 'application/json' } })
+        .finally(() => clearTimeout(t));
+    };
+
+    // 1) Busca direta (melhor casamento por artista + faixa).
+    if (artist) {
+      try {
+        const url = `${base}/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`;
+        const res = await withTimeout(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.syncedLyrics) return data.syncedLyrics;
+        }
+      } catch (_) { }
+    }
+
+    // 2) Fallback: busca ampla e escolhe o primeiro resultado com letra sincronizada.
+    try {
+      const q = artist ? `${title} ${artist}` : title;
+      const url = `${base}/search?q=${encodeURIComponent(q)}`;
+      const res = await withTimeout(url);
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list)) {
+          const hit = list.find(item => item && item.syncedLyrics);
+          if (hit) return hit.syncedLyrics;
+        }
+      }
+    } catch (_) { }
+
+    return '';
+  }
+
   // Estado de shuffle e repeat
   let shuffleEnabled = false;
   let repeatEnabled = false;
@@ -3663,6 +3858,15 @@ const MUSIC_PLAYER = (() => {
 
     syncExpandedCover();
     updateMiniPlayerBar();
+
+    // Carrega/atualiza a letra sincronizada da faixa atual.
+    if (track) {
+      loadLyricsForCurrentTrack();
+    } else {
+      clearLyrics();
+      lyricsState.key = null;
+      lyricsState.requestedKey = null;
+    }
   }
 
   function updateMiniPlayerBar() {
@@ -9191,6 +9395,11 @@ const MUSIC_PLAYER = (() => {
     // Atualiza info com dados da rádio
     if (ui.ctrlTitle) ui.ctrlTitle.textContent = radioCurrentChannel.name;
     if (ui.ctrlArtist) ui.ctrlArtist.textContent = 'SUNSHINE LIVE · Ao Vivo';
+
+    // Rádio ao vivo não tem letra sincronizada.
+    clearLyrics();
+    lyricsState.key = null;
+    lyricsState.requestedKey = null;
 
     // Atualiza capa com imagem do canal
     const coverImg = ui.ctrlCover?.querySelector('img');

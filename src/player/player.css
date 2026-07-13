@@ -1011,6 +1011,83 @@
   pointer-events: auto;
 }
 
+/* ====== Letras sincronizadas (entre o alternador e a capa) ======
+   Ocupa apenas o espaço vazio existente acima da capa. Enquanto não houver
+   letra disponível fica colapsado (altura 0), sem alterar o layout atual. */
+#player-controls-bar .expanded-lyrics {
+  /* Fora do fluxo por padrão: não é item flex, então não adiciona gap nem
+     desloca o alternador/capa enquanto não houver letra disponível. */
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: min(calc(100vh - 200px), 380px);
+  margin: 0 auto;
+  padding: 0 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Só aparece quando a faixa atual tem letra sincronizada. */
+#player-controls-bar .expanded-cover-wrapper.has-lyrics .expanded-lyrics {
+  display: flex;
+  animation: lyrics-area-in 0.4s ease;
+}
+
+@keyframes lyrics-area-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+#player-controls-bar .expanded-lyrics .lyrics-line {
+  margin: 0;
+  width: 100%;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  transition: color 0.4s ease, opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), font-size 0.4s ease;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+/* Linhas de contexto (anterior e próxima): apagadas e menores. */
+#player-controls-bar .expanded-lyrics .lyrics-prev,
+#player-controls-bar .expanded-lyrics .lyrics-next {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  opacity: 0.6;
+  transform: scale(0.94);
+}
+
+/* Linha atual: destacada com brilho, peso e escala maiores. */
+#player-controls-bar .expanded-lyrics .lyrics-current {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.98);
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Reforço da transição suave ao trocar de linha. */
+#player-controls-bar .expanded-lyrics .lyrics-current.lyrics-advance {
+  animation: lyrics-line-in 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes lyrics-line-in {
+  0% { opacity: 0.2; transform: scale(0.9) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Oculta linhas de contexto vazias para não deixar espaços mortos. */
+#player-controls-bar .expanded-lyrics .lyrics-line:empty {
+  display: none;
+}
+
 /* ====== Player Controls Bar — Expanded Cover ====== */
 
 /* Capa flutuante acima da barra */

@@ -425,6 +425,14 @@
         <i class="ph-bold ph-video-camera" aria-hidden="true"></i>
       </button>
     </div>
+    <!-- Letras sincronizadas — ocupa o espaço vazio entre o alternador e a capa.
+         Fica oculto (hidden) por padrão; só aparece quando há letra disponível
+         para a faixa atual (classe .has-lyrics no wrapper). -->
+    <div id="expanded-lyrics" class="expanded-lyrics" aria-hidden="true">
+      <p class="lyrics-line lyrics-prev"></p>
+      <p class="lyrics-line lyrics-current"></p>
+      <p class="lyrics-line lyrics-next"></p>
+    </div>
     <div class="expanded-cover-stage">
       <img id="ctrl-expanded-cover" src="src/imagens/genericCover.png" alt="Capa">
     </div>
