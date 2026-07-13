@@ -1040,11 +1040,12 @@
 #player-controls-bar .lyrics-scroll {
   display: none;
   width: 100%;
-  height: 96px;
+  /* Altura responsiva (≈2–3 linhas), adaptável à viewport. */
+  height: clamp(44px, 12vh, 104px);
   overflow-y: auto;
   overflow-x: hidden;
-  /* Espaço para centralizar a primeira e a última linha. */
-  padding-block: 34px;
+  /* Espaço para centralizar a primeira e a última linha (responsivo). */
+  padding-block: clamp(12px, 3vh, 32px);
   scrollbar-width: none;
   -ms-overflow-style: none;
   touch-action: pan-y;
@@ -1189,21 +1190,25 @@
 /* ====== Player Controls Bar — Expanded Cover ====== */
 
 /* Capa flutuante acima da barra.
-   O wrapper é ancorado pela base (bottom fixo), então a capa — último item —
-   permanece sempre na mesma posição. O min-height estende o wrapper para cima
-   e o space-between empurra o alternador Capa/Vídeo para o topo, aproveitando
-   o espaço vazio, sem mover a capa nem o player inferior. */
+   Layout 100% flexível e adaptável à altura da viewport: o wrapper é ancorado
+   pela base (24px acima do player inferior) e sua altura (--ec-avail) é o
+   espaço livre até o topo seguro da tela, calculado dinamicamente por JS
+   (com fallback em dvh). Nada de alturas fixas: o alternador fica no topo, as
+   letras logo abaixo e a capa ocupa o restante, encolhendo proporcionalmente
+   para caber sem cortes. O player inferior permanece fixo e visível. */
 #player-controls-bar .expanded-cover-wrapper {
   position: absolute;
-  bottom: calc(100% + 56px);
+  bottom: calc(100% + 24px);
   left: 0;
   right: 0;
-  min-height: min(calc(100vh - 255px), 620px);
+  height: var(--ec-avail, calc(100dvh - 260px));
+  max-height: calc(100dvh - 128px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: clamp(6px, 1.6vh, 14px);
+  padding: 0 clamp(10px, 4vw, 16px);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -1212,19 +1217,37 @@
   cursor: pointer;
 }
 
-/* Palco (referência de tamanho para capa + vídeo) */
+/* Alternador Capa/Vídeo: tamanho natural, fixo no topo. */
+#player-controls-bar #cover-mode-toggle {
+  flex: 0 0 auto;
+}
+
+/* Área de letras: tamanho natural entre o alternador e a capa; pode encolher. */
+#player-controls-bar .expanded-lyrics {
+  flex: 0 1 auto;
+}
+
+/* Palco (referência de tamanho para capa + vídeo): ocupa o espaço restante e
+   encolhe conforme necessário (min-height:0 permite o flex-shrink real). */
 #player-controls-bar .expanded-cover-stage {
   position: relative;
   width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   justify-content: center;
+  align-items: flex-end;
 }
 
+/* A capa se ajusta ao espaço disponível preservando a proporção 1:1, com teto
+   para não crescer demais em telas grandes, e sem nunca ultrapassar a
+   viewport (limitada pela altura do palco e pela largura). */
 #player-controls-bar .expanded-cover-wrapper #ctrl-expanded-cover {
-  width: 100%;
-  aspect-ratio: 1;
-  max-height: min(calc(100vh - 200px), 380px);
-  max-width: min(calc(100vh - 200px), 380px);
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: min(100%, 420px);
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 16px;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.8), 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 20px rgba(255, 255, 255, 0.04), 0 0 40px rgba(255, 255, 255, 0.02);

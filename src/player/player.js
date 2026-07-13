@@ -3244,6 +3244,12 @@ const MUSIC_PLAYER = (() => {
     // Inicializa o ajuste manual de sincronia da letra (rolar a lista)
     initLyricsSyncScroll();
 
+    // Mantém a capa expandida adaptada à altura da viewport (responsivo).
+    updateExpandedCoverSpace();
+    window.addEventListener('resize', updateExpandedCoverSpace);
+    window.addEventListener('orientationchange', updateExpandedCoverSpace);
+    window.visualViewport?.addEventListener('resize', updateExpandedCoverSpace);
+
     // Clique no blur de fundo fecha a capa
     document.getElementById('expanded-cover-blur')?.addEventListener('click', () => {
       toggleExpandedCover(false);
@@ -3257,7 +3263,7 @@ const MUSIC_PLAYER = (() => {
   function toggleExpandedCover(forceState) {
     if (!ui.expandedCoverWrapper) return;
     const show = forceState !== undefined ? forceState : !ui.expandedCoverWrapper.classList.contains('visible');
-    if (show) syncExpandedCover();
+    if (show) { syncExpandedCover(); updateExpandedCoverSpace(); }
     ui.expandedCoverWrapper.classList.toggle('visible', show);
     const coverBlur = document.getElementById('expanded-cover-blur');
     if (coverBlur) {
@@ -3277,6 +3283,27 @@ const MUSIC_PLAYER = (() => {
     const coverImg = ui.ctrlCover?.querySelector('img');
     if (coverImg && ui.ctrlExpandedCover) {
       ui.ctrlExpandedCover.src = coverImg.src;
+    }
+  }
+
+  // Calcula dinamicamente a altura disponível para a capa expandida: do topo
+  // seguro da tela até logo acima do player inferior (que permanece fixo).
+  // Publica em --ec-avail; o layout flex distribui esse espaço e a capa
+  // encolhe proporcionalmente para caber sem cortes nem sobreposição.
+  function updateExpandedCoverSpace() {
+    const bar = document.getElementById('player-controls-bar');
+    if (!bar) return;
+    const barTop = bar.getBoundingClientRect().top;
+    const topInset = 20;   // margem do topo (evita notch/status bar)
+    const bottomGap = 24;  // casa com o "bottom: calc(100% + 24px)" do CSS
+    const avail = barTop - topInset - bottomGap;
+    const clamped = Math.max(160, Math.min(avail, 760));
+    document.documentElement.style.setProperty('--ec-avail', clamped + 'px');
+
+    // Reposiciona a linha atual da letra após a mudança de tamanho.
+    if (typeof lyricsState !== 'undefined' && !lyricsState.adjusting && lyricsState.lineEls?.length) {
+      const idx = Math.max(0, lyricsState.currentIndex);
+      requestAnimationFrame(() => scrollLyricLineToCenter(idx, false));
     }
   }
 
