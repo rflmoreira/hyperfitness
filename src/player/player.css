@@ -1030,8 +1030,10 @@
   pointer-events: none;
 }
 
-/* Só aparece quando a faixa atual tem letra sincronizada. */
-#player-controls-bar .expanded-cover-wrapper.has-lyrics .expanded-lyrics {
+/* Aparece com a letra sincronizada (has-lyrics) ou com o aviso de indisponível
+   (no-lyrics). Em ambos os casos ocupa o espaço reservado às letras. */
+#player-controls-bar .expanded-cover-wrapper.has-lyrics .expanded-lyrics,
+#player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics {
   display: flex;
   animation: lyrics-area-in 0.4s ease;
 }
@@ -1039,6 +1041,25 @@
 @keyframes lyrics-area-in {
   0% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Aviso "Letras não disponíveis": oculto por padrão, visível só no estado
+   no-lyrics. Nesse estado as linhas de letra ficam escondidas. */
+#player-controls-bar .expanded-lyrics .lyrics-empty {
+  display: none;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+#player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics .lyrics-line {
+  display: none;
+}
+
+#player-controls-bar .expanded-cover-wrapper.no-lyrics .expanded-lyrics .lyrics-empty {
+  display: block;
 }
 
 #player-controls-bar .expanded-lyrics .lyrics-line {
@@ -1090,16 +1111,21 @@
 
 /* ====== Player Controls Bar — Expanded Cover ====== */
 
-/* Capa flutuante acima da barra */
+/* Capa flutuante acima da barra.
+   O wrapper é ancorado pela base (bottom fixo), então a capa — último item —
+   permanece sempre na mesma posição. O min-height estende o wrapper para cima
+   e o space-between empurra o alternador Capa/Vídeo para o topo, aproveitando
+   o espaço vazio, sem mover a capa nem o player inferior. */
 #player-controls-bar .expanded-cover-wrapper {
   position: absolute;
   bottom: calc(100% + 56px);
   left: 0;
   right: 0;
+  min-height: min(calc(100vh - 255px), 620px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 14px;
   pointer-events: none;
   opacity: 0;

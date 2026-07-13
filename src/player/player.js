@@ -3337,20 +3337,40 @@ const MUSIC_PLAYER = (() => {
     return audio.currentTime || 0;
   }
 
-  // Mostra/oculta a área de letras.
-  function setLyricsVisible(visible) {
-    ui.expandedCoverWrapper?.classList.toggle('has-lyrics', !!visible);
-    if (ui.expandedLyrics) ui.expandedLyrics.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  // Define o estado visual da área de letras:
+  //  'hidden' → oculta (sem faixa, rádio ou durante a busca)
+  //  'lyrics' → exibe a letra sincronizada
+  //  'empty'  → exibe o aviso "Letras não disponíveis"
+  function setLyricsMode(mode) {
+    const w = ui.expandedCoverWrapper;
+    if (w) {
+      w.classList.toggle('has-lyrics', mode === 'lyrics');
+      w.classList.toggle('no-lyrics', mode === 'empty');
+    }
+    if (ui.expandedLyrics) {
+      ui.expandedLyrics.setAttribute('aria-hidden', mode === 'lyrics' ? 'false' : 'true');
+    }
   }
 
-  // Limpa o estado e esconde a área.
-  function clearLyrics() {
+  // Limpa as linhas de letra (mantém o modo à escolha do chamador).
+  function clearLyricLines() {
     lyricsState.lines = [];
     lyricsState.currentIndex = -1;
     if (ui.lyricsPrev) ui.lyricsPrev.textContent = '';
     if (ui.lyricsCurrent) ui.lyricsCurrent.textContent = '';
     if (ui.lyricsNext) ui.lyricsNext.textContent = '';
-    setLyricsVisible(false);
+  }
+
+  // Limpa e oculta totalmente a área.
+  function clearLyrics() {
+    clearLyricLines();
+    setLyricsMode('hidden');
+  }
+
+  // Limpa as linhas e mostra o aviso de indisponível.
+  function showLyricsUnavailable() {
+    clearLyricLines();
+    setLyricsMode('empty');
   }
 
   // Renderiza a janela de 3 linhas (anterior, atual, próxima) e anima a troca.
@@ -3414,18 +3434,18 @@ const MUSIC_PLAYER = (() => {
       const lines = parseLrc(synced);
       lyricsState.key = key;
       lyricsState.requestedKey = null;
-      if (!lines.length) { clearLyrics(); return; }
+      if (!lines.length) { showLyricsUnavailable(); return; }
       lyricsState.lines = lines;
       // Sentinela (-2) garante que a primeira chamada de sincronização sempre
       // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
       lyricsState.currentIndex = -2;
-      setLyricsVisible(true);
+      setLyricsMode('lyrics');
       updateLyricHighlight();
     } catch (_) {
       if (token !== lyricsState.loadToken) return;
       lyricsState.key = key;
       lyricsState.requestedKey = null;
-      clearLyrics();
+      showLyricsUnavailable();
     }
   }
 
