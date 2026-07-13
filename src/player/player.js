@@ -3428,6 +3428,9 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Consulta o LRCLIB por letra sincronizada (LRC). Retorna string LRC ou ''.
+  // Usa apenas o endpoint /search: ele responde 200 com um array (vazio quando
+  // não encontra), evitando os 404 barulhentos do endpoint /get e ainda faz
+  // casamento aproximado — melhor para títulos vindos do YouTube.
   async function fetchSyncedLyrics(title, artist) {
     const base = 'https://lrclib.net/api';
     const withTimeout = (url) => {
@@ -3437,29 +3440,32 @@ const MUSIC_PLAYER = (() => {
         .finally(() => clearTimeout(t));
     };
 
-    // 1) Busca direta (melhor casamento por artista + faixa).
+    const pickSynced = (list) => {
+      if (!Array.isArray(list)) return '';
+      const hit = list.find(item => item && item.syncedLyrics);
+      return hit ? hit.syncedLyrics : '';
+    };
+
+    // 1) Busca estruturada (track_name + artist_name) — mais precisa.
     if (artist) {
       try {
-        const url = `${base}/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`;
+        const url = `${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
         const res = await withTimeout(url);
         if (res.ok) {
-          const data = await res.json();
-          if (data && data.syncedLyrics) return data.syncedLyrics;
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
         }
       } catch (_) { }
     }
 
-    // 2) Fallback: busca ampla e escolhe o primeiro resultado com letra sincronizada.
+    // 2) Fallback: busca ampla por termo livre.
     try {
       const q = artist ? `${title} ${artist}` : title;
       const url = `${base}/search?q=${encodeURIComponent(q)}`;
       const res = await withTimeout(url);
       if (res.ok) {
-        const list = await res.json();
-        if (Array.isArray(list)) {
-          const hit = list.find(item => item && item.syncedLyrics);
-          if (hit) return hit.syncedLyrics;
-        }
+        const synced = pickSynced(await res.json());
+        if (synced) return synced;
       }
     } catch (_) { }
 
