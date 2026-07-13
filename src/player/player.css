@@ -1243,9 +1243,12 @@
    para não crescer demais em telas grandes, e sem nunca ultrapassar a
    viewport (limitada pela altura do palco e pela largura). */
 #player-controls-bar .expanded-cover-wrapper #ctrl-expanded-cover {
-  height: 100%;
+  /* Largura e altura automáticas + aspect-ratio 1:1 fazem a capa resolver
+     o MAIOR QUADRADO que cabe dentro do palco, limitado pela menor dimensão
+     (altura ou largura) e pelo teto de 420px. Nunca vira retângulo. */
   width: auto;
-  max-width: 100%;
+  height: auto;
+  max-width: min(100%, 420px);
   max-height: min(100%, 420px);
   aspect-ratio: 1 / 1;
   object-fit: cover;
