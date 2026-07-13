@@ -3226,47 +3226,11 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e nos metadados)
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo)
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
       if (e.target.closest('#cover-mode-toggle')) return;
-      if (e.target.closest('#expanded-cover-meta')) return;
       toggleExpandedCover(false);
     });
-
-    // Favorito (coração) nos metadados da capa expandida
-    document.getElementById('expanded-meta-fav')?.addEventListener('click', () => {
-      if (radioPlaying) return;
-      const { track } = getCurrentPlayingTrack();
-      if (!track) return;
-      const watchLater = getWatchLaterPlaylist();
-      const isFav = !!watchLater?.tracks.some(t => isSameTrack(t, track));
-      if (isFav) {
-        removeFromWatchLaterByTrack(track);
-      } else {
-        addToWatchLater(track);
-      }
-      syncExpandedCoverFavorite();
-    });
-
-    // Seek na barra de progresso da capa expandida
-    const expandedProgressBar = document.getElementById('expanded-progress-bar');
-    const seekFromEvent = (event) => {
-      const rect = expandedProgressBar.getBoundingClientRect();
-      const clientX = event.touches?.[0]?.clientX ?? event.clientX;
-      const percentage = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-      if (videoMode.isVideo()) {
-        const dur = videoMode.getDuration();
-        if (dur > 0) videoMode.seekTo(percentage * dur);
-      } else if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        audio.currentTime = percentage * audio.duration;
-      }
-      updateExpandedProgress();
-    };
-    expandedProgressBar?.addEventListener('click', seekFromEvent);
-    expandedProgressBar?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      seekFromEvent(e);
-    }, { passive: false });
 
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
     videoMode.init();
@@ -3292,12 +3256,6 @@ const MUSIC_PLAYER = (() => {
       coverBlur.classList.toggle('invisible', !show);
       coverBlur.style.pointerEvents = show ? 'auto' : 'none';
     }
-    // Loop de atualização da barra de progresso
-    if (show) {
-      startExpandedProgressLoop();
-    } else {
-      stopExpandedProgressLoop();
-    }
     // Integração com o modo Vídeo (clipe oficial).
     if (show) {
       videoMode.onExpandedCoverOpen();
@@ -3306,98 +3264,11 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  // Loop de progresso da capa expandida (ativo apenas enquanto visível)
-  let expandedProgressRaf = null;
-
-  function startExpandedProgressLoop() {
-    stopExpandedProgressLoop();
-    const tick = () => {
-      updateExpandedProgress();
-      expandedProgressRaf = requestAnimationFrame(tick);
-    };
-    expandedProgressRaf = requestAnimationFrame(tick);
-  }
-
-  function stopExpandedProgressLoop() {
-    if (expandedProgressRaf) {
-      cancelAnimationFrame(expandedProgressRaf);
-      expandedProgressRaf = null;
-    }
-  }
-
-  function updateExpandedProgress() {
-    const fill = document.getElementById('expanded-progress-fill');
-    const thumb = document.getElementById('expanded-progress-thumb');
-    const timeCurrent = document.getElementById('expanded-time-current');
-    const timeTotal = document.getElementById('expanded-time-total');
-    if (!fill || !thumb) return;
-
-    let currentSec = 0;
-    let durationSec = 0;
-    if (videoMode.isVideo()) {
-      currentSec = videoMode.getCurrentTime();
-      durationSec = videoMode.getDuration();
-    } else {
-      currentSec = audio.currentTime || 0;
-      if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        durationSec = audio.duration;
-      } else {
-        const { track } = getCurrentPlayingTrack();
-        const ms = track ? getTrackDurationMs(track) : null;
-        durationSec = ms ? ms / 1000 : 0;
-      }
-    }
-
-    const pct = durationSec > 0 ? Math.min((currentSec / durationSec) * 100, 100) : 0;
-    fill.style.width = `${pct}%`;
-    thumb.style.left = `${pct}%`;
-    if (timeCurrent) timeCurrent.textContent = formatDuration(currentSec * 1000);
-    if (timeTotal) timeTotal.textContent = durationSec > 0 ? formatDuration(durationSec * 1000) : '--:--';
-  }
-
-  // Sincroniza o estado do coração (favorito) com a track atual
-  function syncExpandedCoverFavorite() {
-    const favBtn = document.getElementById('expanded-meta-fav');
-    const icon = favBtn?.querySelector('i');
-    if (!favBtn || !icon) return;
-    let isFav = false;
-    if (!radioPlaying) {
-      const { track } = getCurrentPlayingTrack();
-      if (track) {
-        const watchLater = getWatchLaterPlaylist();
-        isFav = !!watchLater?.tracks.some(t => isSameTrack(t, track));
-      }
-    }
-    favBtn.classList.toggle('is-favorite', isFav);
-    icon.className = isFav ? 'ph-fill ph-heart' : 'ph-bold ph-heart';
-    favBtn.setAttribute('aria-label', isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
-  }
-
   function syncExpandedCover() {
     const coverImg = ui.ctrlCover?.querySelector('img');
     if (coverImg && ui.ctrlExpandedCover) {
       ui.ctrlExpandedCover.src = coverImg.src;
     }
-
-    // Metadados da música (título, artista, álbum • ano)
-    const metaTitle = document.getElementById('expanded-meta-title');
-    const metaArtist = document.getElementById('expanded-meta-artist');
-    const metaAlbum = document.getElementById('expanded-meta-album');
-    if (metaTitle) metaTitle.textContent = ui.ctrlTitle?.textContent || 'Nenhuma música';
-    if (metaArtist) metaArtist.textContent = ui.ctrlArtist?.textContent || '—';
-    if (metaAlbum) {
-      let albumText = '';
-      if (!radioPlaying) {
-        const { track } = getCurrentPlayingTrack();
-        const album = track?.album?.name || '';
-        const year = (track?.album?.release_date || '').slice(0, 4);
-        albumText = album && year ? `${album} • ${year}` : (album || year);
-      }
-      metaAlbum.textContent = albumText;
-    }
-
-    syncExpandedCoverFavorite();
-    updateExpandedProgress();
   }
 
   // Estado de shuffle e repeat
