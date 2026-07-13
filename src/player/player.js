@@ -1927,8 +1927,6 @@ const MUSIC_PLAYER = (() => {
     ui.lyricsPrev = ui.expandedLyrics?.querySelector('.lyrics-prev') || null;
     ui.lyricsCurrent = ui.expandedLyrics?.querySelector('.lyrics-current') || null;
     ui.lyricsNext = ui.expandedLyrics?.querySelector('.lyrics-next') || null;
-    ui.lyricsSync = document.getElementById('lyrics-sync');
-    ui.lyricsSyncValue = document.getElementById('lyrics-sync-value');
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -3234,21 +3232,10 @@ const MUSIC_PLAYER = (() => {
       toggleExpandedCover();
     });
 
-    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo e nos
-    // controles de sincronização das letras).
+    // Clique na capa expandida fecha (exceto no alternador Capa/Vídeo)
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
       if (e.target.closest('#cover-mode-toggle')) return;
-      if (e.target.closest('#lyrics-sync')) return;
       toggleExpandedCover(false);
-    });
-
-    // Controles de ajuste fino de sincronização das letras.
-    ui.lyricsSync?.addEventListener('click', (e) => {
-      const btn = e.target.closest('.lyrics-sync-btn');
-      if (!btn) return;
-      e.stopPropagation();
-      const delta = parseFloat(btn.dataset.delta);
-      if (Number.isFinite(delta)) nudgeLyricsOffset(delta);
     });
 
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
@@ -3299,50 +3286,8 @@ const MUSIC_PLAYER = (() => {
     lines: [],        // [{ time: <segundos>, text }]
     currentIndex: -1, // índice da linha destacada
     loadToken: 0,     // invalida requisições antigas em trocas rápidas de faixa
-    requestedKey: null,
-    offset: 0         // ajuste fino de sincronização (segundos) da faixa atual
+    requestedKey: null
   };
-
-  // Persistência dos offsets de sincronização por faixa (calibração manual).
-  const LYRICS_OFFSETS_STORAGE_KEY = 'hyperfitness-lyrics-offsets';
-  function loadLyricsOffsets() {
-    try {
-      const stored = localStorage.getItem(LYRICS_OFFSETS_STORAGE_KEY);
-      const data = stored ? JSON.parse(stored) : null;
-      return (data && typeof data === 'object') ? data : {};
-    } catch (_) { return {}; }
-  }
-  let lyricsOffsets = loadLyricsOffsets();
-  function saveLyricsOffset(key, offset) {
-    if (!key) return;
-    try {
-      if (offset) lyricsOffsets[key] = offset;
-      else delete lyricsOffsets[key];
-      localStorage.setItem(LYRICS_OFFSETS_STORAGE_KEY, JSON.stringify(lyricsOffsets));
-    } catch (_) { }
-  }
-
-  // Atualiza o texto do controle de sincronização (ex.: "Sinc. +0,4s").
-  function updateLyricsSyncLabel() {
-    if (!ui.lyricsSyncValue) return;
-    const o = lyricsState.offset || 0;
-    const sign = o > 0 ? '+' : (o < 0 ? '−' : '');
-    const abs = Math.abs(o).toFixed(1).replace('.', ',');
-    ui.lyricsSyncValue.textContent = `Sinc. ${sign}${abs}s`;
-  }
-
-  // Ajusta o offset da faixa atual, persiste e re-sincroniza imediatamente.
-  function nudgeLyricsOffset(delta) {
-    if (!lyricsState.key) return;
-    let o = (lyricsState.offset || 0) + delta;
-    o = Math.max(-8, Math.min(8, Math.round(o * 10) / 10));
-    lyricsState.offset = o;
-    saveLyricsOffset(lyricsState.key, o);
-    updateLyricsSyncLabel();
-    // Força re-avaliação da linha destacada com o novo offset.
-    lyricsState.currentIndex = -2;
-    updateLyricHighlight();
-  }
 
   // Normaliza título/artista para melhorar o casamento na busca de letra.
   function cleanLyricsQueryText(str) {
@@ -3454,8 +3399,7 @@ const MUSIC_PLAYER = (() => {
   function updateLyricHighlight() {
     const { lines } = lyricsState;
     if (!lines.length) return;
-    // Posição efetiva = tempo real + offset de calibração da faixa.
-    const pos = getPlaybackPositionSec() + (lyricsState.offset || 0);
+    const pos = getPlaybackPositionSec();
     // Encontra a última linha cujo tempo já passou.
     let idx = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -3484,10 +3428,6 @@ const MUSIC_PLAYER = (() => {
     const artist = cleanLyricsQueryText(getTrackArtists(track));
     if (!title) { clearLyrics(); lyricsState.key = null; return; }
 
-    // Duração da faixa (segundos) para escolher a versão de letra correta.
-    const durationMs = getTrackDurationMs(track);
-    const durationSec = Number.isFinite(durationMs) && durationMs > 0 ? durationMs / 1000 : null;
-
     const key = `${artist}::${title}`.toLowerCase();
     if (key === lyricsState.key || key === lyricsState.requestedKey) return; // já carregada / em andamento
     lyricsState.requestedKey = key;
@@ -3496,16 +3436,13 @@ const MUSIC_PLAYER = (() => {
     showLyricsLoading();
 
     try {
-      const synced = await fetchSyncedLyrics(title, artist, durationSec);
+      const synced = await fetchSyncedLyrics(title, artist);
       if (token !== lyricsState.loadToken) return; // faixa mudou nesse meio tempo
       const lines = parseLrc(synced);
       lyricsState.key = key;
       lyricsState.requestedKey = null;
       if (!lines.length) { showLyricsUnavailable(); return; }
       lyricsState.lines = lines;
-      // Restaura o offset calibrado para esta faixa (se houver).
-      lyricsState.offset = Number(lyricsOffsets[key]) || 0;
-      updateLyricsSyncLabel();
       // Sentinela (-2) garante que a primeira chamada de sincronização sempre
       // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
       lyricsState.currentIndex = -2;
@@ -3523,7 +3460,7 @@ const MUSIC_PLAYER = (() => {
   // Usa apenas o endpoint /search: ele responde 200 com um array (vazio quando
   // não encontra), evitando os 404 barulhentos do endpoint /get e ainda faz
   // casamento aproximado — melhor para títulos vindos do YouTube.
-  async function fetchSyncedLyrics(title, artist, durationSec) {
+  async function fetchSyncedLyrics(title, artist) {
     const base = 'https://lrclib.net/api';
     const withTimeout = (url) => {
       const controller = new AbortController();
@@ -3532,54 +3469,47 @@ const MUSIC_PLAYER = (() => {
         .finally(() => clearTimeout(t));
     };
 
-    const fetchList = async (url) => {
-      try {
-        const res = await withTimeout(url);
-        if (res.ok) return await res.json();
-      } catch (_) { }
-      return null;
+    const pickSynced = (list) => {
+      if (!Array.isArray(list)) return '';
+      const hit = list.find(item => item && item.syncedLyrics);
+      return hit ? hit.syncedLyrics : '';
     };
 
-    const hasDuration = Number.isFinite(durationSec) && durationSec > 0;
-
-    // Ordem de busca: estruturada (mais precisa) → livre com artista → só título
-    // (ajuda quando o "artista" é um canal do YouTube, ex.: "Racionais TV").
-    const urls = [];
+    // 1) Busca estruturada (track_name + artist_name) — mais precisa.
     if (artist) {
-      urls.push(`${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`);
-      urls.push(`${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`);
-    }
-    urls.push(`${base}/search?q=${encodeURIComponent(title)}`);
-
-    // Percorre as buscas acumulando o melhor casamento por duração. A letra
-    // precisa ser do mesmo master/edição para os timestamps baterem com o
-    // áudio; por isso a duração é o critério principal de escolha.
-    let best = '';
-    let bestDiff = Infinity;
-    for (const url of urls) {
-      const list = await fetchList(url);
-      const candidates = Array.isArray(list)
-        ? list.filter(item => item && item.syncedLyrics && !item.instrumental)
-        : [];
-      if (!candidates.length) continue;
-
-      if (!hasDuration) {
-        // Sem duração de referência: usa o 1º resultado da busca mais precisa.
-        return candidates[0].syncedLyrics;
-      }
-
-      for (const c of candidates) {
-        const d = Number(c.duration);
-        const diff = (Number.isFinite(d) && d > 0) ? Math.abs(d - durationSec) : Infinity;
-        if (diff < bestDiff) { bestDiff = diff; best = c.syncedLyrics; }
-      }
-      // Casamento praticamente exato: encerra a busca.
-      if (bestDiff <= 2) return best;
+      try {
+        const url = `${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
+        const res = await withTimeout(url);
+        if (res.ok) {
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
+        }
+      } catch (_) { }
     }
 
-    // Retorna o melhor casamento por duração (ou '' se nada encontrado).
-    // Se a diferença for muito grande, provavelmente é outra música → descarta.
-    if (best && bestDiff <= 8) return best;
+    // 2) Fallback: busca ampla por termo livre (título + artista).
+    if (artist) {
+      try {
+        const url = `${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`;
+        const res = await withTimeout(url);
+        if (res.ok) {
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
+        }
+      } catch (_) { }
+    }
+
+    // 3) Último recurso: só o título. Ajuda quando o "artista" é, na verdade,
+    // um canal do YouTube (ex.: "Racionais TV"), que atrapalha o casamento.
+    try {
+      const url = `${base}/search?q=${encodeURIComponent(title)}`;
+      const res = await withTimeout(url);
+      if (res.ok) {
+        const synced = pickSynced(await res.json());
+        if (synced) return synced;
+      }
+    } catch (_) { }
+
     return '';
   }
 
