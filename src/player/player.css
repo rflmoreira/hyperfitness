@@ -1206,7 +1206,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  /* space-between: alternador no topo, capa na base e as letras distribuídas
+     no meio (no espaço vazio entre eles). */
+  justify-content: space-between;
   gap: clamp(6px, 1.6vh, 14px);
   padding: 0 clamp(10px, 4vw, 16px);
   pointer-events: none;
@@ -1232,7 +1234,9 @@
 #player-controls-bar .expanded-cover-stage {
   position: relative;
   width: 100%;
-  flex: 1 1 0;
+  /* Não cresce (mantém a capa na base via space-between), mas encolhe quando
+     falta espaço, permitindo a capa reduzir sem cortar nada. */
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   justify-content: center;
