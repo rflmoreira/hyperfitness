@@ -3427,6 +3427,10 @@ const MUSIC_PLAYER = (() => {
     const title = cleanLyricsQueryText(getTrackTitle(track));
     const artist = cleanLyricsQueryText(getTrackArtists(track));
     if (!title) { clearLyrics(); lyricsState.key = null; return; }
+    // Duração da faixa (s) para escolher a versão de letra mais alinhada
+    // (mesma introdução instrumental ⇒ mesma sincronia).
+    const durMs = getTrackDurationMs(track);
+    const durationSec = Number.isFinite(durMs) && durMs > 0 ? durMs / 1000 : 0;
 
     const key = `${artist}::${title}`.toLowerCase();
     if (key === lyricsState.key || key === lyricsState.requestedKey) return; // já carregada / em andamento
@@ -3436,7 +3440,7 @@ const MUSIC_PLAYER = (() => {
     showLyricsLoading();
 
     try {
-      const synced = await fetchSyncedLyrics(title, artist);
+      const synced = await fetchSyncedLyrics(title, artist, durationSec);
       if (token !== lyricsState.loadToken) return; // faixa mudou nesse meio tempo
       const lines = parseLrc(synced);
       lyricsState.key = key;
@@ -3457,10 +3461,12 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Consulta o LRCLIB por letra sincronizada (LRC). Retorna string LRC ou ''.
-  // Usa apenas o endpoint /search: ele responde 200 com um array (vazio quando
-  // não encontra), evitando os 404 barulhentos do endpoint /get e ainda faz
-  // casamento aproximado — melhor para títulos vindos do YouTube.
-  async function fetchSyncedLyrics(title, artist) {
+  // Usa o endpoint /search (responde 200 com array, evitando os 404 do /get)
+  // e coleta candidatos de várias buscas. Quando a duração da faixa é
+  // conhecida, escolhe a versão de letra com duração mais próxima — assim,
+  // faixas com introdução instrumental casam com a letra da mesma versão,
+  // corrigindo a letra "adiantada".
+  async function fetchSyncedLyrics(title, artist, durationSec) {
     const base = 'https://lrclib.net/api';
     const withTimeout = (url) => {
       const controller = new AbortController();
@@ -3469,48 +3475,45 @@ const MUSIC_PLAYER = (() => {
         .finally(() => clearTimeout(t));
     };
 
-    const pickSynced = (list) => {
-      if (!Array.isArray(list)) return '';
-      const hit = list.find(item => item && item.syncedLyrics);
-      return hit ? hit.syncedLyrics : '';
-    };
+    // Ordem das buscas: estruturada (precisa) → ampla (título+artista) →
+    // só título (útil quando o "artista" é um canal do YouTube).
+    const queries = [];
+    if (artist) queries.push(`${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`);
+    if (artist) queries.push(`${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`);
+    queries.push(`${base}/search?q=${encodeURIComponent(title)}`);
 
-    // 1) Busca estruturada (track_name + artist_name) — mais precisa.
-    if (artist) {
+    const candidates = [];
+    const seen = new Set();
+    for (const url of queries) {
       try {
-        const url = `${base}/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
         const res = await withTimeout(url);
-        if (res.ok) {
-          const synced = pickSynced(await res.json());
-          if (synced) return synced;
+        if (!res.ok) continue;
+        const list = await res.json();
+        if (!Array.isArray(list)) continue;
+        for (const item of list) {
+          if (item && item.syncedLyrics && !seen.has(item.id)) {
+            seen.add(item.id);
+            candidates.push(item);
+          }
         }
       } catch (_) { }
+      // Sem duração para desempatar, o 1º candidato já serve — evita requests extras.
+      if (candidates.length && !(durationSec > 0)) break;
+      // Com duração, um lote (busca ampla retorna ~20) já dá opções suficientes.
+      if (candidates.length >= 6) break;
     }
 
-    // 2) Fallback: busca ampla por termo livre (título + artista).
-    if (artist) {
-      try {
-        const url = `${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`;
-        const res = await withTimeout(url);
-        if (res.ok) {
-          const synced = pickSynced(await res.json());
-          if (synced) return synced;
-        }
-      } catch (_) { }
+    if (!candidates.length) return '';
+    if (!(durationSec > 0)) return candidates[0].syncedLyrics;
+
+    // Escolhe a versão cuja duração mais se aproxima da faixa tocando.
+    let best = candidates[0];
+    let bestDiff = Math.abs((best.duration || 0) - durationSec);
+    for (const item of candidates) {
+      const diff = Math.abs((item.duration || 0) - durationSec);
+      if (diff < bestDiff) { best = item; bestDiff = diff; }
     }
-
-    // 3) Último recurso: só o título. Ajuda quando o "artista" é, na verdade,
-    // um canal do YouTube (ex.: "Racionais TV"), que atrapalha o casamento.
-    try {
-      const url = `${base}/search?q=${encodeURIComponent(title)}`;
-      const res = await withTimeout(url);
-      if (res.ok) {
-        const synced = pickSynced(await res.json());
-        if (synced) return synced;
-      }
-    } catch (_) { }
-
-    return '';
+    return best.syncedLyrics;
   }
 
   // Estado de shuffle e repeat
