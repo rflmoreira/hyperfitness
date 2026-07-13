@@ -3416,7 +3416,9 @@ const MUSIC_PLAYER = (() => {
       lyricsState.requestedKey = null;
       if (!lines.length) { clearLyrics(); return; }
       lyricsState.lines = lines;
-      lyricsState.currentIndex = -1;
+      // Sentinela (-2) garante que a primeira chamada de sincronização sempre
+      // renderize (mesmo quando a posição atual ainda está antes da 1ª linha).
+      lyricsState.currentIndex = -2;
       setLyricsVisible(true);
       updateLyricHighlight();
     } catch (_) {
@@ -3458,10 +3460,22 @@ const MUSIC_PLAYER = (() => {
       } catch (_) { }
     }
 
-    // 2) Fallback: busca ampla por termo livre.
+    // 2) Fallback: busca ampla por termo livre (título + artista).
+    if (artist) {
+      try {
+        const url = `${base}/search?q=${encodeURIComponent(`${title} ${artist}`)}`;
+        const res = await withTimeout(url);
+        if (res.ok) {
+          const synced = pickSynced(await res.json());
+          if (synced) return synced;
+        }
+      } catch (_) { }
+    }
+
+    // 3) Último recurso: só o título. Ajuda quando o "artista" é, na verdade,
+    // um canal do YouTube (ex.: "Racionais TV"), que atrapalha o casamento.
     try {
-      const q = artist ? `${title} ${artist}` : title;
-      const url = `${base}/search?q=${encodeURIComponent(q)}`;
+      const url = `${base}/search?q=${encodeURIComponent(title)}`;
       const res = await withTimeout(url);
       if (res.ok) {
         const synced = pickSynced(await res.json());
