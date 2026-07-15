@@ -180,6 +180,22 @@ const MUSIC_PLAYER = (() => {
   // Expor state globalmente para debug
   window.appState = state;
 
+  // === Infraestrutura de produção (HFInfra) ===
+  const Infra = window.HFInfra || {};
+  const persistentAudioCache = Infra.PersistentCache ? new Infra.PersistentCache('audio') : null;
+  const persistentCoverCache = Infra.PersistentCache ? new Infra.PersistentCache('covers') : null;
+  const audioCircuitBreaker = Infra.CircuitBreaker ? new Infra.CircuitBreaker({
+    failureThreshold: 8,
+    failureRateThreshold: 0.5,
+    minCalls: 10,
+    openDurationMs: 30000,
+    halfOpenMaxCalls: 3
+  }) : null;
+  const metrics = Infra.MetricsCollector ? new Infra.MetricsCollector() : null;
+  const trackLogger = Infra.TrackLogger ? new Infra.TrackLogger() : null;
+  // Fila concorrente para preload: 4 resoluções simultâneas
+  const preloadQueue = Infra.PriorityQueue ? new Infra.PriorityQueue(4) : null;
+
   // Estado de paginação do YouTube (infinite scroll)
   const youtubeSearchState = {
     query: '',
@@ -687,8 +703,42 @@ const MUSIC_PLAYER = (() => {
   }
 
   // Wrappers para cover cache com TTL específico
-  const getCoverCache = (key) => getCacheEntry(state.coverCache, key, COVER_CACHE_TTL_MS);
-  const setCoverCache = (key, value) => setCacheEntry(state.coverCache, key, value);
+  // Camada 1: memória (instantâneo) | Camada 2: IndexedDB (persistente entre sessões)
+  const getCoverCache = (key) => {
+    const memHit = getCacheEntry(state.coverCache, key, COVER_CACHE_TTL_MS);
+    if (memHit) {
+      if (metrics) metrics.recordCoverHit();
+      return memHit;
+    }
+    return null; // Persistent cache é assíncrono — verificado em buscarCapaFaixa/buscarCapaPlaylist
+  };
+
+  const setCoverCache = (key, value) => {
+    setCacheEntry(state.coverCache, key, value);
+    // Persiste em IndexedDB (best-effort, assíncrono)
+    if (persistentCoverCache) {
+      persistentCoverCache.set(key, { url: value, ts: Date.now() }, COVER_CACHE_TTL_MS).catch(() => {});
+    }
+  };
+
+  // Verifica cache persistente de capas (assíncrono). Usado quando o cache em memória falha.
+  async function getPersistentCoverCache(key) {
+    if (!persistentCoverCache) return null;
+    try {
+      const entry = await persistentCoverCache.get(key);
+      if (entry && !persistentCoverCache.isExpired(entry)) {
+        const url = entry.value?.url;
+        if (url) {
+          // Re-popula memória para acessos subsequentes serem instantâneos
+          setCacheEntry(state.coverCache, key, url);
+          if (metrics) metrics.recordCoverHit();
+          return url;
+        }
+      }
+    } catch { /* best-effort */ }
+    if (metrics) metrics.recordCoverMiss();
+    return null;
+  }
 
   // Funções de controle de proxy
   function isProxyExpired(cache, proxyId) {
@@ -1640,6 +1690,9 @@ const MUSIC_PLAYER = (() => {
     state.isPlaying = true;
     resetAudioError(index);
 
+    // Métricas: registra tempo até primeira reprodução (uma única vez)
+    if (metrics) metrics.recordFirstPlay(Date.now() - (window._hfInitTime || Date.now()));
+
     // Retomada após reload/crash: salta para a posição salva na primeira vez que
     // a faixa restaurada começar a tocar.
     if (pendingResume) {
@@ -1748,12 +1801,30 @@ const MUSIC_PLAYER = (() => {
     if (forceRefresh) {
       clearTrackCaches(key, null, { preserveFailures });
     } else {
+      // 1. Cache em memória (mais rápido)
       const cached = getCacheEntry(state.searchCache, key);
       if (cached !== null) {
         updateTrackDurationFromResult(track, index, cached);
+        if (metrics) metrics.recordResolution('cache', 0);
         return cached;
       }
 
+      // 2. Cache persistente (IndexedDB) — carrega do disco se a memória foi limpa
+      if (persistentAudioCache && !forceRefresh) {
+        try {
+          const persistent = await persistentAudioCache.get(key);
+          if (persistent && !persistentAudioCache.isExpired(persistent)) {
+            const result = persistent.value;
+            // Re-popula cache em memória para acessos subsequentes
+            setCacheEntry(state.searchCache, key, result);
+            updateTrackDurationFromResult(track, index, result);
+            if (metrics) metrics.recordResolution('persistentCache', 0);
+            return result;
+          }
+        } catch (_) { /* best-effort */ }
+      }
+
+      // 3. Promessa em andamento (dedup)
       const pending = state.searchPromises.get(key);
       if (pending) {
         try {
@@ -1775,6 +1846,12 @@ const MUSIC_PLAYER = (() => {
     try {
       const result = await task;
       updateTrackDurationFromResult(track, index, result);
+
+      // Persiste resultado bem-sucedido no IndexedDB para próximas sessões
+      if (result?.audioUrl && persistentAudioCache) {
+        persistentAudioCache.set(key, result, CACHE_TTL_MS).catch(() => {});
+      }
+
       return result;
     } finally {
       if (state.searchPromises.get(key) === task) {
@@ -4692,6 +4769,8 @@ const MUSIC_PLAYER = (() => {
   function init() {
     if (initPromise) return initPromise;
 
+    window._hfInitTime = Date.now();
+
     initPromise = (async () => {
       try {
         // Injeta o HTML do player antes de inicializar
@@ -6482,6 +6561,12 @@ const MUSIC_PLAYER = (() => {
     const cached = getCoverCache(cacheKey);
     if (cached) return cached;
 
+    // Cache persistente (IndexedDB) — evita buscar no Deezer a cada sessão
+    if (persistentCoverCache) {
+      const persistentHit = await getPersistentCoverCache(cacheKey);
+      if (persistentHit) return persistentHit;
+    }
+
     // Respeita a suspensão global de buscas de capas (mesma política de fetchDeezerSearch)
     if (state.coverSuspendedUntil && Date.now() < state.coverSuspendedUntil) {
       return null;
@@ -6604,6 +6689,12 @@ const MUSIC_PLAYER = (() => {
     const cached = getCoverCache(cacheKey);
     if (cached) {
       return cached;
+    }
+
+    // Cache persistente (IndexedDB) — evita buscar no Deezer a cada sessão
+    if (persistentCoverCache) {
+      const persistentHit = await getPersistentCoverCache(cacheKey);
+      if (persistentHit) return persistentHit;
     }
 
     // Durante suspensão global (muitas falhas), devolve o fallback SEM cachear,
@@ -8063,27 +8154,65 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  // Pré-carrega faixas em segundo plano com rate limiting
+  // Pré-carrega faixas em segundo plano com fila concorrente e prioridade dinâmica.
+  //
+  // Prioridades:
+  //   0 = música atual (se tocando)
+  //   1 = próximas 3 músicas
+  //   2 = próximas 10 músicas
+  //   3 = restante da playlist
+  //
+  // A fila limita a 4 resoluções simultâneas. Cada faixa é resolvida
+  // independentemente e atualiza a UI individualmente conforme completa.
+  // A interface nunca é bloqueada — todo o processo é assíncrono.
   async function preloadTracksInBackground(tracks, playlistId) {
-    // Rate limit: 2 requests por segundo para evitar 429
-    const delayBetweenRequests = 600;
-    const results = [];
-
-    for (let i = 0; i < tracks.length; i++) {
-      if (state.currentPlaylist?.id !== playlistId) {
-        // Se a playlist mudou durante o preload, interrompe para não atualizar a UI errada
-        break;
+    if (!tracks || !tracks.length) return;
+    if (!preloadQueue) {
+      // Fallback: fila indisponível (HFInfra não carregou) — usa pipeline sequencial simples
+      for (let i = 0; i < tracks.length; i++) {
+        if (state.currentPlaylist?.id !== playlistId) break;
+        await preloadSingleTrack(tracks[i], i);
+        if (i < tracks.length - 1) await delay(600);
       }
-      const result = await preloadSingleTrack(tracks[i], i);
-      results.push(result);
-
-      // Delay entre requests para respeitar rate limit da API
-      if (i < tracks.length - 1) {
-        await delay(delayBetweenRequests);
-      }
+      return;
     }
 
-    return results;
+    const preloadId = `preload-${playlistId}`;
+    const startedAt = Date.now();
+
+    // Cancela tarefas pendentes de preload anterior
+    preloadQueue.cancelById(preloadId);
+
+    const computePriority = (index) => {
+      const playingIdx = state.playingPlaylistId === playlistId ? state.playingTrackIndex : -1;
+      const base = playingIdx >= 0 ? playingIdx : 0;
+      const offset = index - base;
+      if (offset === 0) return 0;       // música atual
+      if (offset > 0 && offset <= 3) return 1;  // próximas 3
+      if (offset > 3 && offset <= 13) return 2; // próximas 10
+      return 3;                           // restante
+    };
+
+    const tasks = [];
+    for (let i = 0; i < tracks.length; i++) {
+      if (!tracks[i] || tracks[i].unavailable) continue;
+      const priority = computePriority(i);
+      const task = preloadQueue.add(
+        () => preloadSingleTrack(tracks[i], i).catch(() => null),
+        priority,
+        preloadId
+      );
+      tasks.push(task);
+    }
+
+    // Aguarda todas em background (não bloqueia selectPlaylist)
+    Promise.allSettled(tasks).then(() => {
+      if (state.currentPlaylist?.id === playlistId) {
+        const elapsed = Date.now() - startedAt;
+        if (metrics) metrics.recordPreloadTime(elapsed);
+        console.log(`✅ [PRELOAD] Playlist "${playlistId}" completa: ${tasks.length} faixas (${elapsed}ms)`);
+      }
+    });
   }
 
   async function preloadSingleTrack(track, index, retryCount = 0) {
@@ -8710,22 +8839,40 @@ const MUSIC_PLAYER = (() => {
 
   /**
    * Pontua um candidato do 4shared contra a faixa desejada.
+   * Combina três algoritmos de similaridade:
+   *   - Dice Coefficient (tokens sobrepostos)
+   *   - Levenshtein (distância de edição normalizada)
+   *   - Jaro-Winkler (prefixo comum pesa mais)
    * Compara título e artista SEPARADAMENTE, testando as divisões
    * "Artista - Título" e "Título - Artista" do nome do arquivo.
-   * Retorna { score, titleSim, artistSim } com score em 0..1.
+   * Inclui pontuação por duração quando disponível.
+   * Rejeita automaticamente versões não pedidas (cover, remix, karaoke...).
+   * Retorna { score, titleSim, artistSim, durationScore } com score em 0..1.
    */
-  function score4sharedCandidate(fileName, trackName, artistName) {
+  function score4sharedCandidate(fileName, trackName, artistName, trackDurationMs = null) {
     const normFile = normalizeForAudioMatch(fileName);
     const normTrack = normalizeForAudioMatch(trackName);
     const normArtist = normalizeForAudioMatch(artistName);
-    if (!normFile || !normTrack) return { score: 0, titleSim: 0, artistSim: 0 };
+    if (!normFile || !normTrack) return { score: 0, titleSim: 0, artistSim: 0, durationScore: 0 };
+
+    const lev = Infra.levenshteinSimilarity || (() => 0);
+    const jw = Infra.jaroWinklerSimilarity || (() => 0);
+
+    // Combina três algoritmos: Dice (40%), Levenshtein (30%), Jaro-Winkler (30%)
+    const combinedSim = (a, b) => {
+      if (!a || !b) return 0;
+      const d = tokenDiceSimilarity(a, b);
+      const l = lev(a, b);
+      const j = jw(a, b);
+      return (d * 0.4) + (l * 0.3) + (j * 0.3);
+    };
 
     const candidates = [];
 
     // Variante 1: arquivo inteiro contra o título (sem divisão)
     candidates.push({
-      titleSim: tokenDiceSimilarity(normFile, normTrack),
-      artistSim: normArtist ? tokenDiceSimilarity(normFile, normArtist) : 0
+      titleSim: combinedSim(normFile, normTrack),
+      artistSim: normArtist ? combinedSim(normFile, normArtist) : 0
     });
 
     // Variante 2: divisões por hífen ("Artista - Título" e "Título - Artista")
@@ -8738,13 +8885,13 @@ const MUSIC_PLAYER = (() => {
 
         // "Artista - Título"
         candidates.push({
-          titleSim: tokenDiceSimilarity(right, normTrack),
-          artistSim: normArtist ? tokenDiceSimilarity(left, normArtist) : 0
+          titleSim: combinedSim(right, normTrack),
+          artistSim: normArtist ? combinedSim(left, normArtist) : 0
         });
         // "Título - Artista"
         candidates.push({
-          titleSim: tokenDiceSimilarity(left, normTrack),
-          artistSim: normArtist ? tokenDiceSimilarity(right, normArtist) : 0
+          titleSim: combinedSim(left, normTrack),
+          artistSim: normArtist ? combinedSim(right, normArtist) : 0
         });
       }
     }
@@ -8767,28 +8914,62 @@ const MUSIC_PLAYER = (() => {
       }
       const artistCoverage = artistTokens.length ? found / artistTokens.length : 0;
       candidates.push({
-        titleSim: tokenDiceSimilarity(residue.join(' '), normTrack),
+        titleSim: combinedSim(residue.join(' '), normTrack),
         artistSim: artistCoverage
       });
     }
 
-    // Escolhe a melhor variante (título pesa 60%, artista 40%)
-    let best = { score: 0, titleSim: 0, artistSim: 0 };
+    // Escolhe a melhor variante (título pesa 55%, artista 35%, duração 10%)
+    let best = { score: 0, titleSim: 0, artistSim: 0, durationScore: 0 };
     for (const c of candidates) {
       const score = normArtist
-        ? (c.titleSim * 0.6) + (c.artistSim * 0.4)
-        : c.titleSim;
+        ? (c.titleSim * 0.55) + (c.artistSim * 0.35)
+        : c.titleSim * 0.9;
       if (score > best.score) {
-        best = { score, titleSim: c.titleSim, artistSim: c.artistSim };
+        best = { score, titleSim: c.titleSim, artistSim: c.artistSim, durationScore: 0 };
       }
     }
 
-    // Penalidade para versões alternativas não pedidas (cover, remix, karaoke...)
+    // Pontuação por duração (quando disponível): bônus de até 10% se a duração bate
+    if (trackDurationMs && trackDurationMs > 0) {
+      // Tenta extrair duração do nome do arquivo (ex: "3:45" ou "3:45 min")
+      const durMatch = String(fileName).match(/(\d+):(\d{2})(?::(\d{2}))?\s*(?:min)?/i);
+      if (durMatch) {
+        const parts = durMatch.slice(1).filter(Boolean).map(Number);
+        let fileDurationSec;
+        if (parts.length === 3) fileDurationSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        else if (parts.length === 2) fileDurationSec = parts[0] * 60 + parts[1];
+        else fileDurationSec = 0;
+
+        if (fileDurationSec > 0) {
+          const trackSec = trackDurationMs / 1000;
+          const diff = Math.abs(fileDurationSec - trackSec);
+          const tolerance = Math.max(trackSec * 0.2, 10);
+          best.durationScore = Math.max(0, 1 - (diff / tolerance));
+          best.score += best.durationScore * 0.1;
+        }
+      }
+    }
+
+    // Penalidade expandida para versões alternativas não pedidas
     const rawLower = String(fileName).toLowerCase();
     const trackLower = String(trackName).toLowerCase();
-    const negTerms = ['cover', 'remix', 'karaoke', 'instrumental', 'ringtone', '8d audio', 'nightcore', 'sped up', 'slowed', 'reverb', 'acapella', 'tribute'];
-    if (negTerms.some(t => rawLower.includes(t) && !trackLower.includes(t))) {
-      best.score -= 0.25;
+    const negTerms = [
+      'cover', 'karaoke', 'instrumental', 'slowed', 'reverb', 'nightcore',
+      'bass boosted', 'remix', 'extended', 'radio edit', 'live', 'demo',
+      'ringtone', '8d audio', 'sped up', 'acapella', 'tribute', 'mashup',
+      'bootleg', 'flip', 'edit'
+    ];
+    const negHit = negTerms.filter(t => rawLower.includes(t) && !trackLower.includes(t));
+    if (negHit.length > 0) {
+      // Penalidade progressiva: -0.15 por termo, até -0.4
+      best.score -= Math.min(0.4, negHit.length * 0.15);
+    }
+
+    // Rejeição automática: artista completamente diferente (mesmo título parecido)
+    if (normArtist && best.artistSim < 0.3 && best.titleSim > 0.7) {
+      // Título bate mas artista é completamente diferente — provavelmente não é a mesma música
+      best.score -= 0.3;
     }
 
     best.score = Math.max(0, Math.min(1, best.score));
@@ -8835,9 +9016,9 @@ const MUSIC_PLAYER = (() => {
         return null;
       }
 
-      // Pontua com comparação separada de título/artista (normalizada)
+      // Pontua com comparação separada de título/artista (normalizada) + duração
       const scored = files.map(file => {
-        const match = score4sharedCandidate(file.name || '', trackName, artistName);
+        const match = score4sharedCandidate(file.name || '', trackName, artistName, durationMs);
         return { ...file, ...match };
       });
 
@@ -8850,10 +9031,12 @@ const MUSIC_PLAYER = (() => {
         const pct = best ? (best.score * 100).toFixed(0) : '0';
         const titlePct = best ? (best.titleSim * 100).toFixed(0) : '0';
         console.warn(`❌ [4SHARED] Rejeitado: melhor candidato "${best?.name || 'nenhum'}" com score ${pct}% (título ${titlePct}%) < mínimo ${FOURSHARED_MIN_SCORE * 100}% para "${trackName}" - "${artistName}" (${elapsed}ms)`);
+        if (metrics) metrics.record4sharedReject();
         return null;
       }
 
-      console.log(`🔄 [4SHARED] Match aceito: "${best.name}" score ${(best.score * 100).toFixed(0)}% (título ${(best.titleSim * 100).toFixed(0)}%, artista ${(best.artistSim * 100).toFixed(0)}%) para "${trackName}" - "${artistName}" (${elapsed}ms)`);
+      console.log(`🔄 [4SHARED] Match aceito: "${best.name}" score ${(best.score * 100).toFixed(0)}% (título ${(best.titleSim * 100).toFixed(0)}%, artista ${(best.artistSim * 100).toFixed(0)}%, duração ${(best.durationScore * 100).toFixed(0)}%) para "${trackName}" - "${artistName}" (${elapsed}ms)`);
+      if (metrics) metrics.record4sharedMatch();
       return {
         fileId: best.id,
         name: best.name,
@@ -8973,6 +9156,7 @@ const MUSIC_PLAYER = (() => {
           };
           if (key) setCacheEntry(state.searchCache, key, fsResult);
           logSource('4shared-sticky', `(fileId=${track._foursharedFileId})`);
+          if (metrics) metrics.recordResolution('fallback4shared', Date.now() - startedAt);
           return fsResult;
         }
         // Se não obteve o stream do mesmo arquivo, tenta nova busca no 4shared.
@@ -8980,6 +9164,7 @@ const MUSIC_PLAYER = (() => {
         const rebuilt = await tryFoursharedFallback(track, index);
         if (rebuilt) {
           logSource('4shared-rebusca');
+          if (metrics) metrics.recordResolution('fallback4shared', Date.now() - startedAt);
           return rebuilt;
         }
         warnStage('4shared-rebusca', 'sem correspondência confiável');
@@ -9005,9 +9190,11 @@ const MUSIC_PLAYER = (() => {
           const foursharedResult = await tryFoursharedFallback(track, index);
           if (foursharedResult) {
             logSource('4shared', '(motivo: YouTube sem resultados)');
+            if (metrics) metrics.recordResolution('fallback4shared', Date.now() - startedAt);
             return foursharedResult;
           }
           warnStage('busca', 'nenhuma fonte encontrada (YouTube e 4shared)');
+          if (metrics) metrics.recordResolution('failed', Date.now() - startedAt);
           return null;
         }
       }
@@ -9022,9 +9209,11 @@ const MUSIC_PLAYER = (() => {
         const foursharedResult = await tryFoursharedFallback(track, index);
         if (foursharedResult) {
           logSource('4shared', '(motivo: extração /audio falhou)');
+          if (metrics) metrics.recordResolution('fallback4shared', Date.now() - startedAt);
           return foursharedResult;
         }
         warnStage('extracao', 'sem fonte após fallback 4shared');
+        if (metrics) metrics.recordResolution('failed', Date.now() - startedAt);
         return null;
       }
 
@@ -9042,6 +9231,7 @@ const MUSIC_PLAYER = (() => {
       const result = { ...video, audioUrl };
       setCacheEntry(state.searchCache, key, result);
       logSource('api', `(${video.instance || 'youtube'})`);
+      if (metrics) metrics.recordResolution('api', Date.now() - startedAt);
       return result;
     } catch (error) {
       console.warn(`⚠️ [RESOLVE] "${label}": erro inesperado (${error.message}), tentando fallback 4shared... (${Date.now() - startedAt}ms)`);
@@ -9049,12 +9239,14 @@ const MUSIC_PLAYER = (() => {
         const foursharedResult = await tryFoursharedFallback(track, index);
         if (foursharedResult) {
           logSource('4shared', '(motivo: erro inesperado na resolução)');
+          if (metrics) metrics.recordResolution('fallback4shared', Date.now() - startedAt);
           return foursharedResult;
         }
       } catch (fbError) {
         console.warn(`❌ [4SHARED] Fallback também falhou: ${fbError.message}`);
       }
       warnStage('resolucao', error.message);
+      if (metrics) metrics.recordResolution('failed', Date.now() - startedAt);
       return null;
     }
   }
@@ -9485,68 +9677,122 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  // Busca URL de áudio via RapidAPI com retry para 429 (rate limit) e 202 (conversão em andamento)
-  async function getAudioUrl(videoId, retryCount = 0) {
+  // Busca URL de áudio via API /audio com Circuit Breaker e retry exponencial + jitter.
+  // Retry apenas para: processing, timeout, rate-limited (transitórios).
+  // Nunca re-tenta: video-not-found, video-private, geo-blocked, video-blocked, extraction-failed (permanentes).
+  async function getAudioUrl(videoId) {
     if (!videoId) return null;
 
+    // 1. Cache em memória
     const cached = getCacheEntry(state.audioCache, videoId, AUDIO_URL_TTL_MS);
     if (cached !== null) {
-      console.log(`🎵 [AUDIO] Origem: cache (${videoId})`);
       return cached;
     }
 
+    // 2. Circuit Breaker: se aberto, não chama a API
+    if (audioCircuitBreaker && !audioCircuitBreaker.canCall()) {
+      console.warn(`🔌 [AUDIO] Circuit breaker aberto — pulando API para ${videoId}`);
+      return null;
+    }
+
+    // 3. Retry exponencial com jitter
+    const retryFn = Infra.retryWithBackoff || null;
+    if (!retryFn) {
+      // Fallback: sem infra.js, usa chamada simples
+      return _getAudioUrlSimple(videoId);
+    }
+
+    const result = await retryFn(
+      async (attempt) => {
+        const response = await fetch(`/audio?v=${videoId}`);
+        const status = response.status;
+
+        // Sucesso
+        if (response.ok) {
+          const data = await response.json();
+          if (data.audioUrl) {
+            return { ok: true, value: data };
+          }
+          return { ok: false, reason: 'extraction-failed' };
+        }
+
+        // 202: conversão em andamento (transitório)
+        if (status === 202) {
+          const body = await response.json().catch(() => null);
+          return { ok: false, reason: body?.reason || 'processing' };
+        }
+
+        // 429: rate limited (transitório)
+        if (status === 429) {
+          return { ok: false, reason: 'rate-limited' };
+        }
+
+        // 504: timeout (transitório)
+        if (status === 504) {
+          return { ok: false, reason: 'timeout' };
+        }
+
+        // Outros erros: classifica como permanente ou transitório
+        const body = await response.json().catch(() => null);
+        const reason = body?.reason || 'extraction-failed';
+        return { ok: false, reason, retryable: body?.retryable };
+      },
+      {
+        maxRetries: 4,
+        baseDelayMs: 1000,
+        maxDelayMs: 8000,
+        onRetry: (attempt, delayMs, reason) => {
+          if (metrics) metrics.recordRetry();
+          console.warn(`🔄 [AUDIO] Retry ${attempt} para ${videoId} em ${delayMs}ms (motivo: ${reason})`);
+        }
+      }
+    );
+
+    if (result.ok) {
+      const data = result.value;
+      if (audioCircuitBreaker) audioCircuitBreaker.recordSuccess();
+      setCacheEntry(state.audioCache, videoId, data.audioUrl);
+      debouncedSave();
+      return data.audioUrl;
+    }
+
+    // Falha
+    if (audioCircuitBreaker) audioCircuitBreaker.recordFailure();
+    if (metrics && Infra.PERMANENT_REASONS?.has(result.reason)) metrics.recordPermanentFailure();
+    console.warn(`❌ [AUDIO] Falha definitiva para ${videoId}: ${result.reason} (${result.attempts} tentativas)`);
+    return null;
+  }
+
+  // Fallback simples sem infra.js (mantém compatibilidade)
+  async function _getAudioUrlSimple(videoId) {
     const startedAt = Date.now();
     try {
       const response = await fetch(`/audio?v=${videoId}`);
       const elapsed = Date.now() - startedAt;
 
-      // Rate limit - retry com backoff
-      if (response.status === 429 && retryCount < 3) {
-        const retryDelay = (retryCount + 1) * 2000; // 2s, 4s, 6s
-        console.warn(`⏳ [AUDIO] Rate limited (${elapsed}ms), retrying in ${retryDelay / 1000}s...`);
-        await delay(retryDelay);
-        return getAudioUrl(videoId, retryCount + 1);
-      }
-
-      // Conversão em andamento no upstream - re-tenta (backend retorna 202)
-      if (response.status === 202) {
-        if (retryCount < 4) {
-          console.log(`⏳ [AUDIO] Conversão em andamento (${elapsed}ms), aguardando 3s... (tentativa ${retryCount + 1}/4)`);
-          await delay(3000);
-          return getAudioUrl(videoId, retryCount + 1);
-        }
-        console.warn(`⚠️ [AUDIO] Conversão não terminou após ${retryCount} tentativas (${videoId})`);
+      if (response.status === 429) {
+        console.warn(`⏳ [AUDIO] Rate limited (${elapsed}ms)`);
         return null;
       }
-
+      if (response.status === 202) {
+        console.warn(`⏳ [AUDIO] Conversão em andamento (${elapsed}ms)`);
+        return null;
+      }
       if (!response.ok) {
         const errBody = await response.json().catch(() => null);
-        const reason = errBody?.reason || 'desconhecido';
-        console.warn(`⚠️ [AUDIO] API falhou: HTTP ${response.status}, motivo=${reason} (${elapsed}ms, ${videoId})`);
-
-        // Erros transitórios do backend: uma re-tentativa extra
-        if (errBody?.retryable && retryCount < 2) {
-          await delay(2000);
-          return getAudioUrl(videoId, retryCount + 1);
-        }
+        console.warn(`⚠️ [AUDIO] API falhou: HTTP ${response.status}, motivo=${errBody?.reason || 'desconhecido'} (${elapsed}ms)`);
         return null;
       }
 
       const data = await response.json();
-
       if (!data.audioUrl) {
-        console.warn(`⚠️ [AUDIO] Resposta sem audioUrl (${elapsed}ms, ${videoId})`);
+        console.warn(`⚠️ [AUDIO] Resposta sem audioUrl (${elapsed}ms)`);
         return null;
       }
 
-      console.log(`🎵 [AUDIO] Origem: API em ${elapsed}ms (${videoId})`);
-
-      // Cache a URL
       setCacheEntry(state.audioCache, videoId, data.audioUrl);
       debouncedSave();
-
       return data.audioUrl;
-
     } catch (err) {
       console.error(`❌ [AUDIO] Error fetching audio: ${err.message} (${Date.now() - startedAt}ms)`);
       return null;
@@ -10113,7 +10359,7 @@ const MUSIC_PLAYER = (() => {
     return false;
   }
 
-  return { init, openModal, importPlaylistFromCsv };
+  return { init, openModal, importPlaylistFromCsv, _debug: { metrics, audioCircuitBreaker, preloadQueue, flushPersistentCache: async () => { if (persistentAudioCache) await persistentAudioCache.flush(); if (persistentCoverCache) await persistentCoverCache.flush(); } } };
 })();
 
 const PLAYER_OPEN_EVENT = 'hyperfitness:open-music-player';
