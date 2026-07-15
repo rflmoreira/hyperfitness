@@ -1925,6 +1925,7 @@ const MUSIC_PLAYER = (() => {
     ui.expandedCoverWrapper = document.getElementById('expanded-cover-wrapper');
     ui.expandedLyrics = document.getElementById('expanded-lyrics');
     ui.lyricsScroll = ui.expandedLyrics?.querySelector('.lyrics-scroll') || null;
+    ui.coverShareBtn = document.getElementById('cover-share-btn');
     ui.miniPlay = document.getElementById('mini-play');
     ui.miniPrev = document.getElementById('mini-prev');
     ui.miniNext = document.getElementById('mini-next');
@@ -3234,12 +3235,19 @@ const MUSIC_PLAYER = (() => {
     // área de letras, que tem interação própria de ajuste de sincronia)
     ui.expandedCoverWrapper?.addEventListener('click', (e) => {
       if (e.target.closest('#cover-mode-toggle')) return;
+      if (e.target.closest('#cover-share-btn')) return;
       if (e.target.closest('#expanded-lyrics')) return;
       toggleExpandedCover(false);
     });
 
     // Inicializa o modo Vídeo (alternador Capa/Vídeo e hooks de visibilidade)
     videoMode.init();
+
+    // Botão Compartilhar (não deve fechar a capa expandida ao clicar)
+    ui.coverShareBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      shareCurrentTrack();
+    });
 
     // Inicializa o ajuste manual de sincronia da letra (rolar a lista)
     initLyricsSyncScroll();
@@ -3283,6 +3291,58 @@ const MUSIC_PLAYER = (() => {
     const coverImg = ui.ctrlCover?.querySelector('img');
     if (coverImg && ui.ctrlExpandedCover) {
       ui.ctrlExpandedCover.src = coverImg.src;
+    }
+  }
+
+  // Copia um texto para a área de transferência (com fallback legado).
+  async function copyTextToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) { }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Compartilha a faixa atual via Web Share API; se indisponível, copia o texto
+  // para a área de transferência e avisa o usuário.
+  async function shareCurrentTrack() {
+    const { track } = getCurrentPlayingTrack();
+    let title = (radioPlaying && radioCurrentChannel)
+      ? radioCurrentChannel.name
+      : getTrackTitle(track);
+    title = (title || 'esta música').trim();
+    const shareText = `🎧 Estou ouvindo ${title} enquanto treino com o HyperFitness! 💪 Acesse: https://hyperfitness.com.br`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // usuário cancelou
+        // outros erros: cai no fallback de copiar
+      }
+    }
+
+    const copied = await copyTextToClipboard(shareText);
+    if (copied) {
+      setFeedback('Texto copiado! Cole em qualquer rede social. 📋', 'success');
+    } else {
+      setFeedback('Não foi possível compartilhar agora.', 'error');
     }
   }
 

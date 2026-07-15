@@ -413,14 +413,22 @@
   <div class="liquid-glass-edge" aria-hidden="true"></div>
   <!-- Capa expandida (flutuante acima da barra) -->
   <div id="expanded-cover-wrapper" class="expanded-cover-wrapper">
-    <!-- Alternador Capa/Vídeo (sempre visível; Vídeo desabilita quando não há clipe) -->
-    <div id="cover-mode-toggle" class="cover-mode-toggle player-glass-btn" role="tablist" aria-label="Alternar entre capa e vídeo">
-      <span class="liquid-glass-edge"></span>
-      <button type="button" class="cover-mode-btn active" data-mode="cover" role="tab" aria-label="Capa">
-        <i class="ph-bold ph-headphones" aria-hidden="true"></i>
-      </button>
-      <button type="button" class="cover-mode-btn" data-mode="video" role="tab" aria-label="Vídeo" disabled aria-disabled="true">
-        <i class="ph-bold ph-video-camera" aria-hidden="true"></i>
+    <!-- Barra superior: alternador Capa/Vídeo + botão Compartilhar lado a lado -->
+    <div class="expanded-cover-topbar">
+      <!-- Alternador Capa/Vídeo (sempre visível; Vídeo desabilita quando não há clipe) -->
+      <div id="cover-mode-toggle" class="cover-mode-toggle player-glass-btn" role="tablist" aria-label="Alternar entre capa e vídeo">
+        <span class="liquid-glass-edge"></span>
+        <button type="button" class="cover-mode-btn active" data-mode="cover" role="tab" aria-label="Capa">
+          <i class="ph-bold ph-headphones" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="cover-mode-btn" data-mode="video" role="tab" aria-label="Vídeo" disabled aria-disabled="true">
+          <i class="ph-bold ph-video-camera" aria-hidden="true"></i>
+        </button>
+      </div>
+      <!-- Compartilhar (Web Share API; fallback: copiar para a área de transferência) -->
+      <button type="button" id="cover-share-btn" class="cover-share-btn player-glass-btn" aria-label="Compartilhar música">
+        <span class="liquid-glass-edge"></span>
+        <i class="ph-bold ph-share-network" aria-hidden="true"></i>
       </button>
     </div>
     <!-- Letras sincronizadas — ocupa o espaço vazio entre o alternador e a capa.

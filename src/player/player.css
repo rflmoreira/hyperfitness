@@ -1219,9 +1219,38 @@
   cursor: pointer;
 }
 
-/* Alternador Capa/Vídeo: tamanho natural, fixo no topo. */
-#player-controls-bar #cover-mode-toggle {
+/* Barra superior (alternador + compartilhar): tamanho natural, fixa no topo. */
+#player-controls-bar .expanded-cover-topbar {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+/* Botão Compartilhar ao lado do alternador. */
+#player-controls-bar .cover-share-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 17px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+#player-controls-bar .cover-share-btn:hover {
+  color: #fff;
+}
+
+#player-controls-bar .cover-share-btn:active {
+  transform: scale(0.92);
 }
 
 /* Área de letras: tamanho natural entre o alternador e a capa; pode encolher. */
