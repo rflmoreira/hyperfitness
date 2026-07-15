@@ -56,6 +56,13 @@ const MUSIC_PLAYER = (() => {
       protocol === 'file:';
   })();
 
+  // Netlify functions disponíveis: produção ou `netlify dev` (porta 888x)
+  const backendAvailable = (() => {
+    if (typeof window === 'undefined') return false;
+    if (!localDevFlag) return true;
+    return window.location.port.toString().startsWith('888');
+  })();
+
   let initPromise = null;
   let initCompleted = false;
 
@@ -4935,9 +4942,25 @@ const MUSIC_PLAYER = (() => {
   }
 
   function cleanTrackTitle(str = '') {
-    return normalizeString(str)
-      .replace(/\b(remix|version|sped up|slow(ed)?|super slowed|ao vivo|feat|ft)\b.*$/i, '')
+    const raw = String(str);
+
+    // 1) Remove blocos entre parênteses/colchetes com metadados (official video, lyrics, remaster...)
+    //    e normaliza (minúsculo, sem acentos, sem pontuação)
+    let cleaned = normalizeString(
+      raw.replace(/[(\[{][^)\]}]*(official|oficial|video|audio|lyric|letra|visualizer|remaster|remix|live|ao vivo|hd|4k|mv|m\/v|clip)[^)\]}]*[)\]}]/gi, ' ')
+    )
+      // 2) Remove termos soltos de metadados (texto já normalizado: minúsculo, sem pontuação)
+      .replace(/\b(official music video|official video|official audio|music video|lyric video|lyrics|letra|legendado|videoclipe|clipe oficial|video oficial|audio oficial|visualizer|official|oficial|audio|video|hd|4k|hq|mv)\b/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
+
+    // 3) Corta sufixos de versão/feat, mas SÓ aceita o corte se sobrar conteúdo antes dele
+    //    (protege títulos legítimos que começam com esses termos, ex: "Live Your Life")
+    const cut = cleaned.replace(/\s*\b(remix|version|sped up|slow(?:ed)?|super slowed|ao vivo|live|remaster(?:ed)?|feat|ft|featuring)\b.*$/, '').trim();
+    if (cut) cleaned = cut;
+
+    // 4) Nunca retorna vazio se o título original tinha conteúdo
+    return cleaned || normalizeString(raw);
   }
 
 
@@ -6278,13 +6301,54 @@ const MUSIC_PLAYER = (() => {
     await playTrack(0);
   }
 
+  /**
+   * Consulta o Deezer via function dedicada no backend (/deezer).
+   * Sem dependência de proxies públicos; a function tem cache próprio.
+   */
+  async function fetchDeezerViaBackend(query, type = 'track') {
+    const startedAt = Date.now();
+    try {
+      const response = await fetchWithTimeout(`/deezer?type=${type}&q=${encodeURIComponent(query)}`, 12000);
+      const elapsed = Date.now() - startedAt;
+
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => null);
+        console.warn(`⚠️ [COVER] Backend Deezer falhou: HTTP ${response.status}, motivo=${errBody?.reason || 'desconhecido'}, q="${query}" (${elapsed}ms)`);
+        return null;
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      const motivo = error.name === 'AbortError' ? 'timeout' : error.message;
+      console.warn(`⚠️ [COVER] Backend Deezer erro: ${motivo}, q="${query}" (${Date.now() - startedAt}ms)`);
+      return null;
+    }
+  }
+
   async function fetchDeezerSearch(query, allowReset = true) {
     if (state.coverSuspendedUntil && Date.now() < state.coverSuspendedUntil) {
       return null;
     }
 
+    // Produção / netlify dev: usa exclusivamente a function dedicada (sem proxies públicos)
+    if (backendAvailable) {
+      const backendData = await fetchDeezerViaBackend(query, 'track');
+      if (backendData) {
+        state.coverFailureStreak = 0;
+        return backendData;
+      }
+      state.coverFailureStreak += 1;
+      if (state.coverFailureStreak >= COVER_FAILURE_THRESHOLD) {
+        state.coverSuspendedUntil = Date.now() + COVER_SUSPEND_MS;
+        console.warn(`⏳ [COVER] Suspenso por ${Math.round(COVER_SUSPEND_MS / 1000)}s após falhas consecutivas`);
+      }
+      return null;
+    }
+
+    // Dev local puro (sem functions): proxies públicos apenas como recurso de desenvolvimento
     const errors = [];
-    const baseUrl = `https://api.deezer.com/search?q=${query}`;
+    const baseUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}`;
     const orderedProxies = (() => {
       const list = [...DEEZER_PROXIES];
       if (state.coverLastSuccessProxy) {
@@ -6406,6 +6470,10 @@ const MUSIC_PLAYER = (() => {
     return null;
   }
 
+  // Scores mínimos para aceitar uma capa (0..1) — melhor capa genérica do que capa errada
+  const COVER_MIN_SCORE = 0.5;
+  const PLAYLIST_COVER_MIN_SCORE = 0.6;
+
   async function buscarCapaPlaylist(playlistName) {
     const normalizedName = normalizeQuery(playlistName);
     if (!normalizedName) return null;
@@ -6414,8 +6482,68 @@ const MUSIC_PLAYER = (() => {
     const cached = getCoverCache(cacheKey);
     if (cached) return cached;
 
+    // Respeita a suspensão global de buscas de capas (mesma política de fetchDeezerSearch)
+    if (state.coverSuspendedUntil && Date.now() < state.coverSuspendedUntil) {
+      return null;
+    }
+
+    const startedAt = Date.now();
+    const normTarget = normalizeForAudioMatch(normalizedName);
+
+    // Helper: escolhe a melhor playlist do resultado usando similaridade de tokens
+    // (mesmo pipeline de normalização/score usado nas capas de faixas e no 4shared)
+    const pickBestPlaylistCover = (parsed) => {
+      if (!parsed?.data?.length || !normTarget) return null;
+      const best = parsed.data
+        .map(pl => {
+          const normTitle = normalizeForAudioMatch(pl.title || '');
+          let score = tokenDiceSimilarity(normTarget, normTitle);
+          // Bônus quando um nome contém o outro por inteiro (ex: "workout" vs "workout mix")
+          if (normTitle && (normTitle.includes(normTarget) || normTarget.includes(normTitle))) {
+            score = Math.max(score, 0.7);
+          }
+          return {
+            cover: pl.picture_xl || pl.picture_big || pl.picture_medium || null,
+            score,
+            title: pl.title
+          };
+        })
+        .filter(entry => entry.cover)
+        .sort((a, b) => b.score - a.score)[0];
+      return (best?.cover && best.score >= PLAYLIST_COVER_MIN_SCORE) ? best : null;
+    };
+
+    // Produção / netlify dev: usa exclusivamente a function dedicada
+    if (backendAvailable) {
+      const parsed = await fetchDeezerViaBackend(normalizedName, 'playlist');
+      if (!parsed) {
+        // Falha de backend/rede: alimenta o streak para a suspensão global funcionar
+        state.coverFailureStreak += 1;
+        if (state.coverFailureStreak >= COVER_FAILURE_THRESHOLD) {
+          state.coverSuspendedUntil = Date.now() + COVER_SUSPEND_MS;
+          console.warn(`⏳ [COVER] Suspenso por ${Math.round(COVER_SUSPEND_MS / 1000)}s após falhas consecutivas`);
+        }
+        return null;
+      }
+
+      state.coverFailureStreak = 0;
+      const best = pickBestPlaylistCover(parsed);
+      if (best) {
+        console.log(`🖼️ [COVER] Capa de playlist: "${best.title}" (score ${(best.score * 100).toFixed(0)}%) para "${normalizedName}" (${Date.now() - startedAt}ms)`);
+        setCoverCache(cacheKey, best.cover);
+        return best.cover;
+      }
+
+      // Resposta obtida mas sem correspondência confiável: cacheia o fallback
+      // para não repetir a mesma busca a cada renderização (miss definitivo)
+      console.warn(`⚠️ [COVER] Nenhuma capa de playlist confiável para "${normalizedName}" (${Date.now() - startedAt}ms)`);
+      setCoverCache(cacheKey, getFallbackCover());
+      return null;
+    }
+
+    // Dev local puro: proxies públicos apenas como recurso de desenvolvimento
     try {
-      const baseUrl = `https://api.deezer.com/search/playlist?q=${normalizedName}`;
+      const baseUrl = `https://api.deezer.com/search/playlist?q=${encodeURIComponent(normalizedName)}`;
       const orderedProxies = [...DEEZER_PROXIES];
 
       for (const build of orderedProxies) {
@@ -6441,22 +6569,11 @@ const MUSIC_PLAYER = (() => {
           // Desembrulha AllOrigins se necessário
           parsed = unwrapAllOriginsResponse(parsed);
 
-          if (parsed?.data?.length) {
-            // Busca a playlist com melhor match
-            const best = parsed.data
-              .map(pl => ({
-                cover: pl.picture_xl || pl.picture_big || pl.picture_medium || null,
-                score: calculateStringSimilarity(normalizedName, pl.title || ''),
-                title: pl.title
-              }))
-              .filter(entry => entry.cover)
-              .sort((a, b) => b.score - a.score)[0];
-
-            if (best?.cover && best.score > 0.6) {
-              setCoverCache(cacheKey, best.cover);
-              state.coverProxyFailCount.set(id, 0);
-              return best.cover;
-            }
+          const best = pickBestPlaylistCover(parsed);
+          if (best) {
+            setCoverCache(cacheKey, best.cover);
+            state.coverProxyFailCount.set(id, 0);
+            return best.cover;
           }
         } catch (error) {
           const msg = (error?.message || '').toLowerCase();
@@ -6486,100 +6603,135 @@ const MUSIC_PLAYER = (() => {
     const cacheKey = `${trackName}|${artistName}`.toLowerCase();
     const cached = getCoverCache(cacheKey);
     if (cached) {
-      state.coverFailureStreak = 0;
       return cached;
     }
 
+    // Durante suspensão global (muitas falhas), devolve o fallback SEM cachear,
+    // para que a capa real seja tentada de novo quando a suspensão terminar
+    if (state.coverSuspendedUntil && Date.now() < state.coverSuspendedUntil) {
+      return getFallbackCover();
+    }
+
+    const startedAt = Date.now();
     const cleanTitle = cleanTrackTitle(trackName);
     const cleanArtist = normalizeString(artistName);
 
-    // Tenta extrair artista e título se o nome contém separadores (comum em faixas do YouTube)
-    let extractedPart1 = '';
-    let extractedPart2 = '';
-
-    // Padrões: "Parte1 - Parte2", "Parte1 | Parte2", "Parte1 – Parte2"
-    const separatorMatch = trackName.match(/^(.+?)\s*[-|–]\s*(.+)$/);
+    // Extrai as partes quando o nome vem como "Parte1 - Parte2" (comum em faixas do YouTube).
+    // Padrões: "Parte1 - Parte2", "Parte1 | Parte2", "Parte1 – Parte2", "Parte1 — Parte2"
+    let part1 = '';
+    let part2 = '';
+    const separatorMatch = trackName.match(/^(.+?)\s*[-|–—]\s*(.+)$/);
     if (separatorMatch) {
-      extractedPart1 = normalizeString(separatorMatch[1].trim());
-      extractedPart2 = cleanTrackTitle(separatorMatch[2].trim());
-      // Remove parênteses extras
-      extractedPart2 = extractedPart2.replace(/\s*\([^)]*\)\s*$/, '').trim();
+      part1 = cleanTrackTitle(separatorMatch[1]);
+      part2 = cleanTrackTitle(separatorMatch[2]);
     }
 
-    const queries = [
+    // Estratégias de busca, da mais específica à mais genérica (sem duplicatas)
+    const queries = [...new Set([
       // Assume "Artista - Música"
-      extractedPart1 && extractedPart2
-        ? `track:"${extractedPart2}" artist:"${extractedPart1}"`
-        : null,
-      // Assume "Música - Info" (busca só a primeira parte como título)
-      extractedPart1
-        ? `track:"${extractedPart1}"`
-        : null,
-      // Busca só com segunda parte extraída
-      extractedPart2 && extractedPart2 !== cleanTitle
-        ? `track:"${extractedPart2}"`
-        : null,
-      // Busca com artista passado (pode ser nome do canal)
-      cleanArtist
-        ? `track:"${extractedPart2 || extractedPart1 || cleanTitle}" artist:"${cleanArtist}"`
-        : null,
-      // Busca simples com título limpo
+      part1 && part2 ? `track:"${part2}" artist:"${part1}"` : null,
+      // Artista informado (pode ser o nome do canal)
+      cleanArtist ? `track:"${part2 || cleanTitle}" artist:"${cleanArtist}"` : null,
+      // Assume "Música - Artista"
+      part1 && part2 ? `track:"${part1}" artist:"${part2}"` : null,
+      // Assume "Música - Info" (só a primeira parte como título)
+      part1 ? `track:"${part1}"` : null,
+      part2 && part2 !== cleanTitle ? `track:"${part2}"` : null,
+      // Título limpo completo
       `track:"${cleanTitle}"`,
-      // Busca genérica - primeira parte + segunda parte
-      extractedPart1 && extractedPart2
-        ? `${extractedPart1} ${extractedPart2}`
-        : null,
-      // Fallback: busca genérica com título original
-      cleanTitle
+      // Buscas genéricas (sem operadores) como último recurso
+      part1 && part2 ? `${part1} ${part2}` : null,
+      cleanArtist ? `${cleanTitle} ${cleanArtist}` : cleanTitle
+    ].filter(Boolean))];
+
+    // Interpretações possíveis de (título, artista) para pontuar os resultados,
+    // normalizadas com o MESMO pipeline do matching de áudio (consistência com o 4shared)
+    const interpretationSeeds = [
+      { title: cleanTitle, artist: cleanArtist },
+      part1 && part2 ? { title: part2, artist: part1 } : null, // "Artista - Título"
+      part1 && part2 ? { title: part1, artist: part2 } : null, // "Título - Artista"
+      part1 ? { title: part1, artist: cleanArtist } : null,
+      part2 ? { title: part2, artist: cleanArtist } : null
     ].filter(Boolean);
 
-    // Remove duplicatas
-    const uniqueQueries = [...new Set(queries)];
+    const seenInterps = new Set();
+    const interpretations = [];
+    for (const seed of interpretationSeeds) {
+      const title = normalizeForAudioMatch(seed.title);
+      const artist = seed.artist ? normalizeForAudioMatch(seed.artist) : '';
+      if (!title) continue;
+      const k = `${title}|${artist}`;
+      if (seenInterps.has(k)) continue;
+      seenInterps.add(k);
+      interpretations.push({ title, artist });
+    }
+
+    // Pontua um item do Deezer contra todas as interpretações e fica com a melhor
+    // (título pesa 60%, artista 40% — mesmos pesos do score do 4shared)
+    const scoreCoverItem = (item) => {
+      const itemTitle = normalizeForAudioMatch(item.title_short || item.title || '');
+      const itemArtist = normalizeForAudioMatch(item.artist?.name || '');
+      let best = { score: 0, titleSim: 0, artistSim: 0 };
+      if (!itemTitle) return best;
+      for (const interp of interpretations) {
+        const titleSim = tokenDiceSimilarity(interp.title, itemTitle);
+        const artistSim = (interp.artist && itemArtist) ? tokenDiceSimilarity(interp.artist, itemArtist) : 0;
+        const score = interp.artist
+          ? (titleSim * 0.6) + (artistSim * 0.4)
+          : titleSim;
+        if (score > best.score) best = { score, titleSim, artistSim };
+      }
+      return best;
+    };
 
     let deezerData = null;
-    for (const q of uniqueQueries) {
+    let gotResponse = false;
+    let queryUsed = '';
+    for (const q of queries) {
       try {
-        deezerData = await fetchDeezerSearch(q);
-        if (deezerData?.data?.length) break;
+        const result = await fetchDeezerSearch(q);
+        if (result) gotResponse = true;
+        if (result?.data?.length) {
+          deezerData = result;
+          queryUsed = q;
+          break;
+        }
       } catch (_) { }
     }
 
     if (deezerData?.data?.length) {
-      // Tenta match com ambas as partes extraídas
-      const matchTerms = [extractedPart1, extractedPart2, cleanTitle, cleanArtist].filter(Boolean);
-
       const best = deezerData.data
-        .map(item => {
-          const itemTitle = (item.title || item.title_short || '').toLowerCase();
-          const itemArtist = (item.artist?.name || '').toLowerCase();
-
-          // Calcula score baseado em quantos termos batem
-          let score = 0;
-          for (const term of matchTerms) {
-            const termLower = term.toLowerCase();
-            if (itemTitle.includes(termLower) || termLower.includes(itemTitle)) score += 0.3;
-            if (itemArtist.includes(termLower) || termLower.includes(itemArtist)) score += 0.3;
-          }
-
-          return {
-            cover: item.album?.cover_xl || item.album?.cover_big || item.album?.cover_medium || null,
-            score
-          };
-        })
+        .map(item => ({
+          ...scoreCoverItem(item),
+          cover: item.album?.cover_xl || item.album?.cover_big || item.album?.cover_medium || null,
+          title: item.title_short || item.title || '',
+          artist: item.artist?.name || ''
+        }))
         .filter(entry => entry.cover && entry.score > 0)
         .sort((a, b) => b.score - a.score)[0];
 
-      if (best?.cover) {
+      if (best?.cover && best.score >= COVER_MIN_SCORE) {
+        console.log(`🖼️ [COVER] Capa aceita: "${best.title}" - "${best.artist}" (score ${(best.score * 100).toFixed(0)}%, título ${(best.titleSim * 100).toFixed(0)}%, artista ${(best.artistSim * 100).toFixed(0)}%) para "${trackName}" via ${queryUsed} (${Date.now() - startedAt}ms)`);
         setCoverCache(cacheKey, best.cover);
         state.coverFailureStreak = 0;
         return best.cover;
       }
+
+      if (best) {
+        console.warn(`⚠️ [COVER] Melhor candidato rejeitado por score baixo: "${best.title}" - "${best.artist}" (score ${(best.score * 100).toFixed(0)}% < ${COVER_MIN_SCORE * 100}%) para "${trackName}" - "${artistName}" (${Date.now() - startedAt}ms)`);
+      }
     }
 
-    const fallback = getFallbackCover(trackName);
-    setCoverCache(cacheKey, fallback);
-    state.coverFailureStreak = 0;
-    console.warn(`❌ [COVER] Nenhuma capa Deezer para "${trackName}", usando capa padrão`);
+    const fallback = getFallbackCover();
+    if (gotResponse) {
+      // Miss definitivo (Deezer respondeu, mas sem correspondência confiável):
+      // cacheia o fallback para não repetir as mesmas buscas
+      console.warn(`❌ [COVER] Nenhuma capa confiável para "${trackName}" - "${artistName}", usando capa padrão (${Date.now() - startedAt}ms)`);
+      setCoverCache(cacheKey, fallback);
+    } else {
+      // Falha transitória (rede/suspensão): NÃO cacheia, para tentar de novo depois
+      console.warn(`⚠️ [COVER] Busca de capa indisponível para "${trackName}" (falha transitória), usando capa padrão sem cache (${Date.now() - startedAt}ms)`);
+    }
     return fallback;
   }
 
@@ -8498,6 +8650,156 @@ const MUSIC_PLAYER = (() => {
 
   // === 4shared Fallback Functions ===
 
+  // Termos de ruído comuns em nomes de arquivos de música (removidos antes da comparação)
+  const AUDIO_MATCH_JUNK_TERMS = [
+    'official music video', 'official video', 'official audio', 'music video',
+    'lyric video', 'lyrics', 'letra', 'legendado', 'visualizer', 'videoclipe',
+    'clipe oficial', 'video oficial', 'audio oficial', 'official', 'oficial',
+    'audio', 'video', 'hd', '4k', 'hq', 'full hd', 'high quality',
+    '320kbps', '256kbps', '192kbps', '128kbps', 'kbps', 'mp3', 'download',
+    'remastered', 'remaster', 'live', 'ao vivo', 'remix', 'radio edit',
+    'extended', 'original mix', 'bonus track', 'album version', 'single version'
+  ];
+
+  /**
+   * Normaliza um texto para comparação de correspondência musical:
+   * remove extensão, acentos, conteúdo entre parênteses/colchetes,
+   * sufixos de feat./ft. e termos de ruído (official video, lyrics, etc).
+   */
+  function normalizeForAudioMatch(text = '') {
+    let t = String(text)
+      .replace(/\.(mp3|m4a|aac|ogg|wav|flac|wma)$/i, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      // remove blocos entre parênteses/colchetes/chaves (metadados na maioria dos casos)
+      .replace(/[(\[{][^)\]}]*[)\]}]/g, ' ')
+      // corta sufixo de feat/ft/featuring
+      .replace(/\b(feat|ft|featuring)\b\.?.*$/i, ' ')
+      // remove urls/sites embutidos no nome do arquivo
+      .replace(/\b(www\.)?[a-z0-9-]+\.(com|net|org|info|biz)\b/g, ' ');
+
+    for (const term of AUDIO_MATCH_JUNK_TERMS) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      t = t.replace(new RegExp(`\\b${escaped}\\b`, 'g'), ' ');
+    }
+
+    return t.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * Similaridade entre dois textos normalizados via coeficiente de Dice
+   * sobre tokens: penaliza tokens extras/faltantes em ambos os lados
+   * (evita que "state of mind" case com "empire state of mind" só por inclusão).
+   */
+  function tokenDiceSimilarity(a = '', b = '') {
+    const ta = a.split(' ').filter(Boolean);
+    const tb = b.split(' ').filter(Boolean);
+    if (!ta.length || !tb.length) return 0;
+
+    const remaining = [...tb];
+    let common = 0;
+    for (const token of ta) {
+      const idx = remaining.indexOf(token);
+      if (idx !== -1) {
+        common += 1;
+        remaining.splice(idx, 1);
+      }
+    }
+    return (2 * common) / (ta.length + tb.length);
+  }
+
+  /**
+   * Pontua um candidato do 4shared contra a faixa desejada.
+   * Compara título e artista SEPARADAMENTE, testando as divisões
+   * "Artista - Título" e "Título - Artista" do nome do arquivo.
+   * Retorna { score, titleSim, artistSim } com score em 0..1.
+   */
+  function score4sharedCandidate(fileName, trackName, artistName) {
+    const normFile = normalizeForAudioMatch(fileName);
+    const normTrack = normalizeForAudioMatch(trackName);
+    const normArtist = normalizeForAudioMatch(artistName);
+    if (!normFile || !normTrack) return { score: 0, titleSim: 0, artistSim: 0 };
+
+    const candidates = [];
+
+    // Variante 1: arquivo inteiro contra o título (sem divisão)
+    candidates.push({
+      titleSim: tokenDiceSimilarity(normFile, normTrack),
+      artistSim: normArtist ? tokenDiceSimilarity(normFile, normArtist) : 0
+    });
+
+    // Variante 2: divisões por hífen ("Artista - Título" e "Título - Artista")
+    const rawParts = String(fileName).replace(/\.(mp3|m4a|aac|ogg|wav|flac|wma)$/i, '').split(/\s*[-–—]\s*/);
+    if (rawParts.length >= 2) {
+      for (let i = 1; i < rawParts.length; i++) {
+        const left = normalizeForAudioMatch(rawParts.slice(0, i).join(' '));
+        const right = normalizeForAudioMatch(rawParts.slice(i).join(' '));
+        if (!left || !right) continue;
+
+        // "Artista - Título"
+        candidates.push({
+          titleSim: tokenDiceSimilarity(right, normTrack),
+          artistSim: normArtist ? tokenDiceSimilarity(left, normArtist) : 0
+        });
+        // "Título - Artista"
+        candidates.push({
+          titleSim: tokenDiceSimilarity(left, normTrack),
+          artistSim: normArtist ? tokenDiceSimilarity(right, normArtist) : 0
+        });
+      }
+    }
+
+    // Variante 3: remove os tokens do artista do arquivo e compara o resto com o título
+    if (normArtist) {
+      const artistTokens = normArtist.split(' ').filter(Boolean);
+      const fileTokens = normFile.split(' ').filter(Boolean);
+      let found = 0;
+      const residue = [];
+      const pool = [...artistTokens];
+      for (const token of fileTokens) {
+        const idx = pool.indexOf(token);
+        if (idx !== -1) {
+          found += 1;
+          pool.splice(idx, 1);
+        } else {
+          residue.push(token);
+        }
+      }
+      const artistCoverage = artistTokens.length ? found / artistTokens.length : 0;
+      candidates.push({
+        titleSim: tokenDiceSimilarity(residue.join(' '), normTrack),
+        artistSim: artistCoverage
+      });
+    }
+
+    // Escolhe a melhor variante (título pesa 60%, artista 40%)
+    let best = { score: 0, titleSim: 0, artistSim: 0 };
+    for (const c of candidates) {
+      const score = normArtist
+        ? (c.titleSim * 0.6) + (c.artistSim * 0.4)
+        : c.titleSim;
+      if (score > best.score) {
+        best = { score, titleSim: c.titleSim, artistSim: c.artistSim };
+      }
+    }
+
+    // Penalidade para versões alternativas não pedidas (cover, remix, karaoke...)
+    const rawLower = String(fileName).toLowerCase();
+    const trackLower = String(trackName).toLowerCase();
+    const negTerms = ['cover', 'remix', 'karaoke', 'instrumental', 'ringtone', '8d audio', 'nightcore', 'sped up', 'slowed', 'reverb', 'acapella', 'tribute'];
+    if (negTerms.some(t => rawLower.includes(t) && !trackLower.includes(t))) {
+      best.score -= 0.25;
+    }
+
+    best.score = Math.max(0, Math.min(1, best.score));
+    return best;
+  }
+
+  // Score mínimo para aceitar um fallback do 4shared (0..1).
+  // É preferível NÃO ter fallback do que tocar a música errada.
+  const FOURSHARED_MIN_SCORE = 0.8;
+  const FOURSHARED_MIN_TITLE_SIM = 0.6;
+
   /**
    * Busca uma faixa no 4shared como fonte alternativa de áudio.
    * Ativado quando YouTube + RapidAPI falham.
@@ -8511,6 +8813,7 @@ const MUSIC_PLAYER = (() => {
     const query = `${trackName} ${artistName}`.trim();
     if (!query) return null;
 
+    const startedAt = Date.now();
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
@@ -8528,45 +8831,29 @@ const MUSIC_PLAYER = (() => {
       const data = await response.json();
       const files = data?.files;
       if (!Array.isArray(files) || !files.length) {
+        console.log(`🔍 [4SHARED] Sem resultados para "${query}" (${Date.now() - startedAt}ms)`);
         return null;
       }
 
-      // Pontua e seleciona o melhor resultado
+      // Pontua com comparação separada de título/artista (normalizada)
       const scored = files.map(file => {
-        let score = 0;
-        const fileName = (file.name || '').toLowerCase();
-        const trackLower = trackName.toLowerCase();
-        const artistLower = artistName.toLowerCase();
-
-        // Pontuação por nome da faixa (0-50)
-        const titleSim = calculateStringSimilarity(fileName, trackLower);
-        score += titleSim * 50;
-
-        // Pontuação por artista (0-30)
-        if (artistLower) {
-          const artistSim = calculateStringSimilarity(fileName, artistLower);
-          score += artistSim * 30;
-        }
-
-        // Bonus se contém ambos nome e artista
-        if (fileName.includes(trackLower) || trackLower.includes(fileName)) score += 10;
-        if (artistLower && fileName.includes(artistLower)) score += 10;
-
-        // Penalidade para covers, remixes etc.
-        const negTerms = ['cover', 'remix', 'karaoke', 'instrumental', 'ringtone', '8d audio'];
-        if (negTerms.some(t => fileName.includes(t) && !trackLower.includes(t))) {
-          score -= 15;
-        }
-
-        return { ...file, score };
+        const match = score4sharedCandidate(file.name || '', trackName, artistName);
+        return { ...file, ...match };
       });
 
       scored.sort((a, b) => b.score - a.score);
       const best = scored[0];
+      const elapsed = Date.now() - startedAt;
 
-      if (!best || best.score < 5) return null;
+      // Rejeita match fraco: melhor não ter fallback do que tocar música errada
+      if (!best || best.score < FOURSHARED_MIN_SCORE || best.titleSim < FOURSHARED_MIN_TITLE_SIM) {
+        const pct = best ? (best.score * 100).toFixed(0) : '0';
+        const titlePct = best ? (best.titleSim * 100).toFixed(0) : '0';
+        console.warn(`❌ [4SHARED] Rejeitado: melhor candidato "${best?.name || 'nenhum'}" com score ${pct}% (título ${titlePct}%) < mínimo ${FOURSHARED_MIN_SCORE * 100}% para "${trackName}" - "${artistName}" (${elapsed}ms)`);
+        return null;
+      }
 
-      console.log(`🔄 [4SHARED] Found fallback: "${best.name}" (score: ${best.score.toFixed(1)})`);
+      console.log(`🔄 [4SHARED] Match aceito: "${best.name}" score ${(best.score * 100).toFixed(0)}% (título ${(best.titleSim * 100).toFixed(0)}%, artista ${(best.artistSim * 100).toFixed(0)}%) para "${trackName}" - "${artistName}" (${elapsed}ms)`);
       return {
         fileId: best.id,
         name: best.name,
@@ -8650,11 +8937,22 @@ const MUSIC_PLAYER = (() => {
   // === End 4shared Fallback Functions ===
 
   async function resolveTrackAudio(track, index, forceRefresh = false) {
+    if (!track) return null;
+
     const key = getTrackKey(track);
+    const startedAt = Date.now();
+    const label = track.name || 'desconhecida';
+
+    // Logs padronizados: fonte do áudio + tempo total de resolução
+    const logSource = (source, extra = '') =>
+      console.log(`🎵 [RESOLVE] "${label}" -> fonte=${source}${extra ? ` ${extra}` : ''} (${Date.now() - startedAt}ms)`);
+    const warnStage = (stage, detail = '') =>
+      console.warn(`❌ [RESOLVE] "${label}" falhou na etapa "${stage}"${detail ? `: ${detail}` : ''} (${Date.now() - startedAt}ms)`);
 
     if (!forceRefresh) {
       const cached = getCacheEntry(state.searchCache, key);
       if (cached !== null) {
+        logSource('cache');
         return cached;
       }
     }
@@ -8674,11 +8972,17 @@ const MUSIC_PLAYER = (() => {
             lengthSeconds: Math.floor((track.duration_ms || 0) / 1000)
           };
           if (key) setCacheEntry(state.searchCache, key, fsResult);
+          logSource('4shared-sticky', `(fileId=${track._foursharedFileId})`);
           return fsResult;
         }
         // Se não obteve o stream do mesmo arquivo, tenta nova busca no 4shared.
+        console.warn(`⚠️ [RESOLVE] "${label}": stream 4shared indisponível, refazendo busca no 4shared...`);
         const rebuilt = await tryFoursharedFallback(track, index);
-        if (rebuilt) return rebuilt;
+        if (rebuilt) {
+          logSource('4shared-rebusca');
+          return rebuilt;
+        }
+        warnStage('4shared-rebusca', 'sem correspondência confiável');
         return null;
       }
 
@@ -8697,10 +9001,13 @@ const MUSIC_PLAYER = (() => {
       } else {
         video = await findVideoForTrack(track);
         if (!video) {
-          console.warn(`❌ [AUDIO] Nenhum vídeo encontrado para "${track.name}", tentando 4shared...`);
-          // Fallback: tenta 4shared quando YouTube não encontra nada
+          console.warn(`⚠️ [RESOLVE] "${label}": busca no YouTube sem resultados, tentando fallback 4shared... (${Date.now() - startedAt}ms)`);
           const foursharedResult = await tryFoursharedFallback(track, index);
-          if (foursharedResult) return foursharedResult;
+          if (foursharedResult) {
+            logSource('4shared', '(motivo: YouTube sem resultados)');
+            return foursharedResult;
+          }
+          warnStage('busca', 'nenhuma fonte encontrada (YouTube e 4shared)');
           return null;
         }
       }
@@ -8711,10 +9018,13 @@ const MUSIC_PLAYER = (() => {
       }
       const audioUrl = await getAudioUrl(video.videoId);
       if (!audioUrl) {
-        console.warn(`❌ [AUDIO] Não foi possível resolver stream para "${track.name}" (${video.videoId}), tentando 4shared...`);
-        // Fallback: tenta 4shared quando RapidAPI não consegue extrair áudio
+        console.warn(`⚠️ [RESOLVE] "${label}": extração /audio falhou (${video.videoId}), tentando fallback 4shared... (${Date.now() - startedAt}ms)`);
         const foursharedResult = await tryFoursharedFallback(track, index);
-        if (foursharedResult) return foursharedResult;
+        if (foursharedResult) {
+          logSource('4shared', '(motivo: extração /audio falhou)');
+          return foursharedResult;
+        }
+        warnStage('extracao', 'sem fonte após fallback 4shared');
         return null;
       }
 
@@ -8731,16 +9041,20 @@ const MUSIC_PLAYER = (() => {
 
       const result = { ...video, audioUrl };
       setCacheEntry(state.searchCache, key, result);
+      logSource('api', `(${video.instance || 'youtube'})`);
       return result;
     } catch (error) {
-      console.warn(`❌ [AUDIO] Erro ao resolver faixa "${track?.name || 'desconhecida'}": ${error.message}`);
-      // Fallback: tenta 4shared em caso de erro inesperado
+      console.warn(`⚠️ [RESOLVE] "${label}": erro inesperado (${error.message}), tentando fallback 4shared... (${Date.now() - startedAt}ms)`);
       try {
         const foursharedResult = await tryFoursharedFallback(track, index);
-        if (foursharedResult) return foursharedResult;
+        if (foursharedResult) {
+          logSource('4shared', '(motivo: erro inesperado na resolução)');
+          return foursharedResult;
+        }
       } catch (fbError) {
         console.warn(`❌ [4SHARED] Fallback também falhou: ${fbError.message}`);
       }
+      warnStage('resolucao', error.message);
       return null;
     }
   }
@@ -9171,35 +9485,61 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  // Busca URL de áudio via RapidAPI com retry para 429
+  // Busca URL de áudio via RapidAPI com retry para 429 (rate limit) e 202 (conversão em andamento)
   async function getAudioUrl(videoId, retryCount = 0) {
     if (!videoId) return null;
 
     const cached = getCacheEntry(state.audioCache, videoId, AUDIO_URL_TTL_MS);
-    if (cached !== null) return cached;
+    if (cached !== null) {
+      console.log(`🎵 [AUDIO] Origem: cache (${videoId})`);
+      return cached;
+    }
 
+    const startedAt = Date.now();
     try {
       const response = await fetch(`/audio?v=${videoId}`);
+      const elapsed = Date.now() - startedAt;
 
       // Rate limit - retry com backoff
       if (response.status === 429 && retryCount < 3) {
         const retryDelay = (retryCount + 1) * 2000; // 2s, 4s, 6s
-        console.warn(`⏳ [AUDIO] Rate limited, retrying in ${retryDelay / 1000}s...`);
+        console.warn(`⏳ [AUDIO] Rate limited (${elapsed}ms), retrying in ${retryDelay / 1000}s...`);
         await delay(retryDelay);
         return getAudioUrl(videoId, retryCount + 1);
       }
 
+      // Conversão em andamento no upstream - re-tenta (backend retorna 202)
+      if (response.status === 202) {
+        if (retryCount < 4) {
+          console.log(`⏳ [AUDIO] Conversão em andamento (${elapsed}ms), aguardando 3s... (tentativa ${retryCount + 1}/4)`);
+          await delay(3000);
+          return getAudioUrl(videoId, retryCount + 1);
+        }
+        console.warn(`⚠️ [AUDIO] Conversão não terminou após ${retryCount} tentativas (${videoId})`);
+        return null;
+      }
+
       if (!response.ok) {
-        console.warn(`⚠️ [AUDIO] API returned ${response.status}`);
+        const errBody = await response.json().catch(() => null);
+        const reason = errBody?.reason || 'desconhecido';
+        console.warn(`⚠️ [AUDIO] API falhou: HTTP ${response.status}, motivo=${reason} (${elapsed}ms, ${videoId})`);
+
+        // Erros transitórios do backend: uma re-tentativa extra
+        if (errBody?.retryable && retryCount < 2) {
+          await delay(2000);
+          return getAudioUrl(videoId, retryCount + 1);
+        }
         return null;
       }
 
       const data = await response.json();
 
       if (!data.audioUrl) {
-        console.warn(`⚠️ [AUDIO] No audio URL in response`);
+        console.warn(`⚠️ [AUDIO] Resposta sem audioUrl (${elapsed}ms, ${videoId})`);
         return null;
       }
+
+      console.log(`🎵 [AUDIO] Origem: API em ${elapsed}ms (${videoId})`);
 
       // Cache a URL
       setCacheEntry(state.audioCache, videoId, data.audioUrl);
@@ -9208,7 +9548,7 @@ const MUSIC_PLAYER = (() => {
       return data.audioUrl;
 
     } catch (err) {
-      console.error(`❌ [AUDIO] Error fetching audio: ${err.message}`);
+      console.error(`❌ [AUDIO] Error fetching audio: ${err.message} (${Date.now() - startedAt}ms)`);
       return null;
     }
   }
