@@ -1739,6 +1739,23 @@ body.video-fullscreen-active #quick-actions-nav {
   transform: translateY(0);
 }
 
+/* Dentro do painel semanal, o mini-player participa do fluxo e fica logo
+   acima dos controles de conclusão/ações rápidas. */
+.hf-week-sheet__sticky-footer > #mini-player-bar {
+  position: relative;
+  inset: auto;
+  display: none;
+  width: 100%;
+  max-width: var(--hf-week-sheet-content-max, var(--app-shell-max-width, 56rem));
+  margin: 0 auto;
+  transform: none;
+}
+
+.hf-week-sheet__sticky-footer > #mini-player-bar.visible {
+  display: block;
+  transform: none;
+}
+
 /* Player Modal */
 #player-modal {
   padding: 0;

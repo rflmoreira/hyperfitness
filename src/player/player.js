@@ -24,6 +24,14 @@ async function injectPlayerHtml() {
     const playerContainer = document.createElement('div');
     playerContainer.id = 'player-container';
     playerContainer.innerHTML = html;
+
+    // O mini-player pertence ao fluxo do painel semanal, imediatamente antes
+    // dos controles fixados ao rodapé. O restante do player continua global.
+    const miniPlayerBar = playerContainer.querySelector('#mini-player-bar');
+    const weekSheetControls = document.querySelector('.hf-week-sheet__controls');
+    if (miniPlayerBar && weekSheetControls) {
+      weekSheetControls.before(miniPlayerBar);
+    }
     
     // Inserir antes do primeiro script ou no final do body
     document.body.appendChild(playerContainer);

@@ -3992,12 +3992,17 @@
       margin: 0 !important;
     }
 
-    .hf-week-sheet__controls {
+    .hf-week-sheet__sticky-footer {
       position: sticky;
       bottom: calc(-1.1rem - env(safe-area-inset-bottom, 0px));
       z-index: 4;
       width: 100%;
       margin-top: 1rem;
+    }
+
+    .hf-week-sheet__controls {
+      position: relative;
+      width: 100%;
       padding: 0.75rem 0 calc(1.1rem + env(safe-area-inset-bottom, 0px));
     }
 
@@ -9103,6 +9108,161 @@
       letter-spacing: 0.06em;
     }
 
+    /* Quick actions — mesma superfície Liquid Glass do mini-player.
+       O background não é redefinido para preservar apenas as cores das variantes. */
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass,
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass {
+      position: relative;
+      border: 1px solid transparent;
+      border-radius: 9999px;
+      backdrop-filter: blur(4px) brightness(1.5) saturate(300%) contrast(1.08);
+      -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(300%) contrast(1.08);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.28),
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 0 20px rgba(255, 255, 255, 0.04);
+      overflow: visible;
+      isolation: isolate;
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    }
+
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass:hover:not(:disabled),
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass:hover:not(:disabled),
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass:disabled,
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass:disabled {
+      border-color: transparent;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.28),
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 0 20px rgba(255, 255, 255, 0.04);
+    }
+
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass:hover:not(:disabled),
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass:hover:not(:disabled) {
+      transform: none;
+    }
+
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass:active:not(:disabled),
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass:disabled::before {
+      opacity: 1;
+    }
+
+    /* Mesmo perfil óptico das bordas do mini-player. */
+    .hf-week-sheet__controls .liquid-glass > .liquid-glass-edge {
+      -webkit-mask:
+        linear-gradient(90deg, #fff 0, rgba(255, 255, 255, 0.9) 8px, transparent 34px, transparent calc(100% - 34px), rgba(255, 255, 255, 0.9) calc(100% - 8px), #fff 100%),
+        linear-gradient(180deg, #fff 0, rgba(255, 255, 255, 0.9) 5px, transparent 20px, transparent calc(100% - 20px), rgba(255, 255, 255, 0.9) calc(100% - 5px), #fff 100%);
+      mask:
+        linear-gradient(90deg, #fff 0, rgba(255, 255, 255, 0.9) 8px, transparent 34px, transparent calc(100% - 34px), rgba(255, 255, 255, 0.9) calc(100% - 8px), #fff 100%),
+        linear-gradient(180deg, #fff 0, rgba(255, 255, 255, 0.9) 5px, transparent 20px, transparent calc(100% - 20px), rgba(255, 255, 255, 0.9) calc(100% - 5px), #fff 100%);
+    }
+
+    /* O toggle tinha um glow antigo em ::after; restaura o sheen do mini-player. */
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass::after,
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass.is-open::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(100% 60% at 50% 0%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(100% 40% at 50% 100%, rgba(255, 255, 255, 0.06) 0%, transparent 55%),
+        radial-gradient(12% 60% at 5% 50%, rgba(255, 255, 255, 0.10) 0%, transparent 100%),
+        radial-gradient(12% 60% at 95% 50%, rgba(255, 255, 255, 0.10) 0%, transparent 100%);
+      filter: none;
+      opacity: 1;
+      transform: none;
+      transition: none;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Refração SVG real no Chromium; fallback óptico acima permanece no Safari. */
+    @supports (backdrop-filter: url(#liquid-glass-refract)) and (background: paint(liquid-glass-probe)) {
+      .hf-week-sheet__controls #complete-workout-btn.liquid-glass,
+      .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass {
+        backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract);
+      }
+
+      @media (max-width: 768px) {
+        .hf-week-sheet__controls #complete-workout-btn.liquid-glass,
+        .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass {
+          backdrop-filter: blur(4px) saturate(200%) brightness(1.3) url(#liquid-glass-refract-soft);
+        }
+      }
+    }
+
+    /* Aurora neon pulsante atrás do botão de ações rápidas. */
+    .hf-week-sheet__controls #quick-actions-container {
+      --quick-action-neon-rgb: 255, 122, 31;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container[data-variant="warning"] {
+      --quick-action-neon-rgb: 243, 139, 168;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container[data-variant="success"] {
+      --quick-action-neon-rgb: 166, 227, 161;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container[data-variant="amber"] {
+      --quick-action-neon-rgb: 249, 226, 175;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container[data-variant="neutral"] {
+      --quick-action-neon-rgb: 108, 112, 134;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container .quick-actions-inner::before {
+      content: '';
+      position: absolute;
+      inset: -18px;
+      z-index: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(var(--quick-action-neon-rgb), 1) 0%, rgba(var(--quick-action-neon-rgb), 0.56) 27%, transparent 62%),
+        radial-gradient(circle at 72% 76%, rgba(var(--quick-action-neon-rgb), 0.9) 0%, rgba(var(--quick-action-neon-rgb), 0.34) 34%, transparent 68%),
+        conic-gradient(from 210deg, transparent 0deg, rgba(var(--quick-action-neon-rgb), 0.72) 72deg, transparent 150deg, rgba(var(--quick-action-neon-rgb), 0.58) 252deg, transparent 360deg);
+      filter: blur(14px) saturate(190%) brightness(1.35);
+      opacity: 0.72;
+      transform: scale(0.88) rotate(-8deg);
+      transform-origin: center;
+      pointer-events: none;
+      animation: hf-quick-action-aurora 2.8s ease-in-out infinite;
+    }
+
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes hf-quick-action-aurora {
+      0%, 100% {
+        opacity: 0.62;
+        transform: scale(0.86) rotate(-8deg);
+        filter: blur(13px) saturate(175%) brightness(1.25);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.14) rotate(9deg);
+        filter: blur(18px) saturate(220%) brightness(1.55);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hf-week-sheet__controls #quick-actions-container .quick-actions-inner::before {
+        animation: none;
+        opacity: 0.78;
+        transform: scale(1);
+      }
+    }
+
   </style>
 </head>
 
@@ -9506,22 +9666,26 @@
             </div>
           </div>
           <section id="workout-details" class="grid grid-cols-1 md:grid-cols-2 gap-6"></section>
-          <div class="hf-week-sheet__controls">
-            <div class="quick-actions-wrapper">
-              <button id="complete-workout-btn"
-                class="btn-theme-principal no-select touch-manipulation no-tap-highlight" type="button"
-                aria-label="Concluir treino atual">
-                <i class="ph-bold ph-checks text-2xl" aria-hidden="true"></i>
-                Concluir Treino
-              </button>
-              <div id="quick-actions-container" class="fixed bottom-4 z-[33]">
-                <div class="quick-actions-inner">
-                  <button id="quick-actions-toggle"
-                    class="quick-actions-toggle btn-theme-principal backdrop-blur-20 no-select touch-manipulation no-tap-highlight"
-                    type="button" aria-label="Abrir chat com IA Fitness" aria-expanded="false"
-                    aria-controls="ai-chat-window">
-                    <i class="ph-bold ph-sparkle" aria-hidden="true"></i>
-                  </button>
+          <div class="hf-week-sheet__sticky-footer">
+            <div class="hf-week-sheet__controls">
+              <div class="quick-actions-wrapper">
+                <button id="complete-workout-btn"
+                  class="btn-theme-principal liquid-glass no-select touch-manipulation no-tap-highlight" type="button"
+                  aria-label="Concluir treino atual">
+                  <span class="liquid-glass-edge" aria-hidden="true"></span>
+                  <i class="ph-bold ph-checks text-2xl" aria-hidden="true"></i>
+                  <span>Concluir Treino</span>
+                </button>
+                <div id="quick-actions-container" class="fixed bottom-4 z-[33]">
+                  <div class="quick-actions-inner">
+                    <button id="quick-actions-toggle"
+                      class="quick-actions-toggle btn-theme-principal liquid-glass backdrop-blur-20 no-select touch-manipulation no-tap-highlight"
+                      type="button" aria-label="Abrir chat com IA Fitness" aria-expanded="false"
+                      aria-controls="ai-chat-window">
+                      <span class="liquid-glass-edge" aria-hidden="true"></span>
+                      <i class="ph-bold ph-sparkle" aria-hidden="true"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -11806,7 +11970,11 @@
         }
       }
 
-      button.innerHTML = `<i class="ph-bold ${config.icon} text-2xl"></i> ${config.text}`;
+      button.innerHTML = `
+        <span class="liquid-glass-edge" aria-hidden="true"></span>
+        <i class="ph-bold ${config.icon} text-2xl" aria-hidden="true"></i>
+        <span>${config.text}</span>
+      `;
       button.disabled = config.disabled;
       button.setAttribute("aria-label", config.text);
       button.setAttribute("aria-disabled", String(config.disabled));
