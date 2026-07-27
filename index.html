@@ -9359,9 +9359,9 @@
       --card-image-scale: 1.06;
     }
 
-    /* Vinheta radial extremamente suave atrás da área do título (topo-esquerdo).
-       Quase imperceptível: reforça contraste do nome sem escurecer a imagem
-       nem competir com o Liquid Glass. Entre mídia (z0) e scrim (z2). */
+    /* Vinheta localizada no canto superior esquerdo — sustentação do
+       exercise-method-pill sem sombra projetada. Nasce na borda do card,
+       é ampla/difusa e some na imagem; entre mídia (z0) e scrim (z2). */
     .workout-card > .absolute.inset-0::after {
       content: "";
       position: absolute;
@@ -9370,11 +9370,12 @@
       pointer-events: none;
       border-radius: inherit;
       background: radial-gradient(
-        ellipse 58% 46% at 18% 16%,
-        rgba(0, 0, 0, 0.16) 0%,
-        rgba(0, 0, 0, 0.07) 38%,
-        rgba(0, 0, 0, 0.02) 62%,
-        transparent 78%
+        ellipse 95% 72% at 0% 0%,
+        rgba(0, 0, 0, 0.28) 0%,
+        rgba(0, 0, 0, 0.16) 22%,
+        rgba(0, 0, 0, 0.07) 45%,
+        rgba(0, 0, 0, 0.02) 68%,
+        transparent 86%
       );
     }
 
@@ -9551,6 +9552,9 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       text-align: left;
+      /* Sem sombra projetada: contraste vem da vinheta do plano de mídia.
+         Transparência, borda, sheen e refração do Liquid Glass permanecem. */
+      box-shadow: none !important;
     }
 
     .workout-card .exercise-method-pill .method-label {
@@ -9630,13 +9634,51 @@
     }
 
     /* ===== Liquid Glass canônico nas superfícies elegíveis =====
-       player.css permanece a única fonte de tinta, filtros, borda, sombras,
-       refração, rim, fringe, sheen e ordem das camadas. O card escolhe somente
-       geometria, interação e as tintas semânticas dos estados existentes. */
+       player.css permanece a fonte de tinta, blur, refração, rim e ordem
+       das camadas. No card, fringe e sheen ficam um pouco mais contidos
+       para alinhar o acabamento aos demais vidros da UI. */
     .workout-card .exercise-stat-button,
     .workout-card .exercise-method-pill,
     .workout-card .completion-toggle-wrapper {
       transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    /* Contorno e highlights menos agressivos: a faixa branca do fringe e o
+       sheen caem de intensidade, sem tocar backdrop-filter nem refração. */
+    .workout-card .exercise-method-pill.player-glass-btn::before,
+    .workout-card .exercise-stat-button.player-glass-btn::before {
+      background:
+        linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.11) 15%,
+          rgba(255, 255, 255, 0.11) 85%,
+          transparent 100%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(255, 200, 180, 0.07) 0%,
+          transparent 40%,
+          transparent 60%,
+          rgba(180, 200, 255, 0.07) 100%
+        );
+    }
+
+    .workout-card .exercise-method-pill.player-glass-btn::after,
+    .workout-card .exercise-stat-button.player-glass-btn::after {
+      background:
+        radial-gradient(
+          100% 60% at 50% 0%,
+          rgba(255, 255, 255, 0.07) 0%,
+          transparent 50%
+        ),
+        radial-gradient(
+          100% 40% at 50% 100%,
+          rgba(255, 255, 255, 0.03) 0%,
+          transparent 55%
+        ),
+        radial-gradient(12% 60% at 5% 50%, rgba(255, 255, 255, 0.045) 0%, transparent 100%),
+        radial-gradient(12% 60% at 95% 50%, rgba(255, 255, 255, 0.045) 0%, transparent 100%);
     }
 
     .workout-card .exercise-stat-button {
