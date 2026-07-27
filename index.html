@@ -9634,9 +9634,28 @@
     }
 
     /* ===== Liquid Glass canônico nas superfícies elegíveis =====
-       player.css permanece a única fonte de tinta, filtros, borda, sombras,
-       refração, rim, fringe, sheen e ordem das camadas. O card escolhe somente
-       geometria, interação e as tintas semânticas dos estados existentes. */
+       player.css permanece a fonte de borda, sombras, refração, rim, fringe,
+       sheen e ordem das camadas. O card só adensa levemente a tinta neutra
+       (vidro fumê) para legibilidade sobre mídia clara, sem opacar o material. */
+    .workout-card .player-glass-btn {
+      background: rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(4px) brightness(1.28) saturate(280%) contrast(1.08);
+      -webkit-backdrop-filter: blur(4px) brightness(1.28) saturate(280%) contrast(1.08);
+    }
+
+    @supports (backdrop-filter: url(#liquid-glass-refract)) and (background: paint(liquid-glass-probe)) {
+      .workout-card .player-glass-btn {
+        background: rgba(12, 12, 18, 0.30);
+        backdrop-filter: blur(4px) saturate(190%) brightness(1.12) url(#liquid-glass-refract);
+      }
+
+      @media (max-width: 768px) {
+        .workout-card .player-glass-btn {
+          backdrop-filter: blur(4px) saturate(190%) brightness(1.12) url(#liquid-glass-refract-soft);
+        }
+      }
+    }
+
     .workout-card .exercise-stat-button,
     .workout-card .exercise-method-pill,
     .workout-card .completion-toggle-wrapper {
