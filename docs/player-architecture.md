@@ -91,7 +91,51 @@ adicional de resiliência, performance e observabilidade.
   `file.duration` já é lido para quando existir.
 - Thresholds de aceite mantidos: score ≥ 80% e título ≥ 60%.
 
-## 6. Observabilidade
+## 6. Latência de reprodução (TTFP — time to first play)
+
+Otimizações focadas em “play quase instantâneo”, sem remover nenhuma
+validação — apenas tirando-as do caminho crítico:
+
+- **Instrumentação completa**: `beginPlayTiming/markPlayPhase/finishPlayTiming`
+  medem cada play do gesto do usuário até o áudio tocando, com fases
+  (`resolucao`, `carregamento`, `play`). Log `⏱️ [TTFP]` por play e agregados
+  em `getMetrics().reproducao` (médio/último/melhor/pior, plays otimistas,
+  recuperações). `requestId` descarta medições de tentativas abandonadas.
+- **Reprodução otimista**: URL em cache é tocada imediatamente; a validação
+  HTTP (`isPlayableAudioUrl`, antes um GET bloqueante de até 10s) roda em
+  background e só invalida o cache se a URL estiver morta — nesse caso o
+  próprio `<audio>` falha rápido e a recuperação existente resolve fresco.
+- **Prioridade total ao play**: `preloadScheduler.pause()` durante a
+  preparação da faixa atual (novos jobs de preload não iniciam; os em voo
+  terminam), `resume()` garantido no `finally`.
+- **Overlap de esperas**: o reset do elemento de áudio (~100ms) roda em
+  paralelo com a resolução da URL, saindo do caminho crítico.
+- **Resolução antecipada**: `pointerenter` (desktop, com debounce de 150ms e
+  cancelamento em `pointerleave`) e `touchstart` (mobile) aquecem o cache via
+  `resolveTrackWithCache` — deduplicado com preload/play por `searchPromises`.
+  Métricas em `getMetrics().antecipacao` (aquecimentos e acertos no play).
+- **Dedupe de resoluções**: `forceRefresh` agora espera qualquer resolução em
+  andamento da mesma faixa terminar antes de limpar caches e refazer — fim da
+  corrida preload vs play que gerava chamadas duplicadas à API. Contador em
+  `resolucoes.resolucoesDeduplicadas`.
+
+## 7. Capas exclusivamente via backend próprio
+
+- Produção usa **somente** a function dedicada `/deezer` (cache próprio +
+  headers de CDN); `/proxy` é o único fallback interno restante.
+- Proxies públicos (corsproxy.io, allorigins, codetabs) foram **removidos da
+  lista de produção** e existem apenas para dev local puro (sem functions).
+
+## 8. Backend `/audio` — classificação de erros sem falsos 404
+
+- `classifyFailure` só marca `video-not-found` com evidência explícita
+  (“invalid” genérico não conta); JSON inválido do upstream é tratado como
+  erro de rede **transitório** (retryable), nunca como vídeo inexistente.
+- Orçamento esgotado com falha transitória ⇒ `502 retryable: true` (o front
+  re-tenta com backoff) em vez de `404` permanente que blacklistava vídeos
+  válidos por instabilidade momentânea do conversor.
+
+## 9. Observabilidade
 
 - **Métricas** (`MUSIC_PLAYER.getMetrics()` no console): % resoluções por
   origem (API/cache/fallback), falhas e falhas permanentes, retries, tempo
@@ -108,7 +152,7 @@ adicional de resiliência, performance e observabilidade.
 ## Testes
 
 - `tests/player-matching.test.mjs` — extrai as funções **reais** do
-  `player.js` (matching, similaridades, backoff) e valida 16 casos:
+  `player.js` (matching, similaridades, backoff) e valida 19 casos:
   typos, reordenação, palavras proibidas, word-boundaries, artista
-  divergente, duração e limites do jitter.
+  divergente, palavras extras relevantes, duração e limites do jitter.
 - Rodar: `node tests/player-matching.test.mjs`

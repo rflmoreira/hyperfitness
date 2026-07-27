@@ -33,10 +33,14 @@ function makeResponse(statusCode, body, extraHeaders = {}) {
   };
 }
 
-// Classifica a mensagem de erro do youtube-mp36 em um motivo estruturado
+// Classifica a mensagem de erro do youtube-mp36 em um motivo estruturado.
+// IMPORTANTE: só classifica como permanente com evidência explícita — mensagens
+// genéricas/transitórias do conversor NÃO podem virar 404 permanente, senão
+// vídeos válidos ficam blacklistados no frontend por falha momentânea.
 function classifyFailure(msg = '') {
   const m = String(msg).toLowerCase();
-  if (m.includes('unavailable') || m.includes('not exist') || m.includes('not found') || m.includes('invalid')) return 'video-not-found';
+  // "invalid" sozinho é ambíguo (ex: JSON inválido do upstream); exige contexto de vídeo/id
+  if (m.includes('unavailable') || m.includes('not exist') || m.includes('not found') || /invalid\s*(video|id|url|link|param)/.test(m)) return 'video-not-found';
   if (m.includes('private')) return 'video-private';
   if (m.includes('country') || m.includes('region') || m.includes('geo')) return 'geo-blocked';
   if (m.includes('copyright') || m.includes('blocked')) return 'video-blocked';
@@ -71,7 +75,8 @@ async function fetchConversion(videoId) {
 
     const data = await response.json().catch(() => null);
     if (!data) {
-      return { kind: 'fail', msg: 'invalid-json-from-upstream' };
+      // JSON inválido é problema do upstream (transitório), nunca do vídeo
+      return { kind: 'network-error', msg: 'invalid-json-from-upstream' };
     }
 
     if (data.status === 'ok' && data.link) {
@@ -195,7 +200,20 @@ export const handler = async (event) => {
     return makeResponse(502, { error: `Upstream error (${last.status})`, reason: 'upstream-error', retryable: true });
   }
 
+  if (last?.kind === 'network-error') {
+    console.warn(`[AUDIO] ${videoId} gave up after network error (${attempt} attempts, ${totalElapsed}ms)`);
+    return makeResponse(502, { error: 'Upstream network error', reason: 'upstream-error', retryable: true });
+  }
+
+  // Falha do conversor sem motivo permanente após esgotar o orçamento:
+  // transitória na maioria dos casos (extração falha e funciona minutos depois).
+  // Retorna 502 retryable — NUNCA 404 permanente para não blacklistar vídeo válido.
   const reason = last?.kind === 'fail' ? classifyFailure(last.msg) : 'internal-error';
+  if (reason === 'extraction-failed' || reason === 'internal-error') {
+    console.warn(`[AUDIO] ${videoId} transient extraction failure after ${attempt} attempts (${totalElapsed}ms) -> 502 retryable`);
+    return makeResponse(502, { error: 'Could not extract audio (transient)', reason: 'extraction-failed', detail: last?.msg || null, retryable: true });
+  }
+
   console.error(`[AUDIO] ${videoId} failed: ${reason} after ${attempt} attempts (${totalElapsed}ms)`);
   return makeResponse(404, { error: 'Could not extract audio', reason, detail: last?.msg || null, retryable: false });
 };

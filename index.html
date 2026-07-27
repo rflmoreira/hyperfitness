@@ -3797,14 +3797,6 @@
           Animar transform com backdrop-filter num descendente faz o WebKit
           abortar a transição.
        ============================================================ */
-    .hf-week-sheet {
-      position: fixed;
-      inset: 0;
-      z-index: 120;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
     /* Tempos e curvas centralizados. Easing de abertura no estilo de bottom sheet do
        iOS (desaceleração suave); fechamento com ease padrão, sem brusquidão. */
     .hf-week-sheet {
@@ -3813,15 +3805,16 @@
       --hf-sheet-settle-ms: 360ms;
       --hf-sheet-ease-open: cubic-bezier(0.32, 0.72, 0, 1);
       --hf-sheet-ease-close: cubic-bezier(0.4, 0, 0.2, 1);
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      overflow: hidden;
+      pointer-events: none;
     }
 
     .hf-week-sheet.is-open {
       pointer-events: auto;
     }
-
-    /* O #week-sheet agora vive no nível do <body>, então não é mais preciso elevar o
-       #main-content para cobrir o top-bar ao final da animação (o que causava a troca
-       abrupta de camada / "piscar" do painel). Mantido apenas o necessário abaixo. */
 
     .hf-week-sheet__overlay {
       position: absolute;
@@ -3896,6 +3889,15 @@
       transition: background-color var(--hf-sheet-settle-ms) ease;
     }
 
+    /* Release will-change: transform once the panel is settled. The panel still
+       has transform: translate3d(0,0,0) which maintains its compositing layer,
+       but without will-change the browser doesn't keep it in a "ready to animate"
+       state — reducing GPU memory pressure and compositing overhead during scroll.
+       The close transition still works: the browser re-promotes on demand. */
+    .hf-week-sheet.is-settled .hf-week-sheet__panel {
+      will-change: auto;
+    }
+
     /* Pré-aquecimento (uma única vez, no idle): o painel é revelado on-screen porém
        invisível e sem transição, apenas para o WebKit rasterizar as tiles do conteúdo.
        Como o sheet nunca usa display:none, essa camada permanece rasterizada depois,
@@ -3928,6 +3930,11 @@
       -ms-overflow-style: none;
       overscroll-behavior: contain;
       border-radius: 2rem 2rem 0 0;
+      /* Sem translateZ/will-change: scroll-position — promovem o scroller a uma
+         camada GPU viewport-sized; com parallax + Liquid Glass o Chrome repintava
+         a textura inteira a cada frame. contain: layout style limita recalc sem
+         criar stacking context nem camada de composição. */
+      contain: layout style;
     }
 
     .hf-back-to-top {
@@ -3975,14 +3982,14 @@
       max-width: none;
     }
 
-    /* OPTIMIZATION: Remove backdrop-filter from all repeating elements inside the sheet.
-       The sheet background is already blurred. Blurring dozens of small buttons inside it
-       causes GPU Out-Of-Memory crashes on mobile devices. */
+    /* OPTIMIZATION: Remove backdrop-filter from repeating sheet elements while
+       allowing only explicit canonical player-glass surfaces to keep their
+       compact recipe. The sheet background is already blurred. */
     .hf-week-sheet__panel #workout-details .workout-card,
-    .hf-week-sheet__panel #workout-details .exercise-stat-button,
-    .hf-week-sheet__panel #workout-details .completion-toggle-wrapper,
-    .hf-week-sheet__panel #workout-details .exercise-method-pill,
-    .hf-week-sheet__panel #workout-details .glass-effect {
+    .hf-week-sheet__panel #workout-details .exercise-stat-button:not(.player-glass-btn),
+    .hf-week-sheet__panel #workout-details .completion-toggle-wrapper:not(.player-glass-btn),
+    .hf-week-sheet__panel #workout-details .exercise-method-pill:not(.player-glass-btn),
+    .hf-week-sheet__panel #workout-details .glass-effect:not(.player-glass-btn) {
       -webkit-backdrop-filter: none !important;
       backdrop-filter: none !important;
     }
@@ -4042,11 +4049,14 @@
       z-index: -1;
       border-radius: 2rem 2rem 0 0;
       background: rgba(10, 8, 14, 0.4);
-      backdrop-filter: blur(8px) brightness(1.2) saturate(180%) contrast(1.08);
-      -webkit-backdrop-filter: blur(8px) brightness(1.2) saturate(180%) contrast(1.08);
       -webkit-mask-image: linear-gradient(to bottom, black 15%, transparent 100%);
       mask-image: linear-gradient(to bottom, black 15%, transparent 100%);
       pointer-events: none;
+    }
+
+    .hf-week-sheet.is-settled .hf-week-sheet__handle-wrapper::before {
+      backdrop-filter: blur(8px) brightness(1.2) saturate(180%) contrast(1.08);
+      -webkit-backdrop-filter: blur(8px) brightness(1.2) saturate(180%) contrast(1.08);
     }
 
     .hf-week-sheet__handle {
@@ -4908,95 +4918,6 @@
       transform: translateY(-1px);
     }
 
-    #workout-title,
-    #progress-bar-container {
-      max-width: 1120px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    #workout-title {
-      display: none !important;
-      margin: 0 !important;
-      min-height: 0 !important;
-    }
-
-    #progress-bar-container {
-      margin-bottom: 1rem !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-    }
-
-    .hf-workout-progress {
-      display: grid;
-      gap: 0.68rem;
-      padding: 0.82rem 0.9rem;
-      border-radius: 8px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.016)),
-        rgba(30, 30, 46, 0.42);
-      border: 1px solid rgba(205, 214, 244, 0.08);
-      box-shadow:
-        0 14px 30px -28px rgba(0, 0, 0, 0.82),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-
-    .hf-workout-progress__top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-    }
-
-    .hf-workout-progress__label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.46rem;
-      color: rgba(205, 214, 244, 0.76);
-      font-size: 0.76rem;
-      font-weight: 680;
-      line-height: 1.2;
-    }
-
-    .hf-workout-progress__label i {
-      color: #ff7a1f;
-      font-size: 1rem;
-    }
-
-    .hf-workout-progress__value {
-      color: rgba(245, 247, 255, 0.95);
-      font-size: 0.92rem;
-      font-weight: 820;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .hf-workout-progress__track {
-      position: relative;
-      height: 0.72rem;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(205, 214, 244, 0.085);
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.18);
-    }
-
-    .hf-workout-progress__fill {
-      display: block;
-      width: 0;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #ff6812, #ff7a1f 58%, #ff9844);
-      box-shadow: 0 0 18px rgba(255, 122, 31, 0.18);
-      transition: width 520ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .hf-workout-progress__caption {
-      color: rgba(166, 173, 200, 0.58);
-      font-size: 0.7rem;
-      font-weight: 520;
-      line-height: 1.3;
-    }
-
     /* ===== MOBILE: mantém o mesmo resumo + bottom sheet ===== */
     @media (max-width: 639px) {
 
@@ -5030,10 +4951,6 @@
       nav[aria-label="Navegação por semanas"],
       #day-selector {
         margin-bottom: 1.08rem !important;
-      }
-
-      .hf-workout-progress {
-        padding: 1rem;
       }
     }
 
@@ -6747,18 +6664,6 @@
       .workout-card {
         max-width: 480px
       }
-
-      #workout-title {
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto
-      }
-
-      #progress-bar-container {
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto
-      }
     }
 
     @media (min-width:1536px) {
@@ -6780,13 +6685,8 @@
         max-width: 1000px
       }
 
-      #phase-header,
-      #workout-title {
+      #phase-header {
         max-width: 1120px
-      }
-
-      #progress-bar-container {
-        max-width: 1000px
       }
     }
 
@@ -6809,13 +6709,8 @@
         max-width: 1100px
       }
 
-      #phase-header,
-      #workout-title {
+      #phase-header {
         max-width: 1200px
-      }
-
-      #progress-bar-container {
-        max-width: 1100px
       }
     }
 
@@ -6849,8 +6744,7 @@
       }
 
       .home-dashboard-shell>#phase-header,
-      .home-dashboard-shell>nav[aria-label="Navegação por semanas"],
-      .home-dashboard-shell>#current-workout-container {
+      .home-dashboard-shell>nav[aria-label="Navegação por semanas"] {
         width: 100%;
         max-width: none !important;
         margin-inline: 0 !important;
@@ -6861,16 +6755,6 @@
       }
 
       .home-dashboard-shell>nav[aria-label="Navegação por semanas"] {
-        margin-bottom: 0 !important;
-      }
-
-      #current-workout-container {
-        display: grid;
-        gap: 0.9rem;
-      }
-
-      #progress-bar-container {
-        max-width: none !important;
         margin-bottom: 0 !important;
       }
 
@@ -7040,7 +6924,7 @@
       letter-spacing: -0.02em;
       word-break: break-word;
       hyphens: auto;
-      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.6);
+      text-shadow: none;
     }
 
     @media (min-width:768px) {
@@ -7102,10 +6986,7 @@
       width: 100%;
       padding: clamp(0.65rem, 1.5vw, 0.9rem) clamp(0.5rem, 1vw, 0.75rem);
       border-radius: 0.75rem;
-      border: 1px solid rgba(205, 214, 244, 0.08);
-      background: linear-gradient(180deg, rgba(30, 30, 46, 0.65), rgba(18, 17, 26, 0.5));
       color: var(--text);
-      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
       overflow: visible;
@@ -7156,9 +7037,6 @@
     .exercise-stat-button:hover,
     .exercise-stat-button:focus-visible {
       transform: translateY(-3px) scale(1.02);
-      border-color: rgba(255, 122, 31, 0.3);
-      background: linear-gradient(180deg, rgba(49, 50, 68, 0.75), rgba(30, 30, 46, 0.6));
-      box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       outline: none;
     }
 
@@ -7188,7 +7066,11 @@
 
     .exercise-stat-button .stat-icon {
       font-size: clamp(0.9rem, 1.8vw, 1.15rem);
-      color: rgba(255, 122, 31, 0.9);
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.95), rgba(255, 122, 31, 0.95));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
       line-height: 1
     }
 
@@ -7227,10 +7109,7 @@
       padding: clamp(0.35rem, 0.8vw, 0.45rem) clamp(0.7rem, 1.5vw, 0.9rem);
       margin-bottom: clamp(0.6rem, 1.5vw, 0.85rem);
       border-radius: 999px;
-      border: 1px solid rgba(255, 122, 31, 0.25);
-      background: linear-gradient(135deg, rgba(30, 30, 46, 0.8), rgba(18, 17, 26, 0.8));
       color: rgba(255, 250, 245, 0.95);
-      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
       font-size: clamp(0.6rem, 1.3vw, 0.75rem);
       font-weight: 700;
       text-transform: uppercase;
@@ -7244,54 +7123,148 @@
     .exercise-method-pill:hover,
     .exercise-method-pill:focus-visible {
       transform: translateY(-2px);
-      border-color: rgba(255, 154, 82, 0.4);
-      background: linear-gradient(135deg, rgba(49, 50, 68, 0.85), rgba(30, 30, 46, 0.85));
-      box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
       outline: none
     }
 
     .exercise-method-pill .method-icon {
       font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.95), rgba(255, 122, 31, 0.95));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
       line-height: 1;
-      color: rgba(255, 122, 31, 0.95);
     }
 
     .exercise-method-pill .method-label {
       white-space: nowrap
     }
 
-    .exercise-method-pill .method-tooltip {
+    .method-badge-wrapper .method-tooltip {
       position: absolute;
-      bottom: calc(100%+12px);
+      bottom: calc(100% + 12px);
       left: 50%;
       transform: translate(-50%, 8px);
       min-width: 180px;
       max-width: 260px;
-      padding: 0.6rem 0.8rem;
-      border-radius: 0.75rem;
-      background: rgba(30, 30, 46, 0.96);
-      border: 1px solid var(--glass-border);
-      opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: transform 0.2s ease;
       z-index: 100;
+    }
+
+    /* ===== Glass Balloon — balões de método e repetições =====
+       Balão tradicional: retângulo arredondado SEM seta e SEM sombra
+       projetada (as pílulas .player-glass-btn também não têm nenhuma das
+       duas — contorno limpo e consistente com o restante da interface).
+
+       FATO DE MOTOR que dita a arquitetura do BLUR (verificado por medição
+       pixel a pixel): não existe recorte de backdrop-filter via mask nem
+       clip-path que funcione nos dois motores — no WebKit/Safari o
+       backdrop-filter ignora mask/clip-path do próprio elemento (bug antigo)
+       e, num ancestral, o Chromium trata clip-path/mask como propriedade de
+       agrupamento (Backdrop Root) e o vidro morre. Os únicos recortes que os
+       DOIS motores aplicam nativamente ao backdrop-filter são border-radius
+       do próprio elemento e overflow de ancestral — exatamente os primitivos
+       que o mini-player e as pílulas já usam. Então o blur é UMA peça:
+       __blur-body (vidro com border-radius 12, recorte nativo) dentro da
+       janela __body-frame (overflow:hidden).
+
+       Demais leis respeitadas:
+       — o wrapper nunca carrega filter/opacity (Backdrop Root mataria o
+         vidro); o fade acontece nas camadas folha;
+       — o rim é camada irmã SEM backdrop-filter (border nativo, AA limpo);
+       — o material é literalmente .player-glass-btn (player.css), a receita
+         do mini-player. Aqui só entra geometria.
+
+       Os modificadores --arrow-top/--arrow-bottom sobrevivem só como
+       espaçadores: preservam o afastamento original entre balão e gatilho. */
+    .glass-balloon--arrow-top {
+      padding-top: 12px; /* afastamento original do gatilho (topo) */
+    }
+
+    .glass-balloon--arrow-bottom {
+      padding-bottom: 12px; /* afastamento original do gatilho (base) */
+    }
+
+    /* Janela do corpo: overflow + border-radius. translateZ força layer
+       (WebKit: overflow de ancestral precisa de layer para recortar
+       backdrop-filter do filho). */
+    .glass-balloon__body-frame {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-radius: 12px;
+      /* overflow:hidden + radius = recorte nativo do blur (sem isso o
+         compositor GPU pinta halo retangular fora do arco). */
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+      transform: translateZ(0);
+    }
+
+    .glass-balloon--arrow-top .glass-balloon__body-frame {
+      top: 9px; /* mantém a posição visível original do corpo */
+      bottom: 0;
+    }
+
+    .glass-balloon--arrow-bottom .glass-balloon__body-frame {
+      top: 0;
+      bottom: 9px;
+    }
+
+    /* Vidro do corpo = MESMA receita das pílulas: background + border +
+       border-radius + backdrop-filter no MESMO elemento. Sem camadas
+       tint/sheen/fringe por cima (cada uma tinha AA próprio → rebarbas).
+       Sem inset box-shadow (desalinha do raio no GPU). */
+    .glass-balloon__blur-body {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .glass-balloon__blur-body.player-glass-btn {
+      border-radius: 12px; /* obrigatório para a borda/fringe herdarem o raio correto */
+    }
+
+    .glass-balloon__body {
+      position: relative;
+      z-index: 2; /* acima do vidro (1), abaixo do fringe de borda (3) — mesma ordem da receita */
+      padding: 0.6rem 0.8rem;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem
+      gap: 0.4rem;
     }
 
-    .exercise-method-pill .method-tooltip::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 7px;
-      border-style: solid;
-      border-color: rgba(30, 30, 46, 0.95) transparent transparent transparent
+    /* O fade mora nas camadas folha: opacity < 1 num ancestral cria
+       Backdrop Root e mata o vidro. Janelas (__body-frame) nunca esmaecem.
+
+       visibility:hidden enquanto fechado é obrigatório por desempenho: com
+       opacity:0 sozinho o Chrome mantém o backdrop-filter de cada __blur-body
+       ativo, e cada card carrega dois balões fechados. No week sheet isso são
+       ~28 superfícies de vidro invisíveis reamostradas a cada frame — medido
+       como a maior fonte isolada de jank na rolagem (p50 caiu de 25ms para
+       17ms/frame ao suprimi-las). O atraso de 0.2s no fechamento mantém o
+       fade-out intacto; na abertura visibility troca sem atraso, então a
+       transição de opacity continua rodando normalmente. */
+    .method-badge-wrapper .method-tooltip > .glass-balloon__body,
+    .stat-reps-wrapper .stat-details > .glass-balloon__body,
+    .method-badge-wrapper .method-tooltip .glass-balloon__blur-body,
+    .stat-reps-wrapper .stat-details .glass-balloon__blur-body {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0s linear 0.2s;
     }
 
-    .exercise-method-pill .method-tooltip span {
+    .exercise-method-pill.is-open + .method-tooltip > .glass-balloon__body,
+    .exercise-stat-button.is-open + .stat-details > .glass-balloon__body,
+    .exercise-method-pill.is-open + .method-tooltip .glass-balloon__blur-body,
+    .exercise-stat-button.is-open + .stat-details .glass-balloon__blur-body {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s ease, visibility 0s linear 0s;
+    }
+
+    .method-badge-wrapper .method-tooltip span {
       font-size: 0.65rem;
       font-weight: 500;
       color: rgba(226, 232, 240, 0.9);
@@ -7299,8 +7272,7 @@
       text-transform: none
     }
 
-    .exercise-method-pill.is-open .method-tooltip {
-      opacity: 1;
+    .exercise-method-pill.is-open + .method-tooltip {
       transform: translate(-50%, 0);
       pointer-events: auto
     }
@@ -7313,12 +7285,12 @@
         letter-spacing: 0.14em
       }
 
-      .exercise-method-pill .method-tooltip {
+      .method-badge-wrapper .method-tooltip {
         min-width: 150px;
         max-width: 220px
       }
 
-      .exercise-method-pill .method-tooltip span {
+      .method-badge-wrapper .method-tooltip span {
         font-size: 0.58rem
       }
     }
@@ -7375,34 +7347,18 @@
       color: var(--green)
     }
 
-    .exercise-stat-button .stat-details {
+    .stat-reps-wrapper .stat-details {
       position: absolute;
-      bottom: calc(100%+12px);
+      bottom: calc(100% + 12px);
       left: 50%;
       transform: translate(-50%, 8px);
-      background: rgba(30, 30, 46, 0.96);
-      border: 1px solid var(--glass-border);
-      border-radius: 0.75rem;
-      padding: 0.6rem 0.7rem;
-      opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: transform 0.2s ease;
       z-index: 50;
-      min-width: 150px
+      min-width: 150px;
     }
 
-    .exercise-stat-button .stat-details::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 7px;
-      border-style: solid;
-      border-color: rgba(30, 30, 46, 0.95) transparent transparent transparent
-    }
-
-    .exercise-stat-button .stat-details span {
+    .stat-reps-wrapper .stat-details span {
       display: block;
       font-size: 0.7rem;
       font-weight: 500;
@@ -7410,20 +7366,9 @@
       letter-spacing: 0.02em
     }
 
-    .exercise-stat-button.is-open .stat-details {
-      opacity: 1;
+    .exercise-stat-button.is-open + .stat-details {
       transform: translate(-50%, 0);
       pointer-events: auto
-    }
-
-    .exercise-stat-button[data-stat-type="rest"].is-counting::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      border: 1px solid rgba(137, 180, 250, 0.3);
-      animation: restPulse 1.8s infinite;
-      pointer-events: none
     }
 
     #exercise-image-modal {
@@ -8341,7 +8286,9 @@
 
     .completion-toggle-wrapper span {
       white-space: nowrap;
-      font-size: clamp(0.85rem, 1.8vw, 1rem)
+      font-size: clamp(1.05rem, 2.2vw, 1.15rem);
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
     /* Apenas a imagem do header e a logo permanecem fixas no topo da viewport.
@@ -8735,7 +8682,6 @@
     .phase-dashboard__goal,
     .phase-stats,
     .hf-week-summary__main,
-    .hf-workout-progress,
     .modal-card,
     #builder-screen .builder-name-section,
     #builder-screen .builder-weeks-card,
@@ -8769,7 +8715,6 @@
 
     .phase-dashboard__goal,
     .phase-stats,
-    .hf-workout-progress,
     #builder-screen .builder-name-section,
     #builder-screen .builder-weeks-card,
     #builder-screen .builder-schedule-card,
@@ -8806,7 +8751,6 @@
     .phase-dashboard__hero::before,
     .phase-stats::before,
     .hf-week-summary__main::before,
-    .hf-workout-progress::before,
     .modal-card::before,
     #builder-screen .builder-name-section::before,
     #builder-screen .builder-weeks-card::before,
@@ -8830,7 +8774,6 @@
     .phase-dashboard__hero::before,
     .phase-stats::before,
     .hf-week-summary__main::before,
-    .hf-workout-progress::before,
     .modal-card::before,
     .program-card-create::before {
       opacity: 0.42;
@@ -8844,8 +8787,7 @@
     #builder-screen .picker-suggestion-card,
     #builder-screen .ex-picker-filters-wrap,
     #builder-screen .ex-picker-item,
-    #builder-screen .ex-picker-custom-card,
-    .hf-workout-progress {
+    #builder-screen .ex-picker-custom-card {
       position: relative;
       isolation: isolate;
       overflow: hidden;
@@ -9197,7 +9139,11 @@
       }
     }
 
-    /* Aurora neon pulsante atrás do botão de ações rápidas. */
+    /* Halo neon estático atrás do botão de ações rápidas.
+       Sem animação: um filter animado neste ::before invalidava o backdrop
+       root e forçava a reamostragem do Liquid Glass.
+       Luz ambiente: maior, mais difusa, deslocada em relação ao botão —
+       sem bordas marcadas e sem pico de intensidade excessivo. */
     .hf-week-sheet__controls #quick-actions-container {
       --quick-action-neon-rgb: 255, 122, 31;
     }
@@ -9221,19 +9167,28 @@
     .hf-week-sheet__controls #quick-actions-container .quick-actions-inner::before {
       content: '';
       position: absolute;
-      inset: -18px;
+      inset: -36px;
       z-index: 0;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 32% 28%, rgba(var(--quick-action-neon-rgb), 1) 0%, rgba(var(--quick-action-neon-rgb), 0.56) 27%, transparent 62%),
-        radial-gradient(circle at 72% 76%, rgba(var(--quick-action-neon-rgb), 0.9) 0%, rgba(var(--quick-action-neon-rgb), 0.34) 34%, transparent 68%),
-        conic-gradient(from 210deg, transparent 0deg, rgba(var(--quick-action-neon-rgb), 0.72) 72deg, transparent 150deg, rgba(var(--quick-action-neon-rgb), 0.58) 252deg, transparent 360deg);
-      filter: blur(14px) saturate(190%) brightness(1.35);
-      opacity: 0.72;
-      transform: scale(0.88) rotate(-8deg);
+        radial-gradient(
+          ellipse 78% 72% at 36% 30%,
+          rgba(var(--quick-action-neon-rgb), 0.48) 0%,
+          rgba(var(--quick-action-neon-rgb), 0.26) 28%,
+          rgba(var(--quick-action-neon-rgb), 0.1) 52%,
+          transparent 76%
+        ),
+        radial-gradient(
+          ellipse 64% 58% at 68% 72%,
+          rgba(var(--quick-action-neon-rgb), 0.28) 0%,
+          rgba(var(--quick-action-neon-rgb), 0.12) 38%,
+          transparent 70%
+        );
+      filter: blur(28px) saturate(155%) brightness(1.16);
+      opacity: 0.7;
+      transform: translate(-7%, 5%) scale(1.14);
       transform-origin: center;
       pointer-events: none;
-      animation: hf-quick-action-aurora 2.8s ease-in-out infinite;
     }
 
     .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle {
@@ -9241,25 +9196,810 @@
       z-index: 1;
     }
 
-    @keyframes hf-quick-action-aurora {
-      0%, 100% {
-        opacity: 0.62;
-        transform: scale(0.86) rotate(-8deg);
-        filter: blur(13px) saturate(175%) brightness(1.25);
+    /* ===== Workout card — premium (linguagem visual Apple Fitness+) =====
+       Formato quadrado e hierarquia preservados (pill de método, título,
+       chips e ação sobre imagem full-bleed). Acabamento sóbrio: hairline,
+       scrim em curva suave para legibilidade e profundidade sem sombras
+       pesadas. O material Liquid Glass (mesma receita do mini-player) entra
+       apenas nas superfícies que se beneficiam: chips, pill e botão. */
+    /* Sombras do host e das superfícies não elegíveis permanecem neutralizadas.
+       Superfícies player-glass ficam fora do reset para herdar integralmente a
+       profundidade canônica de player.css. */
+     .workout-card,
+     .workout-card *:not(.player-glass-btn):not(.glass-balloon__body):not([class*="glass-balloon"]),
+     .workout-card::before,
+     .workout-card::after,
+     .workout-card *::before,
+     .workout-card *::after {
+       box-shadow: none !important;
+     }
+
+    .workout-card,
+    .workout-card *,
+    .workout-card::before,
+    .workout-card::after,
+    .workout-card *::before,
+    .workout-card *::after {
+      text-shadow: none !important;
+    }
+
+    .workout-card {
+      --wc-radius-outer: 1.5rem;
+      --wc-radius-control: 1rem;
+      --wc-radius-pill: 9999px;
+      --wc-gutter: clamp(0.75rem, 2.5vw, 1rem);
+      --wc-top-inset: clamp(1.2rem, 3.4vw, 1.7rem);
+      --wc-gap-tight: clamp(0.125rem, 0.3vw, 0.2rem);
+      --wc-gap-normal: clamp(0.5rem, 1vw, 0.75rem);
+      --wc-gap-section: 1rem;
+      --wc-motion-short: 3px;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+      border-radius: var(--wc-radius-outer);
+      background: var(--surface-0);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    /* A geometria permanece nos wrappers existentes: ambos compartilham o
+       mesmo gutter, enquanto o bloco inferior conserva a âncora automática.
+       O bloco superior (z-20) ancora badge+título no topo útil; o inferior
+       permanece com margin-top:auto. */
+    .workout-card > .absolute.inset-0 {
+      overflow: hidden;
+      border-radius: var(--wc-radius-outer);
+      z-index: 0;
+    }
+
+    .workout-card > .relative.p-4.flex,
+    .workout-card > .relative.p-4.space-y-4 {
+      width: 100%;
+      min-width: 0;
+      padding-inline: var(--wc-gutter);
+    }
+
+    .workout-card > .relative.p-4.flex {
+      position: relative;
+      z-index: 20;
+      isolation: isolate;
+      justify-content: flex-start;
+      padding-top: var(--wc-top-inset);
+      padding-bottom: 0;
+    }
+
+    .workout-card > .relative.p-4.flex > div {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .workout-card > .relative.p-4.space-y-4 {
+      margin-top: auto;
+      padding-bottom: var(--wc-gutter);
+    }
+
+    .workout-card .exercise-method-pill {
+      max-width: 100%;
+      
+      border-radius: var(--wc-radius-pill);
+    }
+
+    .workout-card h3 {
+      width: fit-content;
+      max-width: 50%;
+    }
+
+    .workout-card .exercise-stats-chip-group {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--wc-gap-tight);
+      width: 100%;
+      min-width: 0;
+      align-items: stretch;
+    }
+
+    .workout-card .exercise-stat-button {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      flex: none;
+    }
+
+    .workout-card > .relative.z-10.p-4.space-y-4 > .exercise-stats-chip-group + .completion-toggle-wrapper {
+      width: 100%;
+      margin-top: var(--wc-gap-section);
+      margin-bottom: 0;
+    }
+
+    /* Hairline consistente em repouso, sobrepondo a cor inline definida via JS. */
+    .workout-card:not(.exercise-completed) {
+      border-color: rgba(255, 255, 255, 0.07) !important;
+    }
+
+    /* Sem reflexo glossy nem overlay de escurecimento; o realce de hover fica
+       por conta da borda e da leve elevação. */
+    .workout-card::before,
+    .workout-card::after {
+      display: none !important;
+    }
+
+    .workout-card:hover,
+    .workout-card:focus-within {
+      transform: translateY(calc(-1 * var(--wc-motion-short)));
+      border-color: rgba(255, 255, 255, 0.18) !important;
+    }
+
+    .workout-card.exercise-completed,
+    .workout-card.exercise-completed:hover,
+    .workout-card.exercise-completed:focus-within {
+      border-color: rgba(166, 227, 161, 0.4) !important;
+    }
+
+    /* Plano de mídia preservado: absoluto, full-bleed e sem filtros. O fundo
+       neutro ocupa o mesmo plano durante o lazy loading, sem alterar geometria. */
+    .workout-card .exercise-card-image {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      background-color: var(--surface-0);
+      scale: var(--card-image-scale, 1.03);
+    }
+
+    .workout-card:hover .exercise-card-image,
+    .workout-card:focus-within .exercise-card-image {
+      --card-image-scale: 1.06;
+    }
+
+    /* Vinheta radial extremamente suave atrás da área do título (topo-esquerdo).
+       Quase imperceptível: reforça contraste do nome sem escurecer a imagem
+       nem competir com o Liquid Glass. Entre mídia (z0) e scrim (z2). */
+    .workout-card > .absolute.inset-0::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      border-radius: inherit;
+      background: radial-gradient(
+        ellipse 58% 46% at 18% 16%,
+        rgba(0, 0, 0, 0.16) 0%,
+        rgba(0, 0, 0, 0.07) 38%,
+        rgba(0, 0, 0, 0.02) 62%,
+        transparent 78%
+      );
+    }
+
+    /* Um único scrim contínuo ocupa somente o domínio textual: começa no
+       mesmo limite superior responsivo do bloco e termina na base. Acima
+       desse limite não existe contribuição; dentro dele, cada stop reduz a
+       opacidade em direção ao topo e mantém a mídia visível. */
+    .workout-card > .absolute.inset-0 > .bg-gradient-to-t {
+      inset: var(--wc-top-inset) 0 0;
+      width: auto;
+      height: auto;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.66) 16%,
+        rgba(0, 0, 0, 0.48) 32%,
+        rgba(0, 0, 0, 0.31) 48%,
+        rgba(0, 0, 0, 0.17) 64%,
+        rgba(0, 0, 0, 0.08) 78%,
+        rgba(0, 0, 0, 0.025) 90%,
+        rgba(0, 0, 0, 0) 100%
+      ) !important;
+    }
+
+    /* Neutraliza o segundo gradiente utilitário do bloco inferior para que
+       não haja scrims sobrepostos, banding ou escurecimento adicional. */
+    .workout-card > .relative.z-10.p-4.space-y-4.bg-gradient-to-t {
+      background: none !important;
+    }
+
+    /* Hierarquia tipográfica: Poppins permanece como família única; o título
+       é o texto de maior escala e peso. Truncamento (line-clamp + ellipsis) e
+       degradê verde→laranja ficam no .workout-card-title__fill para que as
+       reticências façam parte do mesmo texto com background-clip. A sombra
+       fica no ::before (z-index 0), atrás do fill (z-index 1). */
+    .workout-card h3 {
+      position: relative;
+      z-index: 2;
+      display: block;
+      box-sizing: border-box;
+      width: fit-content;
+      max-width: 50%;
+      margin: 0;
+      overflow: visible;
+      font-family: "Poppins", sans-serif;
+      font-size: clamp(1.83rem, 8.65vw, 2.83rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: calc(1.2em + 6px);
+      text-wrap: balance;
+      overflow-wrap: break-word;
+      word-break: normal;
+      hyphens: manual;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      background: none;
+      text-shadow: none !important;
+      filter: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1 !important;
+      mix-blend-mode: normal !important;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+      isolation: isolate;
+      pointer-events: none;
+    }
+
+    /* Camada de sombra atrás do fill: offset mínimo, blur 0, opacidade baixa —
+       reforço de contraste discreto, sem halo nem “texto duplicado”. */
+    .workout-card h3::before {
+      content: attr(data-exercise-title);
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 0;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      background: none;
+      background-image: none;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22) !important;
+      filter: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1;
+      mix-blend-mode: normal;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+      pointer-events: none;
+    }
+
+    .workout-card h3::after {
+      content: none !important;
+      display: none !important;
+    }
+
+    .workout-card h3 .workout-card-title__fill {
+      position: relative;
+      z-index: 1;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #9ee698;
+      background-color: transparent;
+      background-image: linear-gradient(
+        118deg,
+        #b0efaa 0%,
+        #8ee088 18%,
+        #7ad474 34%,
+        #b8d86e 48%,
+        #e8c878 62%,
+        #ffb06a 78%,
+        #ff8a35 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none !important;
+      filter: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1 !important;
+      mix-blend-mode: normal !important;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+    }
+
+    @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+      .workout-card h3 .workout-card-title__fill {
+        background-image: none;
+        color: #9ee698;
+        -webkit-text-fill-color: currentColor;
       }
 
-      50% {
-        opacity: 1;
-        transform: scale(1.14) rotate(9deg);
-        filter: blur(18px) saturate(220%) brightness(1.55);
+      .workout-card h3::before {
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22) !important;
       }
     }
 
+    /* Relação visual badge ↔ título: 8–12px via --wc-gap-normal. Estilo
+       Liquid Glass permanece intacto. */
+    .workout-card .method-badge-wrapper {
+      margin-bottom: 0 !important;
+    }
+
+    .workout-card .exercise-method-pill {
+      width: fit-content;
+      max-width: 100%;
+      min-width: 0;
+      align-self: flex-start;
+      justify-content: flex-start;
+      gap: clamp(0.35rem, 0.8vw, 0.45rem);
+      padding-block: clamp(0.2rem, 0.45vw, 0.28rem);
+      padding-inline: clamp(0.55rem, 1.08vw, 0.72rem);
+      margin-bottom: var(--wc-gap-normal);
+      font-family: "Poppins", sans-serif;
+      font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .workout-card .exercise-method-pill .method-label {
+      min-width: 0;
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+
+    /* Labels, valores e helpers mantêm a mesma ordem e conteúdo. A escala e o
+       contraste tornam o valor dominante, enquanto categorias ficam uppercase
+       e helpers permanecem secundários e integralmente legíveis. */
+    .workout-card .exercise-stat-button .chip-header {
+      font-family: "Poppins", sans-serif;
+      font-size: clamp(0.55rem, 1.2vw, 0.68rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow: none !important;
+    }
+
+    .workout-card .exercise-stat-button .stat-label {
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .workout-card .exercise-stat-button .stat-value {
+      font-family: "Poppins", sans-serif;
+      font-size: clamp(1.22rem, 3.24vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-shadow: none !important;
+    }
+
+    .workout-card .exercise-stat-button .stat-helper {
+      max-width: 100%;
+      font-family: "Poppins", sans-serif;
+      font-size: clamp(0.5rem, 1.1vw, 0.65rem);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.65);
+      overflow-wrap: anywhere;
+      text-shadow: none !important;
+      margin-top: 4px;
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="rest"] .stat-value {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    /* Todos os Phosphor existentes mantêm seus glifos. A caixa quadrada comum
+       e o pseudo-elemento em line-height 1 estabilizam baseline e centro óptico. */
+    .workout-card i[class*="ph-"],
+    .workout-card .method-icon,
+    .workout-card .stat-icon {
+      display: inline-flex;
+      flex: 0 0 1em;
+      align-items: center;
+      justify-content: center;
+      width: 1em;
+      height: 1em;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .workout-card i[class*="ph-"]::before,
+    .workout-card .method-icon::before,
+    .workout-card .stat-icon::before {
+      display: block;
+      line-height: 1;
+    }
+
+    /* ===== Liquid Glass canônico nas superfícies elegíveis =====
+       player.css permanece a única fonte de tinta, filtros, borda, sombras,
+       refração, rim, fringe, sheen e ordem das camadas. O card escolhe somente
+       geometria, interação e as tintas semânticas dos estados existentes. */
+    .workout-card .exercise-stat-button,
+    .workout-card .exercise-method-pill,
+    .workout-card .completion-toggle-wrapper {
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .workout-card .exercise-stat-button {
+      border-radius: var(--wc-radius-control);
+    }
+
+    .workout-card .completion-toggle-wrapper {
+      border-radius: var(--wc-radius-pill) !important;
+      min-height: clamp(42px, 7.5vw, 47px);
+      padding-block: clamp(0.42rem, 0.85vw, 0.55rem);
+      padding-inline: clamp(0.75rem, 1.5vw, 1rem);
+    }
+
+    /* A interação não substitui a tinta neutra herdada do player. */
+    .workout-card .exercise-stat-button:hover,
+    .workout-card .exercise-stat-button:focus-visible,
+    .workout-card .exercise-method-pill:hover,
+    .workout-card .exercise-method-pill:focus-visible,
+    .workout-card .completion-toggle-wrapper:hover,
+    .workout-card .completion-toggle-wrapper:focus-visible {
+      outline: none;
+      transform: none;
+    }
+
+    .workout-card .exercise-stat-button:active,
+    .workout-card .exercise-method-pill:active,
+    .workout-card .completion-toggle-wrapper:active {
+      transform: scale(0.97);
+    }
+
+    /* Métricas equivalentes: os três botões preservam o DOM atual e usam a
+       mesma grade interna label → value → helper. Indicadores e overlays
+       existentes continuam absolutos e, portanto, não criam uma quarta track. */
+    .workout-card .exercise-stat-button {
+      display: grid;
+      grid-template-areas:
+        "label"
+        "value"
+        "helper";
+      grid-template-rows:
+        minmax(1.1em, auto)
+        minmax(1.5em, auto)
+        minmax(2.1em, auto);
+      align-content: center;
+      align-items: center;
+      justify-items: center;
+      column-gap: 0;
+      row-gap: clamp(0.3rem, 1vw, 0.5rem);
+    }
+
+    .workout-card .exercise-stat-button .chip-header {
+      grid-area: label;
+      align-self: center;
+    }
+
+    .workout-card .exercise-stat-button .stat-value {
+      grid-area: value;
+      align-self: center;
+    }
+
+    .workout-card .exercise-stat-button .stat-helper {
+      grid-area: helper;
+      align-self: center;
+    }
+
+    /* Estados semânticos preservam cor e sinais alternativos existentes:
+       helper/valor, progresso, check/risco externos e classes permanecem. */
+    .workout-card .exercise-stat-button[data-stat-type="series"].is-active {
+      background: rgba(255, 122, 31, 0.2) !important;
+      border-color: rgba(255, 122, 31, 0.6) !important;
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="series"].is-complete,
+    .workout-card .exercise-stat-button[data-stat-type="rest"].finished {
+      background: rgba(166, 227, 161, 0.18) !important;
+      border-color: rgba(166, 227, 161, 0.6) !important;
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="rest"].is-counting {
+      background: rgba(137, 180, 250, 0.18) !important;
+      border-color: rgba(137, 180, 250, 0.6) !important;
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="series"].is-complete .stat-progress-fill,
+    .workout-card .exercise-stat-button[data-stat-type="rest"].finished .stat-progress-fill {
+      background: var(--green);
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="rest"].is-counting .stat-progress-fill {
+      background: var(--blue);
+    }
+
+    /* Indicadores existentes permanecem acima das futuras camadas de material.
+       Largura dirigida pelo estado, espessura e cores não mudam; Reps segue
+       deliberadamente sem barra de progresso. */
+    .workout-card .exercise-stat-button[data-stat-type="series"] .stat-progress-bar,
+    .workout-card .exercise-stat-button[data-stat-type="rest"] .stat-progress-bar {
+      z-index: 4;
+      isolation: isolate;
+      pointer-events: none;
+    }
+
+    .workout-card .exercise-stat-button[data-stat-type="series"] .stat-progress-fill,
+    .workout-card .exercise-stat-button[data-stat-type="rest"] .stat-progress-fill {
+      z-index: 1;
+    }
+
+    /* Os overlays mantêm conteúdo, roles e gatilhos existentes. O tooltip do
+       método abre abaixo do badge para se afastar da borda superior; detalhes
+       de Reps ficam acima do chip, sem ocupar nem interceptar a área do CTA. */
+    .workout-card .method-badge-wrapper .method-tooltip {
+      top: calc(100% + var(--wc-gap-tight) - 12px); /* shift top to compensate for padding */
+      right: auto;
+      bottom: auto;
+      left: 0;
+      box-sizing: border-box;
+      width: max-content;
+      min-width: min(180px, calc(100vw - var(--wc-gutter) - var(--wc-gutter)));
+      max-width: min(260px, calc(100vw - var(--wc-gutter) - var(--wc-gutter)));
+      transform: translateY(-8px);
+    }
+
+    .workout-card .method-badge-wrapper .method-tooltip .glass-balloon__body {
+      max-height: min(8rem, 22vh);
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    /* Elevação dinâmica para garantir que os tooltips abertos se sobreponham
+       aos contêineres vizinhos, independentemente da ordem natural do DOM. */
+    .workout-card:has(.exercise-method-pill.is-open) > .relative.z-20.p-4.flex {
+      z-index: 30 !important;
+    }
+
+    .workout-card:has(.exercise-stat-button.is-open) > .relative.z-10.p-4.space-y-4 {
+      z-index: 30 !important;
+    }
+
+    .workout-card .exercise-method-pill.is-open + .method-tooltip {
+      transform: translateY(0);
+    }
+
+    .workout-card .stat-reps-wrapper .stat-details {
+      top: auto;
+      right: auto;
+      bottom: calc(100% + var(--wc-gap-tight) - 12px); /* shift bottom to compensate for padding */
+      left: 50%;
+      box-sizing: border-box;
+      width: max-content;
+      min-width: min(150px, calc(100vw - var(--wc-gutter) - var(--wc-gutter)));
+      max-width: min(220px, calc(100vw - var(--wc-gutter) - var(--wc-gutter)));
+      z-index: 100;
+    }
+
+    .workout-card .stat-reps-wrapper .stat-details .glass-balloon__body {
+      max-height: min(8rem, 22vh);
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    /* A exceção de especificidade do week sheet ignora somente superfícies
+       .player-glass-btn; assim os branches base, WebKit e Chromium (incluindo
+       -soft em telas compactas) continuam vindo diretamente de player.css. */
+
+    /* Em telas de toque o rim de refração (2ª camada de backdrop-filter por
+       elemento) sai de cena para proteger a GPU; o vidro base permanece. */
+    @media (max-width: 767.98px), (pointer: coarse) {
+      .workout-card .liquid-glass-edge {
+        display: none !important;
+      }
+    }
+
+    /* Conteúdo posicionado acima das camadas de vidro da classe. */
+    .workout-card .exercise-stat-button .stat-progress-bar {
+      z-index: 2;
+    }
+
+    .workout-card .completion-toggle-wrapper .animated-check-container {
+      position: relative;
+      z-index: 2;
+      width: clamp(22px, 4.25vw, 26px);
+      height: clamp(22px, 4.25vw, 26px);
+      min-width: clamp(22px, 4.25vw, 26px);
+      min-height: clamp(22px, 4.25vw, 26px);
+    }
+
+    /* Texto do CTA com peso levemente maior — reforça a ação principal
+       sem alterar alinhamento, gap ou o material Liquid Glass.
+       Poppins carrega 700 e 900; 900 é o próximo peso real disponível. */
+    .workout-card .completion-toggle-wrapper > span {
+      font-weight: 900;
+    }
+
+    /* Check do CTA: verde HyperFitness, traço um pouco mais fino para
+       harmonizar com a tipografia. Tamanho/posição do botão preservados. */
+    .workout-card .completion-toggle-wrapper .animated-check-circle {
+      stroke: rgba(166, 227, 161, 0.72);
+      fill: rgba(166, 227, 161, 0.16);
+      stroke-width: 2.35;
+    }
+
+    .workout-card .completion-toggle-wrapper .animated-check-path {
+      stroke: rgba(255, 255, 255, 0.92);
+      stroke-width: 3.15;
+    }
+
+    /* Estado concluído: a superfície verde sólida é o único material. A
+       especificidade vence a supressão do week sheet e também neutraliza por
+       completo qualquer receita pendente durante a substituição assentada. */
+    .hf-week-sheet__panel #workout-details .workout-card.exercise-completed .completion-toggle-wrapper,
+    .workout-card.exercise-completed .completion-toggle-wrapper {
+      background: rgba(57, 255, 20, 0.45) !important;
+      border-color: rgba(57, 255, 20, 0.38) !important;
+      box-shadow: 0 4px 12px rgba(57, 255, 20, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Contraste do texto e do check sobre o verde translúcido. */
+    .workout-card.exercise-completed .completion-toggle-wrapper span {
+      color: #ffffff !important;
+    }
+
+    .workout-card.exercise-completed .completion-toggle-wrapper .animated-check-circle {
+      stroke: #ffffff !important;
+      fill: transparent !important;
+    }
+
+    .workout-card.exercise-completed .completion-toggle-wrapper .animated-check-path {
+      stroke: #ffffff !important;
+    }
+
+    /* ===== Profundidade contida e microinterações (Task 15.1) =====
+       Três planos visuais, hairline, elevação ≤3px, press 0.97, sombra
+       confinada sem halo externo. Nenhuma alteração de layout, targets,
+       lógica de estado ou opacidade global de conteúdo. */
+
+    /* Plano 1: Imagem — z-index explícito mais baixo. */
+    .workout-card .exercise-card-image {
+      z-index: 0;
+    }
+
+    /* Plano 2: Vinheta local do título (z1) + scrim textual (z2) — acima da
+       imagem, abaixo do conteúdo. */
+    .workout-card > .absolute.inset-0 > .bg-gradient-to-t {
+      z-index: 2;
+    }
+
+    /* Plano 3: Conteúdo — z-10 do Tailwind já garante 10; reforço
+       explícito para clareza e resiliência contra reordenações futuras. */
+    .workout-card > .relative.z-10 {
+      z-index: 10;
+    }
+
+    /* ===== Backdrop Root por card =====
+       Sem esta regra, cada uma das ~100 superfícies de vidro dos cards (chips,
+       pills, balões) usa o <body> como origem do backdrop. Consequência: uma
+       invalidação em QUALQUER ponto da página obriga o Chrome a reamostrar o
+       backdrop de todas elas no mesmo frame, produzindo frames de 60-1100ms na
+       abertura e na rolagem do hf-week-sheet__body.
+
+       O filtro abaixo é um no-op visual — opacity(1) não altera nenhum pixel —
+       e existe apenas para tornar o card um backdrop root, confinando a
+       reamostragem do vidro ao conteúdo do próprio card. É preferível a
+       contain:paint (que recorta os balões e altera mais a rasterização) e a
+       isolation:isolate (que não cria backdrop root no Chrome).
+
+       Não confundir com as leis dos balões (ver ~7314 e ~7380): um backdrop root
+       mata o vidro quando fica ENTRE a superfície e o conteúdo que ela amostra.
+       O card é o menor ancestral que já contém esse conteúdo (a imagem e o
+       scrim), então o vidro continua com o que amostrar — verificado pixel a
+       pixel: 0,78% de pixels alterados na área dos cards, só antialiasing de
+       borda, com blur/saturate/brightness/refração idênticos. Manter o filtro
+       em wrappers internos continua proibido.
+
+       Efeito colateral intencional: o card passa a ser um contexto de
+       empilhamento, então seus blocos internos (z-10/z-20) deixam de competir
+       globalmente com o rodapé fixo (z-index 4) e passam a deslizar SOB a barra
+       de vidro, que é o comportamento que o backdrop-filter dela pressupõe. */
+    #workout-details .workout-card {
+      filter: opacity(1);
+    }
+
+    /* Card-level active press: escala local 0.97 sem mover touch targets.
+       Apenas no card host — controles internos já possuem seu press. */
+    .workout-card:active {
+      transform: scale(0.97);
+    }
+
+    /* Sombra contida de elevação no hover/focus: apenas escura, curta,
+       sem glow laranja/verde externo nem halo luminoso. A intensidade e o
+       spread são limitados para não ultrapassar visualmente os limites
+       do card. A regra override usa !important para vencer o reset global
+       de box-shadow aplicado mais acima. */
+    .workout-card:hover,
+    .workout-card:focus-within {
+      box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.55),
+                  0 2px 4px -2px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    /* Completed card hover mantém a mesma sombra contida escura — sem
+       halo verde/laranja externo, preservando a borda semântica. */
+    .workout-card.exercise-completed:hover,
+    .workout-card.exercise-completed:focus-within {
+      box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.55),
+                  0 2px 4px -2px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    /* Completed card: opacidade total (sobrepõe o legado 0.85). Imagem e
+       conteúdo permanecem totalmente legíveis; a distinção visual vem da
+       borda semântica verde e do CTA sólido #39ff14, não de redução de
+       opacidade que prejudica legibilidade. */
+    .workout-card.exercise-completed {
+      opacity: 1 !important;
+    }
+
+    /* ===== Reduced motion: estados finais imediatos e distinguíveis =====
+       Transições de transform, border-color e box-shadow ficam instantâneas.
+       A elevação hover, imagem zoom e active press aplicam os mesmos valores
+       finais, mas sem animação. O coarse pointer protection abaixo também
+       se aplica em reduced motion. */
     @media (prefers-reduced-motion: reduce) {
-      .hf-week-sheet__controls #quick-actions-container .quick-actions-inner::before {
-        animation: none;
-        opacity: 0.78;
-        transform: scale(1);
+      .workout-card {
+        transition-duration: 0s !important;
+      }
+
+      .workout-card .exercise-card-image {
+        transition-duration: 0s !important;
+      }
+
+      .workout-card .exercise-stat-button,
+      .workout-card .exercise-method-pill,
+      .workout-card .completion-toggle-wrapper {
+        transition-duration: 0s !important;
+      }
+    }
+
+    /* ===== Coarse pointer: sem elevação no hover =====
+       Em dispositivos de toque, hover é acidental (sticky hover). Preservamos
+       o rest position e removemos translateY e sombra elevada para evitar
+       layout shift e distração. A borda pode ainda clarear como feedback
+       passivo. O active press 0.97 permanece como feedback tátil. */
+    @media (pointer: coarse) {
+      .workout-card:hover {
+        transform: none;
+        box-shadow: none !important;
+      }
+
+      .workout-card:focus-within {
+        transform: translateY(calc(-1 * var(--wc-motion-short)));
+      }
+
+      .workout-card.exercise-completed:hover {
+        box-shadow: none !important;
+      }
+
+      /* Image zoom no hover é acidental em coarse — mantém apenas o base. */
+      .workout-card:hover .exercise-card-image {
+        --card-image-scale: 1.03;
       }
     }
 
@@ -9267,6 +10007,7 @@
 </head>
 
 <body>
+
   <div id="page-background" class="background-layer" data-scroll-background aria-hidden="true">
     <div class="bg-gradient-base"></div>
     
@@ -9622,11 +10363,6 @@
         aria-label="Navegação por semanas">
         <div id="stepper-nav" class="py-2 overflow-visible"></div>
       </nav>
-
-      <main id="current-workout-container">
-        <header id="workout-title" class="text-center mb-4 min-h-[48px] content-enter-animation"></header>
-        <div id="progress-bar-container" class="content-enter-animation"></div>
-      </main>
     </div>
   </div>
 
@@ -9647,7 +10383,7 @@
           <section id="week-sheet-current-workout" class="hf-week-sheet__current" aria-live="polite"></section>
           <div class="hf-week-sheet__nav">
             <nav id="day-selector"
-              class="flex gap-1 mb-8 glass-effect backdrop-blur-20 p-2 rounded-xl content-enter-animation"
+              class="flex"
               aria-label="Progresso semanal e seleção de treino"></nav>
             <div id="schedule-edit-actions" class="hf-edit-actions" role="group"
               aria-label="Confirmar ou cancelar edição dos treinos" aria-hidden="true" inert>
@@ -11161,7 +11897,7 @@
     function clearWorkoutDetailsIfClosed() {
       if (isWeekSheetOpen()) return;
 
-      const workoutDetails = DOM_ELEMENTS.workoutDetails || document.getElementById("workout-details");
+      const workoutDetails = DOM_ELEMENTS.workoutDetails;
       if (!workoutDetails) return;
 
       const hadCards = !!workoutDetails.querySelector(".workout-card");
@@ -11184,6 +11920,14 @@
     // mesmo frame em que a transição de transform começa, a animação roda na thread
     // principal (ocupada com o relayout) e "pula". Por isso o lock/unlock fica SEMPRE
     // fora do intervalo da animação: ao abrir, só depois de terminar; ao fechar, idem.
+    function scrollWeekSheetBodyToTop() {
+      if (DOM_ELEMENTS.weekSheetBody) {
+        DOM_ELEMENTS.weekSheetBody.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function lockWeekSheetBody() {
       if (weekSheetBodyLocked) return;
       weekSheetBodyLocked = true;
@@ -11233,7 +11977,7 @@
     function endWeekSheetPrewarm(sheet) {
       if (!weekSheetPrewarming) return;
       weekSheetPrewarming = false;
-      const panel = sheet.querySelector(".hf-week-sheet__panel");
+      const panel = DOM_ELEMENTS.weekSheetPanel;
       // Remove is-open enquanto is-prewarm (transition:none + opacity:0) ainda está
       // ativo: o painel volta a translateY(100%) de forma INSTANTÂNEA e invisível, sem
       // o "slide fantasma" nem mudança brusca de opacidade. Só depois removemos
@@ -11249,12 +11993,12 @@
     // do usuário, para que a primeira abertura no iOS deslize sem travar.
     function prepareWeekSheet() {
       if (weekSheetPrepared) return;
-      const sheet = document.getElementById("week-sheet");
+      const sheet = DOM_ELEMENTS.weekSheet;
       if (!sheet || weekSheetState !== "closed") return;
       weekSheetPrepared = true;
 
       try { renderWorkoutDetailsIfNeeded(); } catch (e) {}
-      const panel = sheet.querySelector(".hf-week-sheet__panel");
+      const panel = DOM_ELEMENTS.weekSheetPanel;
 
       weekSheetPrewarming = true;
       sheet.classList.add("is-prewarm");
@@ -11291,7 +12035,7 @@
     }
 
     function openWeekSheet() {
-      const sheet = document.getElementById("week-sheet");
+      const sheet = DOM_ELEMENTS.weekSheet;
       if (!sheet || weekSheetState === "open") return;
 
       // Se o pré-aquecimento estiver ativo, cancela-o e volta ao estado fechado
@@ -11300,7 +12044,7 @@
 
       weekSheetState = "open";
 
-      const panel = sheet.querySelector(".hf-week-sheet__panel");
+      const panel = DOM_ELEMENTS.weekSheetPanel;
 
       sheet.removeAttribute("inert");
       sheet.setAttribute("aria-hidden", "false");
@@ -11345,11 +12089,11 @@
     }
 
     function closeWeekSheet() {
-      const sheet = document.getElementById("week-sheet");
+      const sheet = DOM_ELEMENTS.weekSheet;
       if (!sheet || weekSheetState === "closed") return;
       weekSheetState = "closed";
 
-      const panel = sheet.querySelector(".hf-week-sheet__panel");
+      const panel = DOM_ELEMENTS.weekSheetPanel;
 
       // Desliga o blur ANTES de animar (backdrop-filter ativo em descendente faz o
       // WebKit abortar a transição de transform) e dispara o slide para baixo.
@@ -11710,7 +12454,7 @@
     }
 
     function renderWeekSheetCurrentWorkoutHeader() {
-      const header = document.getElementById("week-sheet-current-workout");
+      const header = DOM_ELEMENTS.weekSheetCurrentWorkout;
       if (!header) return;
 
       const phaseData = getPhaseDataByWeek(APP_STATE.currentWeekNumber);
@@ -11888,13 +12632,9 @@
 
       const workoutLetter = phaseData.schedule[APP_STATE.currentDay];
       DOM_ELEMENTS.workoutDetails.innerHTML = "";
-      DOM_ELEMENTS.workoutTitle.innerHTML = "";
-      DOM_ELEMENTS.progressBarContainer.innerHTML = "";
-      DOM_ELEMENTS.footer.style.display = "block";
 
       if (workoutLetter === "OFF" || !phaseData.workouts[workoutLetter]) {
         refreshCardParallax();
-        gsapScrollController.refresh();
         return;
       }
 
@@ -11915,16 +12655,20 @@
 
       const backToTopBtn = document.createElement('div');
       backToTopBtn.className = 'col-span-full flex justify-center mt-8 mb-4';
-      backToTopBtn.innerHTML = `
-        <button ontouchstart="" onclick="const body = this.closest('.hf-week-sheet__body'); if(body) body.scrollTo({top: 0, behavior: 'smooth'}); else window.scrollTo({top: 0, behavior: 'smooth'});" class="hf-back-to-top">
-          <i class="ph-light ph-arrow-up text-lg"></i>
-          Voltar ao Topo
-        </button>
-      `;
-      DOM_ELEMENTS.workoutDetails.appendChild(backToTopBtn);
 
-      DOM_ELEMENTS.workoutDetails.querySelectorAll('.scroll-animate').forEach(card => scrollObserver?.observe(card));
-      gsapScrollController.refresh();
+      const backToTopButton = document.createElement('button');
+      backToTopButton.type = 'button';
+      backToTopButton.className = 'hf-back-to-top';
+      backToTopButton.setAttribute('ontouchstart', '');
+      backToTopButton.addEventListener('click', scrollWeekSheetBodyToTop);
+
+      const backToTopIcon = document.createElement('i');
+      backToTopIcon.className = 'ph-light ph-arrow-up text-lg';
+      backToTopIcon.setAttribute('aria-hidden', 'true');
+
+      backToTopButton.append(backToTopIcon, 'Voltar ao Topo');
+      backToTopBtn.appendChild(backToTopButton);
+      DOM_ELEMENTS.workoutDetails.appendChild(backToTopBtn);
     }
 
     function updateWorkoutButton(allDone) {
@@ -11961,7 +12705,7 @@
         delete button.dataset.variant;
       }
 
-      const qac = document.getElementById('quick-actions-container');
+      const qac = DOM_ELEMENTS.quickActionsContainer;
       if (qac) {
         if (config.variant && config.variant !== "primary") {
           qac.dataset.variant = config.variant;
@@ -11979,28 +12723,6 @@
       button.setAttribute("aria-label", config.text);
       button.setAttribute("aria-disabled", String(config.disabled));
       button.title = config.text;
-    }
-
-    function renderProgressBar(completed, total, progress) {
-      const remaining = Math.max(total - completed, 0);
-      const caption = remaining === 0
-        ? "Treino completo. Pronto para avançar."
-        : `${remaining} ${remaining === 1 ? "exercício restante" : "exercícios restantes"} para fechar o treino.`;
-      DOM_ELEMENTS.progressBarContainer.innerHTML = `
-        <div class="hf-workout-progress" aria-label="${escapeHTML(`Progresso do treino: ${completed} de ${total}`)}">
-          <div class="hf-workout-progress__top">
-            <span class="hf-workout-progress__label">
-              <i class="ph-bold ph-pulse" aria-hidden="true"></i>
-              Progresso do treino
-            </span>
-            <span class="hf-workout-progress__value">${escapeHTML(completed)} / ${escapeHTML(total)}</span>
-          </div>
-          <div class="hf-workout-progress__track" aria-hidden="true">
-            <span class="hf-workout-progress__fill" style="width: ${progress}%"></span>
-          </div>
-          <span class="hf-workout-progress__caption">${escapeHTML(caption)}</span>
-        </div>
-      `;
     }
 
     function isProgramDeleteModalOpen() {
@@ -12210,7 +12932,7 @@
       const imageUrl = getExerciseImageUrl(exercise.name);
 
       const card = document.createElement("div");
-      card.className = `workout-card relative rounded-3xl shadow-xl shadow-black/20 border transition-all duration-300 flex flex-col justify-end group scroll-animate cursor-pointer ${isCompleted ? "exercise-completed" : ""
+      card.className = `workout-card relative rounded-3xl shadow-xl shadow-black/20 border flex flex-col justify-end group cursor-pointer ${isCompleted ? "exercise-completed" : ""
         }`;
       if (isCompleted) {
         card.style.borderColor = "rgba(166, 227, 161, 0.6)";
@@ -12250,13 +12972,24 @@
       const formattedSegments = tooltipSegments.map(segment => formatMethodTooltipSegment(segment, method));
 
       return `
-        <button type="button" class="exercise-method-pill glass-effect no-tap-highlight touch-manipulation" data-method-badge data-exercise-index="${index}" aria-expanded="false">
-          <i class="ph-bold ph-info method-icon" aria-hidden="true"></i>
-          <span class="method-label">${escapeHTML(method)}</span>
-          <span class="method-tooltip" role="dialog" aria-label="Detalhes do método">
-            ${formattedSegments.map(segment => `<span>${escapeHTML(segment)}</span>`).join('')}
-          </span>
-        </button>
+        <div class="method-badge-wrapper relative z-30" style="display: flex; flex-direction: column; align-items: flex-start;">
+          <button type="button" class="exercise-method-pill player-glass-btn no-tap-highlight touch-manipulation" data-method-badge data-exercise-index="${index}" aria-expanded="false">
+            <span class="liquid-glass-edge" aria-hidden="true"></span>
+            <i class="ph-bold ph-info method-icon" aria-hidden="true"></i>
+            <span class="method-label">${escapeHTML(method)}</span>
+          </button>
+          <div class="method-tooltip glass-balloon glass-balloon--arrow-top" role="dialog" aria-label="Detalhes do método">
+            <div class="glass-balloon__body-frame" aria-hidden="true">
+              <div class="glass-balloon__blur-body player-glass-btn">
+                <span class="liquid-glass-edge"></span>
+              </div>
+            </div>
+            <div class="glass-balloon__body">
+              <div style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em;">${escapeHTML(method)}</div>
+              ${formattedSegments.map(segment => `<span>${escapeHTML(segment)}</span>`).join('')}
+            </div>
+          </div>
+        </div>
       `;
     }
 
@@ -12272,10 +13005,10 @@
           <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
         </div>
 
-        <div class="relative z-10 p-4 flex flex-col justify-end flex-grow">
+        <div class="relative z-20 p-4 flex flex-col justify-end flex-grow">
           <div>
             ${createMethodBadgeHTML(exercise, index)}
-            <h3 class="text-2xl font-black text-white tracking-tight leading-tight">${exercise.name}</h3>
+            <h3 class="text-2xl font-black text-white tracking-tight leading-tight" data-exercise-title="${escapeHTML(exercise.name)}"><span class="workout-card-title__fill">${escapeHTML(exercise.name)}</span></h3>
           </div>
         </div>
 
@@ -12327,7 +13060,7 @@
         return;
       }
 
-      const root = document.querySelector(".hf-week-sheet__body");
+      const root = DOM_ELEMENTS.weekSheetBody;
       if (!root || typeof window.IntersectionObserver !== "function") {
         images.forEach(loadWeekSheetImage);
         return;
@@ -12371,6 +13104,15 @@
       const scrollHandler = () => scheduleCardParallaxUpdate();
       window.addEventListener('scroll', scrollHandler, { passive: true });
       window.addEventListener('resize', scrollHandler, { passive: true });
+
+      // The week-sheet body is a separate overflow container; its internal scroll
+      // doesn't fire window 'scroll' events. Without this listener the parallax
+      // offsets go stale and snap on the next viewport-level trigger, causing a
+      // visible jump/flicker of the card images.
+      const sheetBody = DOM_ELEMENTS.weekSheetBody;
+      if (sheetBody) {
+        sheetBody.addEventListener('scroll', scrollHandler, { passive: true });
+      }
 
       // Top bar blur on scroll
       const topBar = document.getElementById('top-bar');
@@ -12558,7 +13300,8 @@
 
       return `
         <div class="exercise-stats-chip-group">
-          <button type="button" class="exercise-stat-button glass-effect" data-stat-type="series" data-exercise-index="${index}" data-total-series="${parseTotalSeries(exercise.series) || ''}" data-original-value="${escapeHTML(exercise.series)}" aria-pressed="false">
+          <button type="button" class="exercise-stat-button player-glass-btn" data-stat-type="series" data-exercise-index="${index}" data-total-series="${parseTotalSeries(exercise.series) || ''}" data-original-value="${escapeHTML(exercise.series)}" aria-pressed="false">
+            <span class="liquid-glass-edge" aria-hidden="true"></span>
             <span class="chip-header">
               <i class="ph-bold ph-stack-simple stat-icon" aria-hidden="true"></i>
               <span class="stat-label">Séries</span>
@@ -12569,18 +13312,29 @@
               <span class="stat-progress-fill"></span>
             </div>
           </button>
-          <button type="button" class="exercise-stat-button glass-effect" data-stat-type="reps" data-exercise-index="${index}" data-reps="${escapeHTML(encodedSegments)}">
-            <span class="chip-header">
-              <i class="ph-bold ph-repeat stat-icon" aria-hidden="true"></i>
-              <span class="stat-label">Reps</span>
-            </span>
-            <span class="stat-value">${escapeHTML(exercise.rept)}</span>
-            <span class="stat-helper">Toque para detalhes</span>
-            <div class="stat-details" role="dialog" aria-label="Detalhes das repetições">
-              ${repsSegments.length ? repsSegments.map(segment => `<span>${escapeHTML(segment)}</span>`).join('') : `<span>${escapeHTML(exercise.rept || 'Sem dados')}</span>`}
+          <div class="stat-reps-wrapper relative z-30" style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;">
+            <button type="button" class="exercise-stat-button player-glass-btn" data-stat-type="reps" data-exercise-index="${index}" data-reps="${escapeHTML(encodedSegments)}" style="width: 100%;">
+              <span class="liquid-glass-edge" aria-hidden="true"></span>
+              <span class="chip-header">
+                <i class="ph-bold ph-repeat stat-icon" aria-hidden="true"></i>
+                <span class="stat-label">Reps</span>
+              </span>
+              <span class="stat-value">${escapeHTML(exercise.rept)}</span>
+              <span class="stat-helper">Toque para detalhes</span>
+            </button>
+              <div class="stat-details glass-balloon glass-balloon--arrow-bottom" role="dialog" aria-label="Detalhes das repetições">
+              <div class="glass-balloon__body-frame" aria-hidden="true">
+                <div class="glass-balloon__blur-body player-glass-btn">
+                  <span class="liquid-glass-edge"></span>
+                </div>
+              </div>
+              <div class="glass-balloon__body">
+                ${repsSegments.length ? repsSegments.map(segment => `<span>${escapeHTML(segment)}</span>`).join('') : `<span>${escapeHTML(exercise.rept || 'Sem dados')}</span>`}
+              </div>
             </div>
-          </button>
-          <button type="button" class="exercise-stat-button glass-effect" data-stat-type="rest" data-exercise-index="${index}" data-rest-seconds="${restSeconds || ''}" data-original-value="${escapeHTML(restLabel)}" aria-live="polite">
+          </div>
+          <button type="button" class="exercise-stat-button player-glass-btn" data-stat-type="rest" data-exercise-index="${index}" data-rest-seconds="${restSeconds || ''}" data-original-value="${escapeHTML(restLabel)}" aria-live="polite">
+            <span class="liquid-glass-edge" aria-hidden="true"></span>
             <span class="chip-header">
               <i class="ph-bold ph-timer stat-icon" aria-hidden="true"></i>
               <span class="stat-label">Descanso</span>
@@ -13014,7 +13768,7 @@
       repsOutsideClickBound = true;
 
       document.addEventListener('click', (event) => {
-        if (event.target.closest('.exercise-stat-button[data-stat-type="reps"]')) return;
+        if (event.target.closest('.stat-reps-wrapper')) return;
         document.querySelectorAll('.exercise-stat-button[data-stat-type="reps"].is-open').forEach(button => {
           button.classList.remove('is-open');
           button.setAttribute('aria-expanded', 'false');
@@ -13096,7 +13850,7 @@
       methodOutsideClickBound = true;
 
       document.addEventListener('click', (event) => {
-        if (event.target.closest('.exercise-method-pill')) return;
+        if (event.target.closest('.method-badge-wrapper')) return;
         document.querySelectorAll('.exercise-method-pill.is-open').forEach(button => {
           button.classList.remove('is-open');
           button.setAttribute('aria-expanded', 'false');
@@ -13116,14 +13870,15 @@
       const textStyle = isCompleted ? 'color: var(--green);' : 'color: var(--subtext-1);';
 
       return `
-        <button class="completion-toggle-wrapper glass-effect w-full flex items-center justify-center gap-3 p-3 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-100 ${buttonClasses}" data-index="${index}">
+        <button class="completion-toggle-wrapper player-glass-btn w-full flex items-center justify-center gap-3 p-3 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-100 ${buttonClasses}" data-index="${index}">
+          <span class="liquid-glass-edge" aria-hidden="true"></span>
           <div class="animated-check-container ${isCompleted ? "completed" : ""}">
             <svg class="animated-check-svg" viewBox="0 0 24 24">
               <circle class="animated-check-circle" cx="12" cy="12" r="10"/>
               <path class="animated-check-path" d="M7 13l3 3 7-7"/>
             </svg>
           </div>
-          <span class="font-bold text-base transition-colors duration-300" style="${textStyle}">
+          <span class="transition-colors duration-300" style="${textStyle}">
             ${buttonText}
           </span>
         </button>
@@ -15956,11 +16711,16 @@
       const toggleButton = document.getElementById('quick-actions-toggle');
       if (!toggleButton) return;
 
-      const computeFallbackFontSize = () => {
+      const getMaxFontSize = () => {
         const rootStyles = window.getComputedStyle(document.documentElement);
         const sizeToken = parseFloat(rootStyles.getPropertyValue('--quick-action-size')) || toggleButton.clientHeight || 64;
         return sizeToken * 0.38;
       };
+
+
+
+      let adjustTimeout;
+      let lastAvailableWidth = 0;
 
       const adjustFontSize = () => {
         const textContent = toggleButton.textContent.trim();
@@ -15969,13 +16729,16 @@
 
         if (!hasText) {
           toggleButton.style.removeProperty('--quick-actions-font-size');
+          lastAvailableWidth = 0;
           return;
         }
 
-        const availableWidth = toggleButton.clientWidth;
-        if (!availableWidth) {
+        const availableWidth = toggleButton.parentElement ? toggleButton.parentElement.clientWidth : toggleButton.clientWidth;
+        if (!availableWidth || Math.abs(availableWidth - lastAvailableWidth) < 2) {
           return;
         }
+        
+        lastAvailableWidth = availableWidth;
 
         toggleButton.style.removeProperty('--quick-actions-font-size');
 
@@ -15996,13 +16759,18 @@
         }
       };
 
+      const debouncedAdjustFontSize = () => {
+        clearTimeout(adjustTimeout);
+        adjustTimeout = setTimeout(adjustFontSize, 150);
+      };
+
       adjustFontSize();
 
-      const observer = new MutationObserver(adjustFontSize);
+      const observer = new MutationObserver(debouncedAdjustFontSize);
       observer.observe(toggleButton, { childList: true, characterData: true, subtree: true });
 
       if (typeof ResizeObserver === 'function') {
-        const resizeObserver = new ResizeObserver(() => adjustFontSize());
+        const resizeObserver = new ResizeObserver(() => debouncedAdjustFontSize());
         resizeObserver.observe(toggleButton);
       }
 
@@ -17897,6 +18665,10 @@
         pageBackground: document.getElementById("page-background"),
         mainContent: document.getElementById("main-content"),
         topBar: document.getElementById("top-bar"),
+        weekSheet: document.getElementById("week-sheet"),
+        weekSheetBody: document.querySelector(".hf-week-sheet__body"),
+        weekSheetPanel: document.querySelector(".hf-week-sheet__panel"),
+        weekSheetCurrentWorkout: document.getElementById("week-sheet-current-workout"),
         programScreen: document.getElementById("program-selection-screen"),
         programScreenList: document.getElementById("program-screen-list"),
         openProgramScreenBtn: document.getElementById("open-program-screen-btn"),
@@ -17910,12 +18682,11 @@
         stepperNav: document.getElementById("stepper-nav"),
         daySelector: document.getElementById("day-selector"),
         workoutDetails: document.getElementById("workout-details"),
-        workoutTitle: document.getElementById("workout-title"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
         phaseHeader: document.getElementById("phase-header"),
         headerBackground: document.querySelector('.header-background'),
         footer: document.getElementById("footer-container"),
         completeWorkoutBtn: document.getElementById("complete-workout-btn"),
+        quickActionsContainer: document.getElementById("quick-actions-container"),
         scheduleEditActions: document.getElementById("schedule-edit-actions"),
         scheduleEditCancel: document.getElementById("schedule-edit-cancel"),
         scheduleEditConfirm: document.getElementById("schedule-edit-confirm"),

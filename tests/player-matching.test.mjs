@@ -104,6 +104,17 @@ check('coverage não dispara "cover"', findForbiddenTerm('Full Coverage.mp3', 'F
 const wrongArtist = score4sharedCandidate('Alicia Keys - Lose Yourself.mp3', 'Lose Yourself', 'Eminem');
 check(`artista divergente rejeitado [${wrongArtist.rejectedBy}]`, wrongArtist.score === 0);
 
+// Palavras extras relevantes (outra versão/música) rejeitadas
+const extraWords = score4sharedCandidate('Eminem - Lose Yourself Freestyle Remake.mp3', 'Lose Yourself', 'Eminem');
+check(`palavras extras relevantes rejeitadas [${extraWords.rejectedBy || 'score baixo'}]`, !accept(extraWords));
+
+// Uma única palavra extra penaliza o score sem rejeição automática
+const oneExtra = score4sharedCandidate('Eminem - Lose Yourself Soundtrack.mp3', 'Lose Yourself', 'Eminem');
+check(`uma palavra extra penaliza score (${(oneExtra.score * 100).toFixed(0)}% < ${(good.score * 100).toFixed(0)}%)`, oneExtra.score < good.score);
+
+// Typo em token do pedido não conta como palavra extra (fuzzy ≥ 0.8)
+check('typo "loose" não vira palavra extra', !String(typo.rejectedBy || '').includes('extras'));
+
 // Duração compatível mantém aceite; divergente reduz score
 const withDur = score4sharedCandidate('Eminem - Lose Yourself.mp3', 'Lose Yourself', 'Eminem', { trackDurationMs: 326000, fileDurationSec: 328 });
 check(`duração compatível mantém aceite (${(withDur.score * 100).toFixed(0)}%)`, accept(withDur));

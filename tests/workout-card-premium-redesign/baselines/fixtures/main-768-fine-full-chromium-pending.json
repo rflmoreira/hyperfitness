@@ -1,0 +1,2104 @@
+{
+  "schemaVersion": 1,
+  "environment": {
+    "viewport": {
+      "width": 768,
+      "height": 813,
+      "devicePixelRatio": 1
+    },
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "documentLanguage": "pt-BR"
+  },
+  "semanticOrder": [
+    {
+      "key": "image",
+      "tag": "img",
+      "text": "",
+      "attributes": {
+        "alt": "Ilustração do exercício Elevação Pélvica com Barra",
+        "data-parallax-image": "",
+        "loading": "lazy",
+        "decoding": "async",
+        "data-harness-media": "stable"
+      }
+    },
+    {
+      "key": "method",
+      "tag": "button",
+      "text": "PIRÂMIDE CRESCENTE + ISOMETRIA Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+      "attributes": {
+        "type": "button",
+        "data-method-badge": "",
+        "data-exercise-index": "0",
+        "aria-expanded": "false"
+      }
+    },
+    {
+      "key": "title",
+      "tag": "h3",
+      "text": "Elevação Pélvica com Barra",
+      "attributes": {}
+    },
+    {
+      "key": "series",
+      "tag": "button",
+      "text": "SÉRIES 4 TOQUE PARA REGISTRAR",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "series",
+        "data-exercise-index": "0",
+        "data-total-series": "4",
+        "data-original-value": "4",
+        "aria-pressed": "false"
+      }
+    },
+    {
+      "key": "reps",
+      "tag": "button",
+      "text": "REPS 20/18/15/12 TOQUE PARA DETALHES 1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "reps",
+        "data-exercise-index": "0",
+        "data-reps": "1ª série: 20|2ª série: 18|3ª série: 15|4ª série: 12"
+      }
+    },
+    {
+      "key": "rest",
+      "tag": "button",
+      "text": "DESCANSO 90 seg TOQUE PARA INICIAR",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "rest",
+        "data-exercise-index": "0",
+        "data-rest-seconds": "90",
+        "data-original-value": "90 seg",
+        "aria-live": "polite"
+      }
+    },
+    {
+      "key": "cta",
+      "tag": "button",
+      "text": "Marcar como Concluído",
+      "attributes": {
+        "data-index": "0"
+      }
+    }
+  ],
+  "inventory": [
+    {
+      "index": 0,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "absolute",
+        "inset-0",
+        "overflow-hidden",
+        "rounded-3xl"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 1,
+      "key": "image",
+      "tag": "img",
+      "classes": [
+        "exercise-card-image"
+      ],
+      "attributes": {
+        "alt": "Ilustração do exercício Elevação Pélvica com Barra",
+        "data-parallax-image": "",
+        "loading": "lazy",
+        "decoding": "async",
+        "data-harness-media": "stable"
+      },
+      "text": ""
+    },
+    {
+      "index": 2,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "absolute",
+        "top-0",
+        "left-0",
+        "w-full",
+        "h-full",
+        "bg-gradient-to-t",
+        "from-black/90",
+        "via-black/60",
+        "to-transparent"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 3,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "relative",
+        "z-10",
+        "p-4",
+        "flex",
+        "flex-col",
+        "justify-end",
+        "flex-grow"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 4,
+      "key": null,
+      "tag": "div",
+      "classes": [],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 5,
+      "key": "method",
+      "tag": "button",
+      "classes": [
+        "exercise-method-pill",
+        "glass-effect",
+        "no-tap-highlight",
+        "touch-manipulation"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-method-badge": "",
+        "data-exercise-index": "0",
+        "aria-expanded": "false"
+      },
+      "text": ""
+    },
+    {
+      "index": 6,
+      "key": null,
+      "tag": "i",
+      "classes": [
+        "ph-bold",
+        "ph-info",
+        "method-icon"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 7,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "method-label"
+      ],
+      "attributes": {},
+      "text": "Pirâmide Crescente + Isometria"
+    },
+    {
+      "index": 8,
+      "key": "methodDialog",
+      "tag": "span",
+      "classes": [
+        "method-tooltip"
+      ],
+      "attributes": {
+        "role": "dialog",
+        "aria-label": "Detalhes do método"
+      },
+      "text": ""
+    },
+    {
+      "index": 9,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições"
+    },
+    {
+      "index": 10,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "Isometria — segure o pico de contração por 2-3 segundos em cada repetição"
+    },
+    {
+      "index": 11,
+      "key": "title",
+      "tag": "h3",
+      "classes": [
+        "text-2xl",
+        "font-black",
+        "text-white",
+        "tracking-tight",
+        "leading-tight"
+      ],
+      "attributes": {},
+      "text": "Elevação Pélvica com Barra"
+    },
+    {
+      "index": 12,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "relative",
+        "z-10",
+        "p-4",
+        "space-y-4",
+        "bg-gradient-to-t",
+        "from-black/50",
+        "to-transparent",
+        "rounded-b-3xl"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 13,
+      "key": "metricGroup",
+      "tag": "div",
+      "classes": [
+        "exercise-stats-chip-group"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 14,
+      "key": "series",
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "series",
+        "data-exercise-index": "0",
+        "data-total-series": "4",
+        "data-original-value": "4",
+        "aria-pressed": "false"
+      },
+      "text": ""
+    },
+    {
+      "index": 15,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "chip-header"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 16,
+      "key": null,
+      "tag": "i",
+      "classes": [
+        "ph-bold",
+        "ph-stack-simple",
+        "stat-icon"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 17,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-label"
+      ],
+      "attributes": {},
+      "text": "Séries"
+    },
+    {
+      "index": 18,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-value"
+      ],
+      "attributes": {
+        "data-role": "series-value"
+      },
+      "text": "4"
+    },
+    {
+      "index": 19,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-helper"
+      ],
+      "attributes": {},
+      "text": "Toque para registrar"
+    },
+    {
+      "index": 20,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "stat-progress-bar"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 21,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-progress-fill"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 22,
+      "key": "reps",
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "reps",
+        "data-exercise-index": "0",
+        "data-reps": "1ª série: 20|2ª série: 18|3ª série: 15|4ª série: 12"
+      },
+      "text": ""
+    },
+    {
+      "index": 23,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "chip-header"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 24,
+      "key": null,
+      "tag": "i",
+      "classes": [
+        "ph-bold",
+        "ph-repeat",
+        "stat-icon"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 25,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-label"
+      ],
+      "attributes": {},
+      "text": "Reps"
+    },
+    {
+      "index": 26,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-value"
+      ],
+      "attributes": {},
+      "text": "20/18/15/12"
+    },
+    {
+      "index": 27,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-helper"
+      ],
+      "attributes": {},
+      "text": "Toque para detalhes"
+    },
+    {
+      "index": 28,
+      "key": "repsDialog",
+      "tag": "div",
+      "classes": [
+        "stat-details"
+      ],
+      "attributes": {
+        "role": "dialog",
+        "aria-label": "Detalhes das repetições"
+      },
+      "text": ""
+    },
+    {
+      "index": 29,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "1ª série: 20"
+    },
+    {
+      "index": 30,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "2ª série: 18"
+    },
+    {
+      "index": 31,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "3ª série: 15"
+    },
+    {
+      "index": 32,
+      "key": null,
+      "tag": "span",
+      "classes": [],
+      "attributes": {},
+      "text": "4ª série: 12"
+    },
+    {
+      "index": 33,
+      "key": "rest",
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "rest",
+        "data-exercise-index": "0",
+        "data-rest-seconds": "90",
+        "data-original-value": "90 seg",
+        "aria-live": "polite"
+      },
+      "text": ""
+    },
+    {
+      "index": 34,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "chip-header"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 35,
+      "key": null,
+      "tag": "i",
+      "classes": [
+        "ph-bold",
+        "ph-timer",
+        "stat-icon"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 36,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-label"
+      ],
+      "attributes": {},
+      "text": "Descanso"
+    },
+    {
+      "index": 37,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-value"
+      ],
+      "attributes": {
+        "data-role": "rest-value"
+      },
+      "text": "90 seg"
+    },
+    {
+      "index": 38,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-helper"
+      ],
+      "attributes": {
+        "data-role": "rest-helper"
+      },
+      "text": "Toque para iniciar"
+    },
+    {
+      "index": 39,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "stat-progress-bar"
+      ],
+      "attributes": {
+        "aria-hidden": "true"
+      },
+      "text": ""
+    },
+    {
+      "index": 40,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "stat-progress-fill"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 41,
+      "key": "cta",
+      "tag": "button",
+      "classes": [
+        "completion-toggle-wrapper",
+        "glass-effect",
+        "w-full",
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-3",
+        "p-3",
+        "rounded-xl",
+        "transition-all",
+        "duration-300",
+        "transform",
+        "hover:scale-[1.03]",
+        "active:scale-100",
+        "hover:!bg-white/10",
+        "hover:!border-white/20"
+      ],
+      "attributes": {
+        "data-index": "0"
+      },
+      "text": ""
+    },
+    {
+      "index": 42,
+      "key": null,
+      "tag": "div",
+      "classes": [
+        "animated-check-container"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 43,
+      "key": null,
+      "tag": "svg",
+      "classes": [
+        "animated-check-svg"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 44,
+      "key": null,
+      "tag": "circle",
+      "classes": [
+        "animated-check-circle"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 45,
+      "key": null,
+      "tag": "path",
+      "classes": [
+        "animated-check-path"
+      ],
+      "attributes": {},
+      "text": ""
+    },
+    {
+      "index": 46,
+      "key": null,
+      "tag": "span",
+      "classes": [
+        "font-bold",
+        "text-base",
+        "transition-colors",
+        "duration-300"
+      ],
+      "attributes": {},
+      "text": "Marcar como Concluído"
+    }
+  ],
+  "copyAndData": {
+    "method": "PIRÂMIDE CRESCENTE + ISOMETRIA Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+    "title": "Elevação Pélvica com Barra",
+    "labels": [
+      "Séries",
+      "Reps",
+      "Descanso"
+    ],
+    "values": [
+      "4",
+      "20/18/15/12",
+      "90 seg"
+    ],
+    "helpers": [
+      "Toque para registrar",
+      "Toque para detalhes",
+      "Toque para iniciar"
+    ],
+    "cta": "Marcar como Concluído",
+    "dialogs": [
+      "Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+      "1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12"
+    ],
+    "interactive": {
+      "method": {
+        "type": "button",
+        "data-method-badge": "",
+        "data-exercise-index": "0",
+        "aria-expanded": "false"
+      },
+      "series": {
+        "type": "button",
+        "data-stat-type": "series",
+        "data-exercise-index": "0",
+        "data-total-series": "4",
+        "data-original-value": "4",
+        "aria-pressed": "false"
+      },
+      "reps": {
+        "type": "button",
+        "data-stat-type": "reps",
+        "data-exercise-index": "0",
+        "data-reps": "1ª série: 20|2ª série: 18|3ª série: 15|4ª série: 12"
+      },
+      "rest": {
+        "type": "button",
+        "data-stat-type": "rest",
+        "data-exercise-index": "0",
+        "data-rest-seconds": "90",
+        "data-original-value": "90 seg",
+        "aria-live": "polite"
+      },
+      "cta": {
+        "data-index": "0"
+      }
+    }
+  },
+  "focusOrder": [
+    {
+      "order": 1,
+      "key": "method",
+      "tag": "button",
+      "text": "PIRÂMIDE CRESCENTE + ISOMETRIA Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+      "attributes": {
+        "type": "button",
+        "data-method-badge": "",
+        "data-exercise-index": "0",
+        "aria-expanded": "false"
+      }
+    },
+    {
+      "order": 2,
+      "key": "series",
+      "tag": "button",
+      "text": "SÉRIES 4 TOQUE PARA REGISTRAR",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "series",
+        "data-exercise-index": "0",
+        "data-total-series": "4",
+        "data-original-value": "4",
+        "aria-pressed": "false"
+      }
+    },
+    {
+      "order": 3,
+      "key": "reps",
+      "tag": "button",
+      "text": "REPS 20/18/15/12 TOQUE PARA DETALHES 1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "reps",
+        "data-exercise-index": "0",
+        "data-reps": "1ª série: 20|2ª série: 18|3ª série: 15|4ª série: 12"
+      }
+    },
+    {
+      "order": 4,
+      "key": "rest",
+      "tag": "button",
+      "text": "DESCANSO 90 seg TOQUE PARA INICIAR",
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "rest",
+        "data-exercise-index": "0",
+        "data-rest-seconds": "90",
+        "data-original-value": "90 seg",
+        "aria-live": "polite"
+      }
+    },
+    {
+      "order": 5,
+      "key": "cta",
+      "tag": "button",
+      "text": "Marcar como Concluído",
+      "attributes": {
+        "data-index": "0"
+      }
+    }
+  ],
+  "geometryAndMaterials": {
+    "card": {
+      "tag": "article",
+      "classes": [
+        "workout-card",
+        "relative",
+        "rounded-3xl",
+        "border",
+        "flex",
+        "flex-col",
+        "justify-end"
+      ],
+      "attributes": {
+        "data-image-url": "src/imagens/Elevação Pélvica com Barra.webp"
+      },
+      "text": "PIRÂMIDE CRESCENTE + ISOMETRIA Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição Elevação Pélvica com Barra SÉRIES 4 TOQUE PARA REGISTRAR REPS 20/18/15/12 TOQUE PARA DETALHES 1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12 DESCANSO 90 seg TOQUE PARA INICIAR Marcar como Concluído",
+      "geometry": {
+        "x": 104,
+        "y": 24,
+        "width": 560,
+        "height": 560,
+        "relative": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "relative",
+        "width": "560px",
+        "height": "560px",
+        "aspectRatio": "1 / 1",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "1px solid rgba(255, 255, 255, 0.07)",
+        "borderRadius": "0px",
+        "background": "rgb(36, 34, 52) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgb(36, 34, 52)",
+        "backgroundImage": "none",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "none",
+        "position": "absolute",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "background": "linear-gradient(106deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.11) 18%, rgba(0, 0, 0, 0) 39%) repeat scroll 0% 0% / auto padding-box border-box, radial-gradient(110% 68% at 50% -22%, rgba(255, 255, 255, 0.22), rgba(0, 0, 0, 0) 58%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) radial-gradient(82% 64% at 94% 8%, rgba(255, 255, 255, 0.11), rgba(0, 0, 0, 0) 54%) repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "linear-gradient(106deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.11) 18%, rgba(0, 0, 0, 0) 39%), radial-gradient(110% 68% at 50% -22%, rgba(255, 255, 255, 0.22), rgba(0, 0, 0, 0) 58%), radial-gradient(82% 64% at 94% 8%, rgba(255, 255, 255, 0.11), rgba(0, 0, 0, 0) 54%)",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "0.5",
+        "overflow": "visible",
+        "zIndex": "4",
+        "pointerEvents": "none"
+      },
+      "after": {
+        "display": "none",
+        "position": "absolute",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0.35) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0.35)",
+        "backgroundImage": "none",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "0",
+        "overflow": "visible",
+        "zIndex": "5",
+        "pointerEvents": "auto"
+      }
+    },
+    "image": {
+      "tag": "img",
+      "classes": [
+        "exercise-card-image"
+      ],
+      "attributes": {
+        "alt": "Ilustração do exercício Elevação Pélvica com Barra",
+        "data-parallax-image": "",
+        "loading": "lazy",
+        "decoding": "async",
+        "data-harness-media": "stable"
+      },
+      "text": "",
+      "geometry": {
+        "x": 96.63,
+        "y": 16.63,
+        "width": 574.74,
+        "height": 574.74,
+        "relative": {
+          "x": -7.37,
+          "y": -7.37,
+          "right": -7.37,
+          "bottom": -7.37
+        }
+      },
+      "computed": {
+        "display": "block",
+        "position": "absolute",
+        "width": "558px",
+        "height": "558px",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(43, 36, 48), rgb(16, 20, 27) 48%, rgb(93, 45, 24)) repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "linear-gradient(135deg, rgb(43, 36, 48), rgb(16, 20, 27) 48%, rgb(93, 45, 24))",
+        "color": "rgba(0, 0, 0, 0)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "opacity": "1",
+        "overflow": "clip",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      },
+      "before": {
+        "display": "inline",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(0, 0, 0, 0)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      },
+      "after": {
+        "display": "inline",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(0, 0, 0, 0)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      }
+    },
+    "method": {
+      "tag": "button",
+      "classes": [
+        "exercise-method-pill",
+        "glass-effect",
+        "no-tap-highlight",
+        "touch-manipulation"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-method-badge": "",
+        "data-exercise-index": "0",
+        "aria-expanded": "false"
+      },
+      "text": "PIRÂMIDE CRESCENTE + ISOMETRIA Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+      "geometry": {
+        "x": 121,
+        "y": 58.359,
+        "width": 253.047,
+        "height": 25.281,
+        "relative": {
+          "x": 17,
+          "y": 34.359,
+          "right": 289.953,
+          "bottom": 500.359
+        }
+      },
+      "computed": {
+        "display": "inline-flex",
+        "position": "relative",
+        "width": "253.047px",
+        "height": "25.2812px",
+        "aspectRatio": "auto",
+        "padding": "6.144px 11.52px",
+        "gap": "6.144px",
+        "border": "1px solid rgba(0, 0, 0, 0)",
+        "borderRadius": "999px",
+        "background": "rgba(16, 16, 22, 0.3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(16, 16, 22, 0.3)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "blur(4px) saturate(2) brightness(1.3) url(\"#liquid-glass-refract-soft\")",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "50",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 250, 245, 0.95)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 250, 245, 0.95)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "title": {
+      "tag": "h3",
+      "classes": [
+        "text-2xl",
+        "font-black",
+        "text-white",
+        "tracking-tight",
+        "leading-tight"
+      ],
+      "attributes": {},
+      "text": "Elevação Pélvica com Barra",
+      "geometry": {
+        "x": 121,
+        "y": 115.156,
+        "width": 526,
+        "height": 22.391,
+        "relative": {
+          "x": 17,
+          "y": 91.156,
+          "right": 17,
+          "bottom": 446.453
+        }
+      },
+      "computed": {
+        "display": "block",
+        "position": "static",
+        "width": "526px",
+        "height": "22.3906px",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 255, 255, 0.98)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 255, 255, 0.98)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "800",
+        "lineHeight": "22.4px",
+        "letterSpacing": "-0.5px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "inline",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 255, 255, 0.98)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 255, 255, 0.98)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "800",
+        "lineHeight": "22.4px",
+        "letterSpacing": "-0.5px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "inline",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 255, 255, 0.98)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 255, 255, 0.98)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "800",
+        "lineHeight": "22.4px",
+        "letterSpacing": "-0.5px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "metricGroup": {
+      "tag": "div",
+      "classes": [
+        "exercise-stats-chip-group"
+      ],
+      "attributes": {},
+      "text": "SÉRIES 4 TOQUE PARA REGISTRAR REPS 20/18/15/12 TOQUE PARA DETALHES 1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12 DESCANSO 90 seg TOQUE PARA INICIAR",
+      "geometry": {
+        "x": 121,
+        "y": 396,
+        "width": 526,
+        "height": 95,
+        "relative": {
+          "x": 17,
+          "y": 372,
+          "right": 17,
+          "bottom": 93
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "static",
+        "width": "526px",
+        "height": "95px",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "7.68px",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(255, 255, 255)",
+        "fontFamily": "Poppins, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "series": {
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "series",
+        "data-exercise-index": "0",
+        "data-total-series": "4",
+        "data-original-value": "4",
+        "aria-pressed": "false"
+      },
+      "text": "SÉRIES 4 TOQUE PARA REGISTRAR",
+      "geometry": {
+        "x": 121,
+        "y": 396,
+        "width": 170.219,
+        "height": 95,
+        "relative": {
+          "x": 17,
+          "y": 372,
+          "right": 372.781,
+          "bottom": 93
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "relative",
+        "width": "170.219px",
+        "height": "95px",
+        "aspectRatio": "auto",
+        "padding": "11.52px 8px",
+        "gap": "7.68px",
+        "border": "1px solid rgba(0, 0, 0, 0)",
+        "borderRadius": "16px",
+        "background": "rgba(16, 16, 22, 0.3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(16, 16, 22, 0.3)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "blur(4px) saturate(2) brightness(1.3) url(\"#liquid-glass-refract-soft\")",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "reps": {
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "reps",
+        "data-exercise-index": "0",
+        "data-reps": "1ª série: 20|2ª série: 18|3ª série: 15|4ª série: 12"
+      },
+      "text": "REPS 20/18/15/12 TOQUE PARA DETALHES 1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12",
+      "geometry": {
+        "x": 298.891,
+        "y": 396,
+        "width": 170.219,
+        "height": 95,
+        "relative": {
+          "x": 194.891,
+          "y": 372,
+          "right": 194.891,
+          "bottom": 93
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "relative",
+        "width": "170.219px",
+        "height": "95px",
+        "aspectRatio": "auto",
+        "padding": "11.52px 8px",
+        "gap": "7.68px",
+        "border": "1px solid rgba(0, 0, 0, 0)",
+        "borderRadius": "16px",
+        "background": "rgba(16, 16, 22, 0.3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(16, 16, 22, 0.3)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "blur(4px) saturate(2) brightness(1.3) url(\"#liquid-glass-refract-soft\")",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "rest": {
+      "tag": "button",
+      "classes": [
+        "exercise-stat-button",
+        "glass-effect"
+      ],
+      "attributes": {
+        "type": "button",
+        "data-stat-type": "rest",
+        "data-exercise-index": "0",
+        "data-rest-seconds": "90",
+        "data-original-value": "90 seg",
+        "aria-live": "polite"
+      },
+      "text": "DESCANSO 90 seg TOQUE PARA INICIAR",
+      "geometry": {
+        "x": 476.781,
+        "y": 396,
+        "width": 170.219,
+        "height": 95,
+        "relative": {
+          "x": 372.781,
+          "y": 372,
+          "right": 17,
+          "bottom": 93
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "relative",
+        "width": "170.219px",
+        "height": "95px",
+        "aspectRatio": "auto",
+        "padding": "11.52px 8px",
+        "gap": "7.68px",
+        "border": "1px solid rgba(0, 0, 0, 0)",
+        "borderRadius": "16px",
+        "background": "rgba(16, 16, 22, 0.3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(16, 16, 22, 0.3)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "blur(4px) saturate(2) brightness(1.3) url(\"#liquid-glass-refract-soft\")",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "cta": {
+      "tag": "button",
+      "classes": [
+        "completion-toggle-wrapper",
+        "glass-effect",
+        "w-full",
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-3",
+        "p-3",
+        "rounded-xl",
+        "transition-all",
+        "duration-300",
+        "transform",
+        "hover:scale-[1.03]",
+        "active:scale-100",
+        "hover:!bg-white/10",
+        "hover:!border-white/20"
+      ],
+      "attributes": {
+        "data-index": "0"
+      },
+      "text": "Marcar como Concluído",
+      "geometry": {
+        "x": 121,
+        "y": 507,
+        "width": 526,
+        "height": 60,
+        "relative": {
+          "x": 17,
+          "y": 483,
+          "right": 17,
+          "bottom": 17
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "static",
+        "width": "526px",
+        "height": "60px",
+        "aspectRatio": "auto",
+        "padding": "12px",
+        "gap": "12px",
+        "border": "1px solid rgba(0, 0, 0, 0)",
+        "borderRadius": "9999px",
+        "background": "rgba(16, 16, 22, 0.3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(16, 16, 22, 0.3)",
+        "backgroundImage": "none",
+        "color": "rgb(0, 0, 0)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "blur(4px) saturate(2) brightness(1.3) url(\"#liquid-glass-refract-soft\")",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(0, 0, 0)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(0, 0, 0)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      },
+      "after": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(0, 0, 0)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(0, 0, 0)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "auto"
+      }
+    },
+    "methodDialog": {
+      "tag": "span",
+      "classes": [
+        "method-tooltip"
+      ],
+      "attributes": {
+        "role": "dialog",
+        "aria-label": "Detalhes do método"
+      },
+      "text": "Pirâmide Crescente — aumente a carga a cada série enquanto reduz levemente as repetições Isometria — segure o pico de contração por 2-3 segundos em cada repetição",
+      "geometry": {
+        "x": 157.516,
+        "y": 26.719,
+        "width": 180,
+        "height": 104.578,
+        "relative": {
+          "x": 53.516,
+          "y": 2.719,
+          "right": 326.484,
+          "bottom": 452.703
+        }
+      },
+      "computed": {
+        "display": "flex",
+        "position": "absolute",
+        "width": "180px",
+        "height": "104.578px",
+        "aspectRatio": "auto",
+        "padding": "9.6px 12.8px",
+        "gap": "6.4px",
+        "border": "1px solid rgba(255, 255, 255, 0.11)",
+        "borderRadius": "12px",
+        "background": "rgba(30, 30, 46, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(30, 30, 46, 0.96)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "matrix(1, 0, 0, 1, -90, 8)",
+        "opacity": "0",
+        "overflow": "visible",
+        "zIndex": "100",
+        "pointerEvents": "none"
+      },
+      "before": {
+        "display": "block",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgba(255, 250, 245, 0.95)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      },
+      "after": {
+        "display": "block",
+        "position": "absolute",
+        "width": "0px",
+        "height": "0px",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgba(255, 250, 245, 0.95)",
+        "fontFamily": "Arial",
+        "fontSize": "9.984px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "1.39776px",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "matrix(1, 0, 0, 1, -7, 0)",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      }
+    },
+    "repsDialog": {
+      "tag": "div",
+      "classes": [
+        "stat-details"
+      ],
+      "attributes": {
+        "role": "dialog",
+        "aria-label": "Detalhes das repetições"
+      },
+      "text": "1ª série: 20 2ª série: 18 3ª série: 15 4ª série: 12",
+      "geometry": {
+        "x": 309,
+        "y": 416.906,
+        "width": 150,
+        "height": 69.188,
+        "relative": {
+          "x": 205,
+          "y": 392.906,
+          "right": 205,
+          "bottom": 97.906
+        }
+      },
+      "computed": {
+        "display": "block",
+        "position": "absolute",
+        "width": "150px",
+        "height": "69.1875px",
+        "aspectRatio": "auto",
+        "padding": "9.6px 11.2px",
+        "gap": "normal",
+        "border": "1px solid rgba(255, 255, 255, 0.11)",
+        "borderRadius": "12px",
+        "background": "rgba(30, 30, 46, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(30, 30, 46, 0.96)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "matrix(1, 0, 0, 1, -75, 8)",
+        "opacity": "0",
+        "overflow": "visible",
+        "zIndex": "50",
+        "pointerEvents": "none"
+      },
+      "before": {
+        "display": "inline",
+        "position": "static",
+        "width": "auto",
+        "height": "auto",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "0px none rgb(205, 214, 244)",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "none",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      },
+      "after": {
+        "display": "block",
+        "position": "absolute",
+        "width": "0px",
+        "height": "0px",
+        "aspectRatio": "auto",
+        "padding": "0px",
+        "gap": "normal",
+        "border": "",
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "color": "rgb(205, 214, 244)",
+        "fontFamily": "Arial",
+        "fontSize": "13.3333px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "backdropFilter": "none",
+        "webkitBackdropFilter": "",
+        "boxShadow": "none",
+        "filter": "none",
+        "transform": "matrix(1, 0, 0, 1, -7, 0)",
+        "opacity": "1",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "pointerEvents": "none"
+      }
+    }
+  },
+  "media": {
+    "mode": "harness-stable-gradient",
+    "images": [
+      {
+        "attributes": {
+          "alt": "Ilustração do exercício Elevação Pélvica com Barra",
+          "data-parallax-image": "",
+          "loading": "lazy",
+          "decoding": "async",
+          "data-harness-media": "stable"
+        },
+        "sourcePresent": false,
+        "harnessMedia": "stable"
+      }
+    ]
+  },
+  "pixelMask": {
+    "applied": [],
+    "allowedOnly": [
+      {
+        "selector": ".exercise-card-image[data-parallax-image]",
+        "reason": "GIF frame or parallax pixels only"
+      }
+    ]
+  },
+  "performance": {
+    "supported": {
+      "frameTime": false,
+      "jsHeap": true
+    },
+    "frameTimeMs": {
+      "samples": 0,
+      "median": null,
+      "p95": null
+    },
+    "jsHeap": {
+      "usedBytes": 1199358,
+      "totalBytes": 2641658,
+      "limitBytes": 4395630592
+    }
+  },
+  "case": {
+    "id": "main-768-fine-full-chromium-pending",
+    "width": 768,
+    "height": 900,
+    "context": "main",
+    "pointer": "fine",
+    "motion": "full",
+    "capability": "chromium",
+    "state": "pending",
+    "maskMedia": true
+  },
+  "fixture": {
+    "exercise": {
+      "name": "Elevação Pélvica com Barra",
+      "series": "4",
+      "rept": "20/18/15/12",
+      "descanso": "90 seg",
+      "method": "Pirâmide Crescente + Isometria"
+    },
+    "fixedNow": "2025-02-10T12:00:00.000Z",
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "media": "stable-gradient",
+    "animation": "disabled",
+    "persistence": "isolated-memory"
+  }
+}

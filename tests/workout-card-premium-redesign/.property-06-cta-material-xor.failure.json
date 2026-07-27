@@ -1,0 +1,36 @@
+{
+  "feature": "workout-card-premium-redesign",
+  "property": "Property 6: Exclusividade material do CTA",
+  "seed": 1212567606,
+  "seedHex": "0x48465036",
+  "combinations": 120,
+  "completionScenarios": [
+    "pending",
+    "completed",
+    "pending-to-completed",
+    "completed-to-pending"
+  ],
+  "capabilities": [
+    "chromium",
+    "webkit",
+    "basic"
+  ],
+  "counterexample": {
+    "index": 0,
+    "repetition": 1,
+    "scenario": "completed",
+    "sourceState": "completed",
+    "targetState": "completed",
+    "transition": false,
+    "capability": "chromium",
+    "width": 639,
+    "context": "main",
+    "pointer": "fine"
+  },
+  "assertion": "harness result must retain its generated case index",
+  "observed": {
+    "expected": 0,
+    "actual": 82
+  },
+  "replay": "HF_PBT_SEED=1212567606 node tests/workout-card-premium-redesign/property-06-cta-material-xor.test.mjs"
+}

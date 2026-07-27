@@ -1,0 +1,559 @@
+{
+  "schemaVersion": 1,
+  "feature": "workout-card-premium-redesign",
+  "task": "1.2 Capture deterministic baseline fixtures and invariants",
+  "generatedAt": "2025-02-10T12:00:00.000Z",
+  "sourceContract": {
+    "indexPath": "/Users/rafael/hyperfitness/index.html",
+    "playerCssPath": "/Users/rafael/hyperfitness/src/player/player.css",
+    "rendererNames": [
+      "createMethodBadgeHTML",
+      "createExerciseCardHTML",
+      "shouldUseControlledSheetImageLazy",
+      "createExerciseStatsHTML",
+      "parseTotalSeries",
+      "parseMethodSegments",
+      "formatMethodTooltipSegment",
+      "normalizeMethodKey",
+      "getMethodDescriptions",
+      "parseRepetitionSegments",
+      "parseRestToSeconds",
+      "formatRestLabel",
+      "createCompletionButtonHTML",
+      "getExerciseImageUrl",
+      "escapeHTML"
+    ],
+    "inlineStyleBlocks": 1,
+    "usesRealPlayerCss": true,
+    "fixedNow": "2025-02-10T12:00:00.000Z"
+  },
+  "sources": [
+    {
+      "path": "index.html",
+      "sha256": "7feafa900cde2adb83875bc495746ee3e35555e6e40fe4cd17e9e1e4713dbf8e"
+    },
+    {
+      "path": "src/player/player.css",
+      "sha256": "dbd4c839d8be286a70663b9c80dc21900cfe65333f958203a1f0cb5143aaf26f"
+    },
+    {
+      "path": "tests/workout-card-premium-redesign/harness.mjs",
+      "sha256": "f4ec715912a20717ff2a8f0ba91189188f1b8b9e4c5d44124e4d5d6d7e7e00c8"
+    },
+    {
+      "path": "tests/workout-card-premium-redesign/capture-baseline.mjs",
+      "sha256": "d0a4e9d39cc749b66685b123d8ccd30b24471a840edd465666985354acf954da"
+    }
+  ],
+  "provenance": {
+    "aestheticReferenceUsedForDimensions": false,
+    "geometrySource": "computed from current index.html CSS and rendered DOM only"
+  },
+  "determinism": {
+    "exercise": {
+      "name": "Elevação Pélvica com Barra",
+      "series": "4",
+      "rept": "20/18/15/12",
+      "descanso": "90 seg",
+      "method": "Pirâmide Crescente + Isometria"
+    },
+    "fixedNow": "2025-02-10T12:00:00.000Z",
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "canonicalViewport": {
+      "width": 768,
+      "height": 900
+    },
+    "canonicalPointer": "fine",
+    "canonicalMotion": "full",
+    "canonicalCapability": "chromium",
+    "media": "harness-stable-gradient",
+    "network": "disabled",
+    "animations": "disabled",
+    "persistence": "isolated-memory"
+  },
+  "maskPolicy": {
+    "allowedOnly": [
+      "unstable GIF frame pixels",
+      "parallax-transformed image pixels"
+    ],
+    "appliedMasks": [],
+    "reason": "Harness stabilizes media and disables motion, so no pixel mask was necessary."
+  },
+  "coverage": {
+    "states": [
+      "pending",
+      "completed",
+      "locked",
+      "series-active",
+      "series-complete",
+      "reps-open",
+      "rest-counting",
+      "rest-finished",
+      "method-open"
+    ],
+    "breakpointWidths": [
+      639,
+      640,
+      641,
+      767,
+      768,
+      769,
+      1279,
+      1280,
+      1281,
+      1535,
+      1536,
+      1537,
+      1919,
+      1920,
+      1921
+    ],
+    "contexts": [
+      "main",
+      "week-sheet"
+    ],
+    "pointers": [
+      "fine",
+      "coarse"
+    ],
+    "motions": [
+      "full",
+      "reduced"
+    ],
+    "capabilities": [
+      "chromium",
+      "basic",
+      "webkit"
+    ],
+    "matrixCases": 54,
+    "capturedScreenshots": 52
+  },
+  "browserSupport": {
+    "chromium": {
+      "available": true,
+      "version": "Google Chrome 150.0.7871.130",
+      "capture": true
+    },
+    "basic": {
+      "available": true,
+      "capture": true,
+      "method": "Chromium with backdrop filters disabled by harness-only CSS"
+    },
+    "webkit": {
+      "available": true,
+      "capture": false,
+      "reason": "Safari capture requires host Remote Automation authorization; harness does not mutate host settings."
+    }
+  },
+  "states": {
+    "pending": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-pending.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-pending.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "completed": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-completed.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-completed.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "locked": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-locked.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-locked.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "series-active": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-series-active.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-series-active.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "series-complete": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-series-complete.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-series-complete.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "reps-open": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-reps-open.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-reps-open.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "rest-counting": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-rest-counting.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-rest-counting.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "rest-finished": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-rest-finished.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-rest-finished.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    },
+    "method-open": {
+      "fixture": "baselines/fixtures/main-768-fine-full-chromium-method-open.json",
+      "capture": "baselines/captures/main-768-fine-full-chromium-method-open.png",
+      "invariants": [
+        "semantic inventory and order",
+        "rendered copy and data",
+        "functional attributes",
+        "focus order",
+        "computed geometry and materials"
+      ]
+    }
+  },
+  "captures": [
+    {
+      "path": "baselines/captures/main-1279-fine-full-chromium-pending.png",
+      "sha256": "d8faddd4c920e5d35be1f6e4f407184e73acda5f2ce0578e7ba3daa3cf1f3ec4",
+      "bytes": 1077860
+    },
+    {
+      "path": "baselines/captures/main-1280-fine-full-chromium-pending.png",
+      "sha256": "538ed6c6fa4081db60476699a2e6567694e769537c0ee66464ab278ae0b0df89",
+      "bytes": 1059423
+    },
+    {
+      "path": "baselines/captures/main-1281-fine-full-chromium-pending.png",
+      "sha256": "bcd0a0fb1088a0af4d385bdef971f95e2550aaf63c35b59c888eedcb76e568de",
+      "bytes": 1062025
+    },
+    {
+      "path": "baselines/captures/main-1535-fine-full-chromium-pending.png",
+      "sha256": "c5844da5106178cafe1f7f72ee0586e326ea9476baa96eba76e89a44a2db214f",
+      "bytes": 1260115
+    },
+    {
+      "path": "baselines/captures/main-1536-fine-full-chromium-pending.png",
+      "sha256": "6e4481ea78ad99191750e1181c16d1c90a11ee54a6e885649cdc30447ddcda57",
+      "bytes": 1262627
+    },
+    {
+      "path": "baselines/captures/main-1537-fine-full-chromium-pending.png",
+      "sha256": "6bbaf4bb81baa1fa0adf64c872c314ee7fde99e480329cb3d38cb7e018d80213",
+      "bytes": 1265822
+    },
+    {
+      "path": "baselines/captures/main-1919-fine-full-chromium-pending.png",
+      "sha256": "7143e28920bc0a81b8508c84c0c789a633c5f742181dbeb955fd3f5ad75f4f17",
+      "bytes": 1551109
+    },
+    {
+      "path": "baselines/captures/main-1920-fine-full-chromium-pending.png",
+      "sha256": "c9ee731e0325a0e16affa1a1bbdabf26d028dc9589c32ee58e1a624599b24431",
+      "bytes": 1569223
+    },
+    {
+      "path": "baselines/captures/main-1921-fine-full-chromium-pending.png",
+      "sha256": "a30857677c1e1628a080096f3643a0e45dcb604689b8669753d91635429db019",
+      "bytes": 1569006
+    },
+    {
+      "path": "baselines/captures/main-639-coarse-full-chromium-pending.png",
+      "sha256": "4fd25b97192dd07adaaa68c6b3e9aa79568d58e6f5a128bec8b2087ec8aa6498",
+      "bytes": 584721
+    },
+    {
+      "path": "baselines/captures/main-639-fine-full-chromium-pending.png",
+      "sha256": "4fd25b97192dd07adaaa68c6b3e9aa79568d58e6f5a128bec8b2087ec8aa6498",
+      "bytes": 584721
+    },
+    {
+      "path": "baselines/captures/main-640-fine-full-chromium-pending.png",
+      "sha256": "20569007db5e49c8270cc584297798e73cb8f3aa3400beb6b11d9f3fb5fa45d0",
+      "bytes": 585204
+    },
+    {
+      "path": "baselines/captures/main-640-fine-reduced-chromium-pending.png",
+      "sha256": "20569007db5e49c8270cc584297798e73cb8f3aa3400beb6b11d9f3fb5fa45d0",
+      "bytes": 585204
+    },
+    {
+      "path": "baselines/captures/main-641-coarse-full-chromium-pending.png",
+      "sha256": "ff318679b7addddd9ddcb2baf84de7c5d78ed8c0e0cad1c27cfb1137bf3209b9",
+      "bytes": 583190
+    },
+    {
+      "path": "baselines/captures/main-641-fine-full-chromium-pending.png",
+      "sha256": "ff318679b7addddd9ddcb2baf84de7c5d78ed8c0e0cad1c27cfb1137bf3209b9",
+      "bytes": 583190
+    },
+    {
+      "path": "baselines/captures/main-767-coarse-full-chromium-pending.png",
+      "sha256": "4c65abaa8949e949b71190f09ed614c3bc118d0e8a79dfc83566987ce7e367dd",
+      "bytes": 678743
+    },
+    {
+      "path": "baselines/captures/main-767-fine-full-chromium-pending.png",
+      "sha256": "4c65abaa8949e949b71190f09ed614c3bc118d0e8a79dfc83566987ce7e367dd",
+      "bytes": 678743
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-basic-pending.png",
+      "sha256": "d20a8df3891de9acaffcc989abe8bcaac436246856ed1a2b874091e0dcce9197",
+      "bytes": 678602
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-completed.png",
+      "sha256": "926492b7657752bac203146941d3a5e0da8017906ff40d28fcd9f9dcde1311a3",
+      "bytes": 686552
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-locked.png",
+      "sha256": "926492b7657752bac203146941d3a5e0da8017906ff40d28fcd9f9dcde1311a3",
+      "bytes": 686552
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-method-open.png",
+      "sha256": "1a5b0001fa7030529c9b91d8f839798d3b5087ff8eaef9e6fb74264a8913699d",
+      "bytes": 689980
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-pending.png",
+      "sha256": "12c3f96d07446032c035f4f990e98ff6d8ca912538b6523c8a8c13865eda255b",
+      "bytes": 678334
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-reps-open.png",
+      "sha256": "fcfee1bba1b77fd1ddbd1217b0845899c4de4c87a33e9a60cc9507c3ab3e3e82",
+      "bytes": 679373
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-rest-counting.png",
+      "sha256": "74cd2a75cb45043d58d86493b483f7be6cb7d5123b592f745d0d44226eb4c954",
+      "bytes": 678984
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-rest-finished.png",
+      "sha256": "4c25647d84957c35a34cbd40a5bce2ccd12e5ec5bc7bdc3ae65554c4546d3764",
+      "bytes": 678353
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-series-active.png",
+      "sha256": "20a49e10f2a5067f7eafedde733489b4e78263b0b8e86ff19e3a631773a34f38",
+      "bytes": 679132
+    },
+    {
+      "path": "baselines/captures/main-768-fine-full-chromium-series-complete.png",
+      "sha256": "6ba122e1759aad90490fed4bf6ec2e12f747cf12e8a08a71e792da2c005b9b65",
+      "bytes": 678699
+    },
+    {
+      "path": "baselines/captures/main-768-fine-reduced-chromium-pending.png",
+      "sha256": "12c3f96d07446032c035f4f990e98ff6d8ca912538b6523c8a8c13865eda255b",
+      "bytes": 678334
+    },
+    {
+      "path": "baselines/captures/main-769-coarse-full-chromium-pending.png",
+      "sha256": "24192b774bf03f78a96833548e4e20971a8d60e7003e997a4744645c4c002f61",
+      "bytes": 676571
+    },
+    {
+      "path": "baselines/captures/main-769-fine-full-chromium-pending.png",
+      "sha256": "24192b774bf03f78a96833548e4e20971a8d60e7003e997a4744645c4c002f61",
+      "bytes": 676571
+    },
+    {
+      "path": "baselines/captures/week-sheet-1279-fine-full-chromium-pending.png",
+      "sha256": "d053ab435a801b5b1174b04753df27abb8a4bfb94f310ad2d598b965ae42aae9",
+      "bytes": 1051022
+    },
+    {
+      "path": "baselines/captures/week-sheet-1280-fine-full-chromium-pending.png",
+      "sha256": "f0446b49104e9f914d2c5666a354213b97bacf3fac2ef8cccc27383baa88c8bc",
+      "bytes": 1051463
+    },
+    {
+      "path": "baselines/captures/week-sheet-1281-fine-full-chromium-pending.png",
+      "sha256": "4bfef166bfc5934598264da19960131ea924bb48f30c891701433fdb65183bfd",
+      "bytes": 1052076
+    },
+    {
+      "path": "baselines/captures/week-sheet-1535-fine-full-chromium-pending.png",
+      "sha256": "ac56894617a583ad65c7bf4c4a3d3e9b4eaa6f719cd23816a1cfe5337ef27410",
+      "bytes": 1251530
+    },
+    {
+      "path": "baselines/captures/week-sheet-1536-fine-full-chromium-pending.png",
+      "sha256": "baba1859d144babbec1a56357fb075395f6de6c602939cb13e120913607b6380",
+      "bytes": 1252241
+    },
+    {
+      "path": "baselines/captures/week-sheet-1537-fine-full-chromium-pending.png",
+      "sha256": "c6a0937168e7946e69411f00d6712537c5dedb1699f2115332b4dcfcea69cd90",
+      "bytes": 1253209
+    },
+    {
+      "path": "baselines/captures/week-sheet-1919-fine-full-chromium-pending.png",
+      "sha256": "7933bfafd395077bd552c0604c9119a55a0fb3327a42aac7fb0ada677fb500fb",
+      "bytes": 1535648
+    },
+    {
+      "path": "baselines/captures/week-sheet-1920-fine-full-chromium-pending.png",
+      "sha256": "7f6ee128b03e4ea9c80a17d1bd18584d2f3edb0872452f58f9d74bea42a4444c",
+      "bytes": 1536579
+    },
+    {
+      "path": "baselines/captures/week-sheet-1921-fine-full-chromium-pending.png",
+      "sha256": "51c6d691b20bc464063cbbd378e865ac603739aa628ba2ba19cf4fb1d7adbfea",
+      "bytes": 1537240
+    },
+    {
+      "path": "baselines/captures/week-sheet-639-coarse-full-chromium-pending.png",
+      "sha256": "8741d1063568ad6168f114b95d905231b00fc73afe3b32f04bfd133cd1848db0",
+      "bytes": 571873
+    },
+    {
+      "path": "baselines/captures/week-sheet-639-fine-full-chromium-pending.png",
+      "sha256": "8741d1063568ad6168f114b95d905231b00fc73afe3b32f04bfd133cd1848db0",
+      "bytes": 571873
+    },
+    {
+      "path": "baselines/captures/week-sheet-640-fine-full-chromium-pending.png",
+      "sha256": "1bac9b585c43e3fe1ea173d0a2490b9938318cc9a0b40e1fea57b08ecd24cec7",
+      "bytes": 571673
+    },
+    {
+      "path": "baselines/captures/week-sheet-640-fine-reduced-chromium-pending.png",
+      "sha256": "1bac9b585c43e3fe1ea173d0a2490b9938318cc9a0b40e1fea57b08ecd24cec7",
+      "bytes": 571673
+    },
+    {
+      "path": "baselines/captures/week-sheet-641-coarse-full-chromium-pending.png",
+      "sha256": "4a4da0c88b96c5488cc7ee267cfec72ff966630771d4f3da3c8074c9d6b839c6",
+      "bytes": 573962
+    },
+    {
+      "path": "baselines/captures/week-sheet-641-fine-full-chromium-pending.png",
+      "sha256": "4a4da0c88b96c5488cc7ee267cfec72ff966630771d4f3da3c8074c9d6b839c6",
+      "bytes": 573962
+    },
+    {
+      "path": "baselines/captures/week-sheet-767-coarse-full-chromium-pending.png",
+      "sha256": "51b07720c01e1a8717c0fff016c5526c074fdd48da1784fcd894e40ddaac231a",
+      "bytes": 664133
+    },
+    {
+      "path": "baselines/captures/week-sheet-767-fine-full-chromium-pending.png",
+      "sha256": "51b07720c01e1a8717c0fff016c5526c074fdd48da1784fcd894e40ddaac231a",
+      "bytes": 664133
+    },
+    {
+      "path": "baselines/captures/week-sheet-768-fine-full-basic-pending.png",
+      "sha256": "c5034a85e583ecb3d70d0821ee2dda4ec816cef029ece9aa374f8b3cabb588ff",
+      "bytes": 663974
+    },
+    {
+      "path": "baselines/captures/week-sheet-768-fine-full-chromium-pending.png",
+      "sha256": "c5034a85e583ecb3d70d0821ee2dda4ec816cef029ece9aa374f8b3cabb588ff",
+      "bytes": 663974
+    },
+    {
+      "path": "baselines/captures/week-sheet-768-fine-reduced-chromium-pending.png",
+      "sha256": "c5034a85e583ecb3d70d0821ee2dda4ec816cef029ece9aa374f8b3cabb588ff",
+      "bytes": 663974
+    },
+    {
+      "path": "baselines/captures/week-sheet-769-coarse-full-chromium-pending.png",
+      "sha256": "7f25e987c9cb4635356b155b1146f785d43c9438c15d949ce1dadcb22b7b2aa5",
+      "bytes": 664572
+    },
+    {
+      "path": "baselines/captures/week-sheet-769-fine-full-chromium-pending.png",
+      "sha256": "7f25e987c9cb4635356b155b1146f785d43c9438c15d949ce1dadcb22b7b2aa5",
+      "bytes": 664572
+    }
+  ],
+  "mobilePerformanceBudget": {
+    "case": "week-sheet-639-coarse-full-chromium-pending",
+    "fixture": "baselines/fixtures/week-sheet-639-coarse-full-chromium-pending.json",
+    "supported": {
+      "frameTime": false,
+      "jsHeap": true
+    },
+    "reference": {
+      "supported": {
+        "frameTime": false,
+        "jsHeap": true
+      },
+      "frameTimeMs": {
+        "samples": 0,
+        "median": null,
+        "p95": null
+      },
+      "jsHeap": {
+        "usedBytes": 1200123,
+        "totalBytes": 3428083,
+        "limitBytes": 4395630592
+      }
+    },
+    "budget": {
+      "maxFrameTimeRegressionPercent": 20,
+      "maxJsHeapRegressionPercent": 20,
+      "comparison": "same machine/browser, repeated-card week-sheet mobile/coarse run"
+    }
+  },
+  "invariants": {
+    "semanticOrder": [
+      "image",
+      "method",
+      "title",
+      "series",
+      "reps",
+      "rest",
+      "cta"
+    ],
+    "identicalConditionsAcrossStateFixtures": true,
+    "copyDataAndFunctionalAttributesFrozen": true,
+    "focusOrderFrozen": true,
+    "computedGeometryAndMaterialsFrozen": true,
+    "noReferenceImageDimensions": true
+  }
+}

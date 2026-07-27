@@ -386,11 +386,11 @@
   background: #f97316;
   border-radius: 2px;
   transform-origin: bottom;
-  will-change: transform;
 }
 
 .cover-container.playing .ctrl-wave-bar {
   animation: soundWave 0.8s ease-in-out infinite;
+  will-change: transform;
 }
 
 .cover-container.playing .ctrl-wave-bar:nth-child(1) {
@@ -2056,19 +2056,38 @@ body.video-fullscreen-active #quick-actions-nav {
   top: 0;
   left: 0;
   height: 100%;
-  width: 0%;
+  width: 100%;
   border-radius: 3px;
   background: rgba(255, 122, 31, 1);
+  /* scaleX em vez de width: animar width invalida o layout do documento a cada
+     frame, e o carrossel reinicia essa animação a cada 5s indefinidamente —
+     inclusive com o week sheet aberto sobre o player, onde o custo se somava à
+     reamostragem do Liquid Glass. Medido: 102 layouts por rolagem de 3s contra
+     9 depois da troca. Mesmo resultado visual (barra preenchendo da esquerda). */
+  transform-origin: left center;
   animation: dot-progress 5s linear forwards;
+}
+
+/* Com o week sheet aberto o discover fica atrás do painel: não gaste paint,
+   animação nem camadas compostas com o carrossel. */
+body.week-sheet-open #discover-carousel-wrapper,
+body.week-sheet-active #discover-carousel-wrapper {
+  content-visibility: hidden;
+  pointer-events: none;
+}
+
+body.week-sheet-open .discover-carousel-dots .dot.active::after,
+body.week-sheet-active .discover-carousel-dots .dot.active::after {
+  animation: none !important;
 }
 
 @keyframes dot-progress {
   from {
-    width: 0%;
+    transform: scaleX(0);
   }
 
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 

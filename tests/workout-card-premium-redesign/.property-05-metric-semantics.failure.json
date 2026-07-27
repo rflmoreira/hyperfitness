@@ -1,0 +1,86 @@
+{
+  "feature": "workout-card-premium-redesign",
+  "property": "Property 5: Métricas equivalentes e semântica de estado",
+  "seed": 1212567605,
+  "seedHex": "0x48465035",
+  "combinations": 120,
+  "cartesianStateTuples": 40,
+  "widthToleranceCssPx": 0.75,
+  "progressTolerancePercent": 0.75,
+  "counterexample": {
+    "index": 45,
+    "seriesState": "complete",
+    "repsState": "open",
+    "restState": "counting",
+    "total": 4,
+    "current": 4,
+    "restSeconds": 75,
+    "elapsed": 46,
+    "originalSeries": "4",
+    "reps": "12/10/8",
+    "originalRest": "75 seg",
+    "width": 639,
+    "context": "main",
+    "pointer": "fine",
+    "capability": "basic",
+    "expected": {
+      "series": {
+        "value": "4/4",
+        "helper": "Séries completas",
+        "progress": "100.0%",
+        "progressNumber": 100,
+        "className": "is-complete",
+        "ariaPressed": "true",
+        "ariaDisabled": null
+      },
+      "reps": {
+        "value": "12/10/8",
+        "helper": "Toque para detalhes",
+        "className": "is-open",
+        "ariaExpanded": "true"
+      },
+      "rest": {
+        "value": "00:29",
+        "helper": "toque para cancelar",
+        "progress": "61.3%",
+        "progressNumber": 61.33333333333333,
+        "className": "is-counting",
+        "ariaPressed": "true"
+      }
+    }
+  },
+  "assertion": "counting Rest must map surface, border, value, progress and pulse to blue",
+  "observed": {
+    "background": [
+      137,
+      180,
+      250
+    ],
+    "border": [
+      137,
+      180,
+      250
+    ],
+    "value": [
+      137,
+      180,
+      250
+    ],
+    "icon": [
+      255,
+      122,
+      31
+    ],
+    "fill": [
+      137,
+      180,
+      250
+    ],
+    "pulse": [
+      205,
+      214,
+      244
+    ]
+  },
+  "replay": "HF_PBT_SEED=1212567605 node tests/workout-card-premium-redesign/property-05-metric-semantics.test.mjs"
+}

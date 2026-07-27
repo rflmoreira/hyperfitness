@@ -139,10 +139,10 @@ const MUSIC_PLAYER = (() => {
       (base) => ({ id: 'codetabs', url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(base)}` })
     ]
     : [
-      (base) => ({ id: 'netlify-proxy', url: `/proxy?url=${encodeURIComponent(base)}` }),
-      (base) => ({ id: 'corsproxy', url: `https://corsproxy.io/?${encodeURIComponent(base)}` }),
-      (base) => ({ id: 'allorigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}` }),
-      (base) => ({ id: 'codetabs', url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(base)}` })
+      // Produção: exclusivamente infraestrutura própria. A function /deezer é o
+      // caminho principal de capas; /proxy é o único fallback interno. Proxies
+      // públicos (corsproxy/allorigins/codetabs) são permitidos APENAS em dev local.
+      (base) => ({ id: 'netlify-proxy', url: `/proxy?url=${encodeURIComponent(base)}` })
     ];
 
   const state = {
@@ -703,8 +703,10 @@ const MUSIC_PLAYER = (() => {
 
   // --- Métricas internas em tempo real ---
   const metrics = {
-    resolve: { api: 0, cache: 0, persistentCache: 0, fallback: 0, failures: 0, permanentFailures: 0, retries: 0, totalTimeMs: 0, count: 0 },
+    resolve: { api: 0, cache: 0, persistentCache: 0, fallback: 0, failures: 0, permanentFailures: 0, retries: 0, totalTimeMs: 0, count: 0, deduped: 0 },
     preload: { batches: 0, totalTimeMs: 0, tracksResolved: 0, tracksFailed: 0 },
+    playback: { plays: 0, ttfpTotalMs: 0, ttfpLastMs: null, ttfpBestMs: null, ttfpWorstMs: null, optimisticPlays: 0, recoveries: 0 },
+    anticipate: { warmups: 0, hits: 0 },
     firstPlayMs: null,
     fourshared: { accepted: 0, rejected: 0 },
     audioCache: { hits: 0, misses: 0 },
@@ -729,6 +731,7 @@ const MUSIC_PLAYER = (() => {
         falhas: r.failures,
         falhasPermanentes: r.permanentFailures,
         retriesExecutados: r.retries,
+        resolucoesDeduplicadas: r.deduped,
         tempoMedioMs: r.count > 0 ? Math.round(r.totalTimeMs / r.count) : 0
       },
       preload: {
@@ -738,6 +741,19 @@ const MUSIC_PLAYER = (() => {
         faixasFalhas: metrics.preload.tracksFailed
       },
       tempoAtePrimeiraMusicaMs: metrics.firstPlayMs,
+      reproducao: {
+        plays: metrics.playback.plays,
+        ttfpMedioMs: metrics.playback.plays > 0 ? Math.round(metrics.playback.ttfpTotalMs / metrics.playback.plays) : null,
+        ttfpUltimoMs: metrics.playback.ttfpLastMs,
+        ttfpMelhorMs: metrics.playback.ttfpBestMs,
+        ttfpPiorMs: metrics.playback.ttfpWorstMs,
+        playsOtimistas: metrics.playback.optimisticPlays,
+        recuperacoes: metrics.playback.recoveries
+      },
+      antecipacao: {
+        aquecimentos: metrics.anticipate.warmups,
+        acertosNoPlay: metrics.anticipate.hits
+      },
       fourshared: {
         aceitos: metrics.fourshared.accepted,
         rejeitados: metrics.fourshared.rejected,
@@ -749,6 +765,41 @@ const MUSIC_PLAYER = (() => {
       },
       circuitBreaker: { ...metrics.circuit, estadoAtual: audioCircuit.state }
     };
+  }
+
+  // --- Instrumentação TTFP (clique → áudio tocando) ---
+  // Mede cada fase da preparação da faixa atual (resolução, carregamento, play)
+  // e alimenta metrics.playback. O requestId protege contra logs de tentativas
+  // abandonadas (usuário trocou de faixa no meio da preparação).
+  let playTiming = null;
+
+  function beginPlayTiming(label) {
+    playTiming = { label, requestId: state.playRequestId, start: performance.now(), last: performance.now(), marks: [] };
+  }
+
+  function markPlayPhase(phase) {
+    if (!playTiming) return;
+    const now = performance.now();
+    playTiming.marks.push(`${phase}=${Math.round(now - playTiming.last)}ms`);
+    playTiming.last = now;
+  }
+
+  function finishPlayTiming() {
+    if (!playTiming) return;
+    if (playTiming.requestId !== state.playRequestId) {
+      playTiming = null;
+      return;
+    }
+    markPlayPhase('play');
+    const totalMs = Math.round(performance.now() - playTiming.start);
+    const p = metrics.playback;
+    p.plays += 1;
+    p.ttfpTotalMs += totalMs;
+    p.ttfpLastMs = totalMs;
+    p.ttfpBestMs = p.ttfpBestMs === null ? totalMs : Math.min(p.ttfpBestMs, totalMs);
+    p.ttfpWorstMs = p.ttfpWorstMs === null ? totalMs : Math.max(p.ttfpWorstMs, totalMs);
+    console.log(`⏱️ [TTFP] "${playTiming.label}" tocando em ${totalMs}ms · ${playTiming.marks.join(' · ')}`);
+    playTiming = null;
   }
 
   // --- Retry exponencial com jitter ---
@@ -1952,6 +2003,7 @@ const MUSIC_PLAYER = (() => {
       metrics.firstPlayMs = Date.now() - APP_STARTED_AT;
       console.log(`⏱️ [METRICS] Primeira música tocando após ${Math.round(metrics.firstPlayMs / 1000)}s da inicialização`);
     }
+    finishPlayTiming();
     state.isPlaying = true;
     resetAudioError(index);
 
@@ -2061,6 +2113,14 @@ const MUSIC_PLAYER = (() => {
     if (!key) return null;
 
     if (forceRefresh) {
+      // Corrida preload vs play: se já existe resolução em andamento para a
+      // mesma faixa, espera terminar antes de limpar caches e refazer.
+      // Evita duas resoluções de rede simultâneas para a mesma key.
+      const inflight = state.searchPromises.get(key);
+      if (inflight) {
+        metrics.resolve.deduped += 1;
+        await inflight.catch(() => null);
+      }
       clearTrackCaches(key, null, { preserveFailures });
     } else {
       const cached = getCacheEntry(state.searchCache, key);
@@ -2071,6 +2131,7 @@ const MUSIC_PLAYER = (() => {
 
       const pending = state.searchPromises.get(key);
       if (pending) {
+        metrics.resolve.deduped += 1;
         try {
           return await pending;
         } catch {
@@ -4658,12 +4719,10 @@ const MUSIC_PLAYER = (() => {
       const offset = Math.max(0, Math.min(idealOffset, maxOffset));
       track.style.transform = `translateX(${-offset}px)`;
       slides.forEach((s, i) => s.classList.toggle('active', i === current));
-      dots.forEach((d, i) => {
-        d.classList.remove('active');
-        if (i === current) {
-          void d.offsetWidth;
-          d.classList.add('active');
-        }
+      // Reinicia a animação do dot sem forced reflow síncrono (void offsetWidth).
+      dots.forEach((d) => d.classList.remove('active'));
+      requestAnimationFrame(() => {
+        dots[current]?.classList.add('active');
       });
     }
 
@@ -4723,17 +4782,45 @@ const MUSIC_PLAYER = (() => {
       dragOffset = 0;
     }, { passive: true });
 
-    // Auto-play (vai e volta, sem loop abrupto)
+    // Auto-play (vai e volta, sem loop abrupto).
+    // Pausa enquanto o week sheet (ou outro modal) cobre o player: o interval
+    // + dot-progress continuavam rodando atrás do sheet e competiam com a
+    // rolagem do Liquid Glass (mutações de classe a cada 5s + animação CSS).
     let autoDirection = 1;
-    let autoTimer = setInterval(() => {
+    let autoTimer = null;
+    const isSheetCoveringPlayer = () =>
+      document.body.classList.contains('week-sheet-open') ||
+      document.body.classList.contains('week-sheet-active');
+
+    function tickCarouselAutoplay() {
+      if (isSheetCoveringPlayer()) return;
       if (current >= slides.length - 1) autoDirection = -1;
       if (current <= 0) autoDirection = 1;
       goTo(current + autoDirection);
-    }, 5000);
-    track.parentElement.addEventListener('touchstart', () => { clearInterval(autoTimer); }, { passive: true });
+    }
+
+    function startCarouselAutoplay() {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(tickCarouselAutoplay, 5000);
+    }
+
+    function stopCarouselAutoplay() {
+      clearInterval(autoTimer);
+      autoTimer = null;
+    }
+
+    startCarouselAutoplay();
+    track.parentElement.addEventListener('touchstart', () => { stopCarouselAutoplay(); }, { passive: true });
     track.parentElement.addEventListener('touchend', () => {
-      autoTimer = setInterval(() => goTo((current + 1) % slides.length), 5000);
+      startCarouselAutoplay();
     }, { passive: true });
+
+    const sheetCoverObserver = new MutationObserver(() => {
+      if (isSheetCoveringPlayer()) stopCarouselAutoplay();
+      else if (!autoTimer) startCarouselAutoplay();
+    });
+    sheetCoverObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    if (isSheetCoveringPlayer()) stopCarouselAutoplay();
 
     // Efeito progressivo ao scrollar (igual ao playlists-container)
     const discoverContainer = document.getElementById('discover-container');
@@ -8397,6 +8484,7 @@ const MUSIC_PLAYER = (() => {
     running: 0,
     generation: 0,
     lastStartAt: 0,
+    paused: false,
     batch: null, // { playlistId, generation, remaining, startedAt, resolve }
 
     priorityFor(index, anchor) {
@@ -8460,7 +8548,21 @@ const MUSIC_PLAYER = (() => {
       return null;
     },
 
+    // Pausa novos inícios de preload (jobs em andamento seguem até concluir).
+    // Usada enquanto a faixa escolhida pelo usuário está sendo preparada,
+    // garantindo prioridade total de rede/CPU para a reprodução.
+    pause() {
+      this.paused = true;
+    },
+
+    resume() {
+      if (!this.paused) return;
+      this.paused = false;
+      this.pump();
+    },
+
     pump() {
+      if (this.paused) return;
       while (this.running < PRELOAD_CONCURRENCY) {
         const job = this.dequeue();
         if (!job) return;
@@ -8514,6 +8616,36 @@ const MUSIC_PLAYER = (() => {
   // resolve quando o lote termina (ou é substituído por outro).
   function preloadTracksInBackground(tracks, playlistId) {
     return preloadScheduler.schedule(tracks, playlistId);
+  }
+
+  // --- Resolução antecipada (hover/toque) ---
+  // Aquece o cache quando o usuário demonstra intenção de tocar uma faixa
+  // (hover no desktop, toque no mobile), para o play sair direto do cache.
+  // Reusa resolveTrackWithCache: deduplicado com preload via searchPromises.
+  const warmedTrackKeys = new Set();
+  let trackWarmupTimer = null;
+
+  function warmupTrackResolution(index) {
+    const track = state.tracks[index];
+    if (!track || track.unavailable) return;
+    const key = getTrackKey(track);
+    if (!key) return;
+    if (getCacheEntry(state.searchCache, key) || state.searchPromises.has(key)) return;
+    metrics.anticipate.warmups += 1;
+    warmedTrackKeys.add(key);
+    resolveTrackWithCache(track, index).catch(() => {});
+  }
+
+  function scheduleTrackWarmup(index) {
+    cancelTrackWarmup();
+    trackWarmupTimer = setTimeout(() => warmupTrackResolution(index), 150);
+  }
+
+  function cancelTrackWarmup() {
+    if (trackWarmupTimer) {
+      clearTimeout(trackWarmupTimer);
+      trackWarmupTimer = null;
+    }
   }
 
   async function preloadSingleTrack(track, index, retryCount = 0) {
@@ -8905,6 +9037,14 @@ const MUSIC_PLAYER = (() => {
           }
         }
       });
+
+      // Resolução antecipada: intenção de play (hover no desktop, toque no mobile)
+      item.addEventListener('pointerenter', (event) => {
+        if (event.pointerType && event.pointerType !== 'mouse') return;
+        scheduleTrackWarmup(index);
+      });
+      item.addEventListener('pointerleave', cancelTrackWarmup);
+      item.addEventListener('touchstart', () => scheduleTrackWarmup(index), { passive: true });
     });
 
     // Botões de adicionar/remover dos favoritos
@@ -9055,13 +9195,23 @@ const MUSIC_PLAYER = (() => {
 
     const cached = getCacheEntry(state.searchCache, key);
     if (cached?.audioUrl) {
-      const validation = await isPlayableAudioUrl(cached.audioUrl);
-      if (validation.playable) {
-        updateTrackDurationFromResult(track, index, cached);
-        return cached.audioUrl;
+      if (warmedTrackKeys.has(key)) {
+        metrics.anticipate.hits += 1;
+        warmedTrackKeys.delete(key);
       }
-      // URL em cache não é mais válida, limpa o cache
-      clearTrackCaches(key, cached);
+      updateTrackDurationFromResult(track, index, cached);
+      metrics.playback.optimisticPlays += 1;
+      // Reprodução otimista: retorna a URL em cache imediatamente e valida em
+      // background. Se a URL estiver morta, o próprio play falha rápido (evento
+      // error do <audio>) e a recuperação existente força resolução fresca; a
+      // invalidação aqui garante que o cache não sirva a URL morta de novo.
+      isPlayableAudioUrl(cached.audioUrl).then((validation) => {
+        if (!validation.playable && !validation.aborted) {
+          console.warn(`⚠️ [AUDIO] URL em cache invalidada em background (${validation.status || validation.error || 'motivo desconhecido'})`);
+          clearTrackCaches(key, cached, { preserveFailures: true });
+        }
+      }).catch(() => {});
+      return cached.audioUrl;
     }
 
     const pending = key ? state.searchPromises.get(key) : null;
@@ -9346,6 +9496,22 @@ const MUSIC_PLAYER = (() => {
     // o título é parecido (ex: mesmo título gravado por outra banda)
     if (normArtist && best.artistSim < FOURSHARED_MIN_ARTIST_SIM) {
       return { ...best, score: 0, rejectedBy: `artista divergente (${(best.artistSim * 100).toFixed(0)}% < ${FOURSHARED_MIN_ARTIST_SIM * 100}%)` };
+    }
+
+    // Palavras extras relevantes no arquivo que não existem no pedido indicam
+    // outra música/versão (ex: "freestyle", "remake", outro artista no título).
+    // Uma palavra extra aplica penalidade; duas ou mais com título imperfeito
+    // rejeitam o candidato — melhor sem fallback do que a música errada.
+    const requestTokens = `${normTrack} ${normArtist}`.split(' ').filter(Boolean);
+    const extraTokens = normFile.split(' ').filter(Boolean).filter((token) => {
+      if (token.length <= 3) return false;
+      return !requestTokens.some((req) => req === token || levenshteinSimilarity(token, req) >= 0.8);
+    });
+    if (extraTokens.length >= 2 && best.titleSim < 0.9) {
+      return { ...best, score: 0, rejectedBy: `palavras extras relevantes (${extraTokens.join(', ')})` };
+    }
+    if (extraTokens.length) {
+      best.score *= Math.pow(0.85, Math.min(extraTokens.length, 3));
     }
 
     best.score = Math.max(0, Math.min(1, best.score));
@@ -10353,8 +10519,13 @@ const MUSIC_PLAYER = (() => {
     }
     updateUiState();
 
-    // Reprioriza o preload em background ao redor da faixa que vai tocar
+    // Instrumentação TTFP: mede do gesto do usuário até o áudio tocando
+    beginPlayTiming(track.name || 'desconhecida');
+
+    // Reprioriza o preload ao redor da faixa e pausa novos inícios de preload
+    // enquanto a faixa atual está sendo preparada (prioridade à reprodução)
     preloadScheduler.reprioritizeAround(index);
+    preloadScheduler.pause();
 
     // Reseta o modo Vídeo para a nova faixa (re-detecta o clipe e reentra se aplicável).
     videoMode.onTrackChanged();
@@ -10362,13 +10533,20 @@ const MUSIC_PLAYER = (() => {
     debouncedSave();
 
     try {
+      const shouldCrossfade = useCrossfade === true;
+      // Overlap: o reset do elemento de áudio (~100ms) roda em paralelo com a
+      // resolução da URL em vez de somar ao caminho crítico depois dela.
+      const resetPromise = shouldCrossfade ? null : resetAudioWithDelay(audio);
+
       let audioUrl = await getTrackAudioUrl(track, index);
 
       if (!audioUrl) {
+        metrics.playback.recoveries += 1;
         const refreshed = await resolveTrackWithCache(track, index, { forceRefresh: true });
         audioUrl = refreshed?.audioUrl || null;
       }
 
+      markPlayPhase('resolucao');
       if (isStale()) return;
 
       if (!audioUrl) {
@@ -10381,14 +10559,13 @@ const MUSIC_PLAYER = (() => {
         return;
       }
 
-      const shouldCrossfade = useCrossfade === true;
-
       let played = false;
       if (shouldCrossfade) {
         played = await playWithCrossfade(audioUrl, { isStale });
       } else {
-        await resetAudioWithDelay(audio);
+        await resetPromise;
         loadAudioSource(audioUrl, audio);
+        markPlayPhase('carregamento');
         if (isStale()) return;
         played = await tryPlayElement(audio);
       }
@@ -10397,6 +10574,7 @@ const MUSIC_PLAYER = (() => {
       if (!played) {
         // Se não conseguiu reproduzir após tentativas, tenta recuperação
         console.warn(`⚠️ [PLAY] Failed to play after attempts, trying recovery...`);
+        metrics.playback.recoveries += 1;
         const refreshed = await resolveTrackWithCache(track, index, { forceRefresh: true });
         if (refreshed?.audioUrl && !isStale()) {
           if (shouldCrossfade) {
@@ -10434,6 +10612,7 @@ const MUSIC_PLAYER = (() => {
         return;
       }
 
+      metrics.playback.recoveries += 1;
       const refreshed = await resolveTrackWithCache(track, index, { forceRefresh: true });
       if (refreshed?.audioUrl) {
         try {
@@ -10457,6 +10636,7 @@ const MUSIC_PLAYER = (() => {
       }
       state.isPlaying = false;
     } finally {
+      preloadScheduler.resume();
       state.isLoadingTrack = false;
       crossfadePending = false;
       if (!isStale()) {
