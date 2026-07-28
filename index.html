@@ -9068,6 +9068,19 @@
       transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
     }
 
+    /* Fumê reduzido — mesma linguagem dos cards Liquid Glass (--liquid-card-bg):
+       a mesma textura de ruído fractal sobre um véu escuro, em intensidade bem
+       menor (ruído 0.02 vs 0.04 dos cards; véu 0.10 vs 0.42) para não competir
+       com o conteúdo. Aplicado como background-image sobre a cor da variante,
+       sem tocar no brilho da borda (.liquid-glass-edge), na refração
+       (backdrop-filter) nem nas camadas ópticas (::before/::after). */
+    .hf-week-sheet__controls #complete-workout-btn.liquid-glass,
+    .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass {
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E"),
+        linear-gradient(rgba(13, 13, 20, 0.10), rgba(13, 13, 20, 0.10));
+    }
+
     .hf-week-sheet__controls #complete-workout-btn.liquid-glass:hover:not(:disabled),
     .hf-week-sheet__controls #quick-actions-container #quick-actions-toggle.liquid-glass:hover:not(:disabled),
     .hf-week-sheet__controls #complete-workout-btn.liquid-glass:disabled,
