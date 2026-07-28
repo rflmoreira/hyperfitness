@@ -2312,6 +2312,13 @@
         radial-gradient(96% 84% at 96% 4%, rgba(57, 255, 20, 0.04), transparent 58%),
         linear-gradient(145deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.048) 30%, rgba(255, 255, 255, 0.016) 58%, rgba(255, 255, 255, 0.04) 100%),
         rgba(13, 13, 20, 0.42);
+      /* Variante limpa (sem fumê) do vidro dos cards: mesmos gradientes,
+         transparência e profundidade, sem a textura de ruído fractal. */
+      --liquid-card-bg-clean:
+        radial-gradient(120% 86% at 18% -18%, rgba(255, 255, 255, 0.2), transparent 48%),
+        radial-gradient(96% 84% at 96% 4%, rgba(57, 255, 20, 0.04), transparent 58%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.048) 30%, rgba(255, 255, 255, 0.016) 58%, rgba(255, 255, 255, 0.04) 100%),
+        rgba(13, 13, 20, 0.42);
       --liquid-card-bg-strong:
         url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
         radial-gradient(120% 88% at 18% -18%, rgba(255, 255, 255, 0.18), transparent 48%),
@@ -4082,18 +4089,32 @@
       margin: 0 -0.4rem 0.32rem;
       padding: 0.34rem 0.16rem;
       border-radius: 1.08rem;
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 100%),
-        rgba(20, 19, 24, 0.15);
+      /* Mesma identidade Liquid Glass dos cards, na variante limpa (sem fumê):
+         material, refração, brilho de borda, transparência e profundidade
+         idênticos ao design system. */
+      background: var(--liquid-card-bg-clean);
+      border: 1px solid var(--liquid-card-border);
       box-shadow:
-        0 24px 48px -12px rgba(0, 0, 0, 0.75),
-        0 12px 24px -8px rgba(0, 0, 0, 0.5),
-        inset 0 1px 1px rgba(255, 255, 255, 0.2),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.4);
-      -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%);
-      backdrop-filter: blur(24px) saturate(180%) contrast(110%);
+        var(--liquid-card-shadow),
+        var(--liquid-card-inner);
+      -webkit-backdrop-filter: var(--liquid-card-filter);
+      backdrop-filter: var(--liquid-card-filter);
+      background-clip: padding-box;
       overflow: hidden;
+    }
+
+    /* Nav e pill concluído: fringe hairline — só sugere dispersão nas
+       extremidades, sem competir com o brilho da borda. */
+    .hf-week-sheet__nav::after,
+    .hf-day-pill[data-status="complete"] .hf-day-pill__card::after {
+      --liquid-glass-fringe-width: 0.5px;
+      --liquid-glass-fringe-lateral: 0.18;
+      --liquid-glass-fringe-chroma: 0.08;
+    }
+
+    .workout-card > .liquid-glass-edge {
+      --liquid-glass-fringe-lateral: 0.34;
+      --liquid-glass-fringe-chroma: 0.22;
     }
 
     .hf-week-sheet__nav::before {
@@ -4318,36 +4339,41 @@
 
     .hf-week-sheet__nav .hf-day-edit.is-active {
       opacity: 1;
-      color: rgba(255, 168, 102, 0.98);
-      background: rgba(255, 122, 31, 0.2);
-      border-color: rgba(255, 154, 82, 0.5);
+      color: rgba(255, 232, 210, 0.98);
+      background: linear-gradient(125deg, rgba(255, 122, 31, 0.28), rgba(69, 212, 131, 0.28));
+      border-color: rgba(255, 154, 82, 0.45);
     }
 
     @keyframes hf-edit-nav-pulse {
       0%, 100% {
         box-shadow:
-          0 0 0 1px rgba(255, 122, 31, 0.4),
-          0 0 16px -4px rgba(255, 122, 31, 0.32),
+          0 0 0 1px rgba(255, 154, 82, 0.42),
+          0 0 14px -4px rgba(255, 122, 31, 0.32),
+          0 0 16px -6px rgba(69, 212, 131, 0.22),
           inset 0 1px 1px rgba(255, 255, 255, 0.16);
       }
       50% {
         box-shadow:
-          0 0 0 2px rgba(255, 154, 82, 0.92),
-          0 0 26px 0 rgba(255, 122, 31, 0.62),
+          0 0 0 2px rgba(69, 212, 131, 0.82),
+          0 0 18px -2px rgba(255, 154, 82, 0.42),
+          0 0 26px 0 rgba(69, 212, 131, 0.55),
           inset 0 1px 1px rgba(255, 255, 255, 0.2);
       }
     }
 
     @keyframes hf-edit-pill-pulse {
       0%, 100% {
-        border-color: rgba(255, 122, 31, 0.45);
-        box-shadow: 0 0 0 1px rgba(255, 122, 31, 0.16);
+        border-color: rgba(255, 154, 82, 0.48);
+        box-shadow:
+          0 0 0 1px rgba(255, 122, 31, 0.16),
+          0 0 8px -4px rgba(69, 212, 131, 0.18);
       }
       50% {
-        border-color: rgba(255, 168, 102, 0.95);
+        border-color: rgba(69, 212, 131, 0.9);
         box-shadow:
-          0 0 12px -2px rgba(255, 122, 31, 0.6),
-          0 0 0 1px rgba(255, 154, 82, 0.55);
+          0 0 10px -4px rgba(255, 122, 31, 0.35),
+          0 0 12px -2px rgba(69, 212, 131, 0.55),
+          0 0 0 1px rgba(69, 212, 131, 0.5);
       }
     }
 
@@ -4389,7 +4415,7 @@
     }
 
     .hf-week-sheet__nav.is-editing .hf-day-pill:focus-visible {
-      outline: 2px solid rgba(255, 154, 82, 0.9);
+      outline: 2px solid rgba(255, 154, 82, 0.75);
       outline-offset: 2px;
     }
 
@@ -4424,13 +4450,15 @@
       justify-content: center;
       gap: 0.42rem;
       padding: 0.5rem 1.05rem;
-      border-radius: 0.85rem;
+      border: none;
+      border-radius: 9999px;
       font-size: 0.8rem;
       font-weight: 760;
       cursor: pointer;
-      -webkit-backdrop-filter: blur(14px) saturate(140%);
-      backdrop-filter: blur(14px) saturate(140%);
-      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
     }
 
     .hf-edit-actions__btn i {
@@ -4438,35 +4466,39 @@
     }
 
     .hf-edit-actions__btn:focus-visible {
-      outline: 2px solid rgba(255, 154, 82, 0.9);
+      outline: 2px solid rgba(255, 154, 82, 0.55);
       outline-offset: 2px;
     }
 
     .hf-edit-actions__btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
 
     .hf-edit-actions__btn--cancel {
-      color: rgba(235, 238, 248, 0.92);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(205, 214, 244, 0.16);
+      color: rgba(235, 238, 248, 0.88);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .hf-edit-actions__btn--cancel:hover {
-      background: rgba(255, 255, 255, 0.11);
-      border-color: rgba(205, 214, 244, 0.24);
+      color: rgba(245, 247, 255, 0.96);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .hf-edit-actions__btn--cancel:active {
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .hf-edit-actions__btn--confirm {
-      color: #fff;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-      border: 1px solid rgba(255, 203, 166, 0.4);
-      box-shadow: 0 8px 18px -10px rgba(255, 122, 31, 0.85);
+      color: #ffffff;
+      background: linear-gradient(125deg, #45d483 0%, #8fce5a 38%, #ff9a42 72%, #ff7a1f 100%);
     }
 
     .hf-edit-actions__btn--confirm:hover {
-      box-shadow: 0 11px 24px -10px rgba(255, 122, 31, 0.98);
-      transform: translateY(-1px);
+      background: linear-gradient(125deg, #52e090 0%, #9dd968 38%, #ffa858 72%, #ff8c33 100%);
+    }
+
+    .hf-edit-actions__btn--confirm:active {
+      background: linear-gradient(125deg, #3bc878 0%, #7fbe4e 38%, #f08a30 72%, #ef6f12 100%);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -4477,11 +4509,17 @@
       }
 
       .hf-week-sheet__nav.is-editing {
-        box-shadow: 0 0 0 2px rgba(255, 154, 82, 0.85), 0 0 22px -2px rgba(255, 122, 31, 0.5);
+        box-shadow:
+          0 0 0 2px rgba(69, 212, 131, 0.72),
+          0 0 18px -4px rgba(255, 122, 31, 0.4),
+          0 0 22px -2px rgba(69, 212, 131, 0.45);
       }
 
       .hf-week-sheet__nav.is-editing .hf-day-pill__card {
-        border-color: rgba(255, 154, 82, 0.85);
+        border-color: rgba(69, 212, 131, 0.7);
+        box-shadow:
+          0 0 0 1px rgba(255, 122, 31, 0.22),
+          0 0 10px -4px rgba(69, 212, 131, 0.35);
       }
 
       .hf-edit-actions {
@@ -8740,12 +8778,17 @@
 
     .workout-card,
     .program-card-premium {
-      border-color: var(--liquid-card-border-soft);
+      /* workout-card: borda percebida vem do fringe (.liquid-glass-edge);
+         program-card mantém hairline do material liquid-card. */
       box-shadow:
         var(--liquid-card-shadow),
         var(--liquid-card-inner);
       -webkit-backdrop-filter: var(--liquid-card-filter);
       backdrop-filter: var(--liquid-card-filter);
+    }
+
+    .program-card-premium {
+      border-color: var(--liquid-card-border-soft);
     }
 
     .phase-dashboard__hero::before,
@@ -9256,7 +9299,9 @@
       background: var(--surface-0);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      /* Borda transparente como no .liquid-glass / .player-bar: o anel
+         cromático (.liquid-glass-edge) é a borda percebida. */
+      border: 1px solid transparent;
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
     }
 
@@ -9329,13 +9374,14 @@
       margin-bottom: 0;
     }
 
-    /* Hairline consistente em repouso, sobrepondo a cor inline definida via JS. */
+    /* Repouso: borda CSS transparente (o fringe é a borda). Sobrescreve a
+       cor inline do JS. Concluído mantém o sinal verde de status. */
     .workout-card:not(.exercise-completed) {
-      border-color: rgba(255, 255, 255, 0.07) !important;
+      border-color: transparent !important;
     }
 
     /* Sem reflexo glossy nem overlay de escurecimento; o realce de hover fica
-       por conta da borda e da leve elevação. */
+       por conta do fringe cromático e da leve elevação. */
     .workout-card::before,
     .workout-card::after {
       display: none !important;
@@ -9344,7 +9390,13 @@
     .workout-card:hover,
     .workout-card:focus-within {
       transform: translateY(calc(-1 * var(--wc-motion-short)));
-      border-color: rgba(255, 255, 255, 0.18) !important;
+      border-color: transparent !important;
+    }
+
+    .workout-card:hover > .liquid-glass-edge,
+    .workout-card:focus-within > .liquid-glass-edge {
+      --liquid-glass-fringe-lateral: 0.48;
+      --liquid-glass-fringe-chroma: 0.3;
     }
 
     .workout-card.exercise-completed,
@@ -9424,8 +9476,8 @@
     /* Hierarquia tipográfica: Poppins permanece como família única; o título
        é o texto de maior escala e peso. Truncamento (line-clamp + ellipsis) e
        degradê verde→laranja ficam no .workout-card-title__fill para que as
-       reticências façam parte do mesmo texto com background-clip. A sombra
-       fica no ::before (z-index 0), atrás do fill (z-index 1). */
+       reticências façam parte do mesmo texto com background-clip. Sombra
+       suave no ::before (atrás do fill) — só contraste, sem contorno duro. */
     .workout-card h3 {
       position: relative;
       z-index: 2;
@@ -9461,8 +9513,9 @@
       pointer-events: none;
     }
 
-    /* Camada de sombra atrás do fill: offset mínimo, blur 0, opacidade baixa —
-       reforço de contraste discreto, sem halo nem “texto duplicado”. */
+    /* Camada atrás do fill: text-shadow com blur (não offset seco) para
+       reforço de legibilidade sem fringe preta. Necessária porque
+       background-clip:text no fill impede sombra no próprio texto. */
     .workout-card h3::before {
       content: attr(data-exercise-title);
       position: absolute;
@@ -9480,7 +9533,7 @@
       -webkit-text-fill-color: transparent;
       background: none;
       background-image: none;
-      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.14) !important;
       filter: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -9535,10 +9588,12 @@
         background-image: none;
         color: #9ee698;
         -webkit-text-fill-color: currentColor;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.14) !important;
       }
 
       .workout-card h3::before {
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22) !important;
+        content: none !important;
+        display: none !important;
       }
     }
 
@@ -9844,9 +9899,12 @@
        -soft em telas compactas) continuam vindo diretamente de player.css. */
 
     /* Em telas de toque o rim de refração (2ª camada de backdrop-filter por
-       elemento) sai de cena para proteger a GPU; o vidro base permanece. */
+       elemento) sai de cena para proteger a GPU; o vidro base permanece.
+       O fringe cromático do host (.workout-card > .liquid-glass-edge) NÃO usa
+       backdrop-filter — fica de fora desta supressão. */
     @media (max-width: 767.98px), (pointer: coarse) {
-      .workout-card .liquid-glass-edge {
+      .workout-card .player-glass-btn > .liquid-glass-edge,
+      .workout-card .liquid-glass > .liquid-glass-edge {
         display: none !important;
       }
     }
@@ -13052,6 +13110,8 @@
           ${createExerciseStatsHTML(exercise, index)}
           ${createCompletionButtonHTML(index, isCompleted, isLocked)}
         </div>
+
+        <span class="liquid-glass-edge" aria-hidden="true"></span>
       `;
     }
 

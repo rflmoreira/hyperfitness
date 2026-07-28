@@ -597,10 +597,10 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1px;
+  padding: var(--liquid-glass-fringe-width, 1px);
   background:
-    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 15%, rgba(255, 255, 255, 0.25) 85%, transparent 100%),
-    linear-gradient(180deg, rgba(255, 200, 180, 0.12) 0%, transparent 40%, transparent 60%, rgba(180, 200, 255, 0.12) 100%);
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, var(--liquid-glass-fringe-lateral, 0.25)) 15%, rgba(255, 255, 255, var(--liquid-glass-fringe-lateral, 0.25)) 85%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 200, 180, var(--liquid-glass-fringe-chroma, 0.12)) 0%, transparent 40%, transparent 60%, rgba(180, 200, 255, var(--liquid-glass-fringe-chroma, 0.12)) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -793,21 +793,37 @@
 .track-add-watch-later-btn::before,
 .track-remove-watch-later-btn::before,
 #settings-import-csv-btn::before,
-#settings-import-info-btn::before {
+#settings-import-info-btn::before,
+/* O ::before do nav já carrega a reflexão dos cards; o fringe cromático
+   usa o ::after (mesmo papel óptico de anel de borda). */
+.hf-week-sheet__nav::after,
+/* Pill concluído: mesmo anel cromático no card (pseudos do host da pill
+   ficam desligados; o ::after do card carrega só o acabamento de borda). */
+.hf-day-pill[data-status="complete"] .hf-day-pill__card::after,
+/* No workout-card os dois pseudos do host estão desligados (redesign sóbrio);
+   o span dedicado carrega o próprio anel cromático — acabamento de borda
+   canônico, sem a camada de refração. */
+.workout-card > .liquid-glass-edge {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1px;
+  padding: var(--liquid-glass-fringe-width, 1px);
   background:
-    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 15%, rgba(255, 255, 255, 0.25) 85%, transparent 100%),
-    linear-gradient(180deg, rgba(255, 200, 180, 0.12) 0%, transparent 40%, transparent 60%, rgba(180, 200, 255, 0.12) 100%);
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, var(--liquid-glass-fringe-lateral, 0.25)) 15%, rgba(255, 255, 255, var(--liquid-glass-fringe-lateral, 0.25)) 85%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 200, 180, var(--liquid-glass-fringe-chroma, 0.12)) 0%, transparent 40%, transparent 60%, rgba(180, 200, 255, var(--liquid-glass-fringe-chroma, 0.12)) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
   z-index: 3;
+}
+
+/* O card empilha título/stats em z-10/z-20; o anel precisa ficar acima do
+   perímetro inteiro (no ::before canônico o fringe já fica acima do conteúdo). */
+.workout-card > .liquid-glass-edge {
+  z-index: 30;
 }
 
 /* Liquid Glass — sheen diagonal (superfície glossy do vidro) */

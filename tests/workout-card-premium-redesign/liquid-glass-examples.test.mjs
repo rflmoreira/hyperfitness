@@ -470,8 +470,8 @@ check('real renderers add aria-hidden edge children only to existing eligible su
     && /completion-toggle-wrapper \$\{isCompleted \? '' : 'player-glass-btn'\}/.test(indexSource));
 check('week-sheet suppression explicitly exempts canonical player-glass surfaces',
   /exercise-stat-button:not\(\.player-glass-btn\)[\s\S]*?completion-toggle-wrapper:not\(\.player-glass-btn\)[\s\S]*?exercise-method-pill:not\(\.player-glass-btn\)/.test(indexSource));
-check('production mobile/coarse rule hides only the rim, not the base material',
-  /@media \(max-width: 767\.98px\), \(pointer: coarse\)\s*\{\s*\.workout-card \.liquid-glass-edge\s*\{\s*display:\s*none\s*!important;\s*\}/.test(indexSource));
+check('production mobile/coarse rule hides only nested refraction rims, not the host fringe',
+  /@media \(max-width: 767\.98px\), \(pointer: coarse\)\s*\{\s*\.workout-card \.player-glass-btn\s*>\s*\.liquid-glass-edge\s*,\s*\.workout-card \.liquid-glass\s*>\s*\.liquid-glass-edge\s*\{\s*display:\s*none\s*!important;\s*\}/.test(indexSource));
 check('workout-card CSS does not duplicate canonical material recipe values',
   !/\.workout-card[^{}]*player-glass-btn[^{}]*\{[^{}]*(?:saturate\(300%\)|brightness\(1\.5\)|blur\(14px\)|liquid-glass-refract)/s.test(indexSource));
 
