@@ -1731,6 +1731,24 @@ body.video-fullscreen-active #quick-actions-nav {
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
+  /* Vidro fumê — mesma densidade do workout-card: um pouco mais tinta e
+     menos brightness, sem opacar refração/rim/sheen. */
+  background: rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(4px) brightness(1.28) saturate(280%) contrast(1.08);
+  -webkit-backdrop-filter: blur(4px) brightness(1.28) saturate(280%) contrast(1.08);
+}
+
+@supports (backdrop-filter: url(#liquid-glass-refract)) and (background: paint(liquid-glass-probe)) {
+  #mini-player-bar {
+    background: rgba(12, 12, 18, 0.30);
+    backdrop-filter: blur(4px) saturate(190%) brightness(1.12) url(#liquid-glass-refract);
+  }
+
+  @media (max-width: 768px) {
+    #mini-player-bar {
+      backdrop-filter: blur(4px) saturate(190%) brightness(1.12) url(#liquid-glass-refract-soft);
+    }
+  }
 }
 
 #mini-player-bar.visible {
