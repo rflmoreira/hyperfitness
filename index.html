@@ -9329,8 +9329,8 @@
       justify-content: flex-start;
       padding-top: var(--wc-top-inset);
       padding-bottom: 0;
-      /* Leve respiro extra nas laterais do bloco do título (badge + nome). */
-      padding-inline: calc(var(--wc-gutter) + 0.34rem);
+      /* Respiro lateral alinhado ao gutter do card (sem margem extra). */
+      padding-inline: var(--wc-gutter);
     }
 
     .workout-card > .relative.p-4.flex > div {
@@ -9352,7 +9352,7 @@
 
     .workout-card h3 {
       width: fit-content;
-      max-width: min(54%, calc(100% - 0.35rem));
+      max-width: min(78%, calc(100% - 0.35rem));
     }
 
     .workout-card .exercise-stats-chip-group {
@@ -9420,7 +9420,8 @@
       object-position: center center;
       background-color: var(--surface-0);
       scale: var(--card-image-scale, 1.03);
-      filter: contrast(1.045) saturate(1.015) brightness(0.985);
+      /* Escurecimento ~18% para contraste com o conteúdo, sem pesar a mídia. */
+      filter: contrast(1.04) saturate(1.01) brightness(0.82);
     }
 
     .workout-card:hover .exercise-card-image,
@@ -9458,15 +9459,16 @@
       height: auto;
       pointer-events: none;
       z-index: 2;
+      /* Gradiente textual extremamente sutil: legibilidade sem peso extra
+         (a profundidade principal vem do escurecimento da imagem). */
       background: linear-gradient(
         to top,
-        rgba(0, 0, 0, 0.8) 0%,
-        rgba(0, 0, 0, 0.64) 18%,
-        rgba(0, 0, 0, 0.5) 36%,
-        rgba(0, 0, 0, 0.34) 52%,
-        rgba(0, 0, 0, 0.2) 68%,
-        rgba(0, 0, 0, 0.1) 82%,
-        rgba(0, 0, 0, 0.035) 92%,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.52) 20%,
+        rgba(0, 0, 0, 0.34) 40%,
+        rgba(0, 0, 0, 0.2) 58%,
+        rgba(0, 0, 0, 0.1) 74%,
+        rgba(0, 0, 0, 0.04) 88%,
         rgba(0, 0, 0, 0) 100%
       ) !important;
     }
@@ -9488,7 +9490,7 @@
       display: block;
       box-sizing: border-box;
       width: fit-content;
-      max-width: min(54%, calc(100% - 0.35rem));
+      max-width: min(78%, calc(100% - 0.35rem));
       margin: 0;
       overflow: visible;
       font-family: "Poppins", sans-serif;
@@ -9578,7 +9580,8 @@
       background-clip: text;
       -webkit-text-fill-color: transparent;
       text-shadow: none !important;
-      filter: none !important;
+      /* Mesmas stops; saturação levemente reduzida para um degradê mais sofisticado. */
+      filter: saturate(0.78) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       opacity: 1 !important;
@@ -9740,7 +9743,11 @@
       border-radius: var(--wc-radius-control);
       padding: clamp(0.78rem, 1.75vw, 1rem) clamp(0.58rem, 1.08vw, 0.8rem);
       min-height: clamp(80px, 15.8vw, 100px);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+      /* Separação quase imperceptível + brilho superior mínimo (sem flutuar). */
+      box-shadow:
+        0 3px 8px -5px rgba(0, 0, 0, 0.32),
+        inset 0 0 18px rgba(255, 255, 255, 0.035),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
     }
 
     .workout-card .completion-toggle-wrapper {
@@ -9748,7 +9755,10 @@
       min-height: clamp(42px, 7.5vw, 47px);
       padding-block: clamp(0.44rem, 0.9vw, 0.58rem);
       padding-inline: clamp(0.8rem, 1.58vw, 1.04rem);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 18px rgba(0, 0, 0, 0.12);
+      box-shadow:
+        inset 0 0 18px rgba(255, 255, 255, 0.045),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        0 4px 14px rgba(0, 0, 0, 0.14);
     }
 
     /* A interação não substitui a tinta neutra herdada do player. */
@@ -9946,19 +9956,21 @@
     .workout-card .completion-toggle-wrapper > span {
       font-weight: 900;
       letter-spacing: 0.018em;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      color: rgba(255, 255, 255, 0.96);
+      text-shadow: 0 1px 5px rgba(0, 0, 0, 0.18) !important;
     }
 
     /* Check do CTA: verde HyperFitness, traço um pouco mais fino para
        harmonizar com a tipografia. Tamanho/posição do botão preservados. */
     .workout-card .completion-toggle-wrapper .animated-check-circle {
-      stroke: rgba(166, 227, 161, 0.72);
-      fill: rgba(166, 227, 161, 0.16);
+      stroke: rgba(166, 227, 161, 0.78);
+      fill: rgba(166, 227, 161, 0.2);
       stroke-width: 2.35;
+      filter: drop-shadow(0 0 2.5px rgba(166, 227, 161, 0.35));
     }
 
     .workout-card .completion-toggle-wrapper .animated-check-path {
-      stroke: rgba(255, 255, 255, 0.92);
+      stroke: rgba(255, 255, 255, 0.96);
       stroke-width: 3.15;
     }
 
@@ -9969,7 +9981,9 @@
     .workout-card.exercise-completed .completion-toggle-wrapper {
       background: rgba(57, 255, 20, 0.45) !important;
       border-color: rgba(57, 255, 20, 0.38) !important;
-      box-shadow: 0 4px 12px rgba(57, 255, 20, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+      box-shadow:
+        0 4px 12px rgba(57, 255, 20, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
     }
 
     /* Contraste do texto e do check sobre o verde translúcido. */
@@ -9980,6 +9994,7 @@
     .workout-card.exercise-completed .completion-toggle-wrapper .animated-check-circle {
       stroke: #ffffff !important;
       fill: transparent !important;
+      filter: none;
     }
 
     .workout-card.exercise-completed .completion-toggle-wrapper .animated-check-path {
