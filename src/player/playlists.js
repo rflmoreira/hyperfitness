@@ -205,12 +205,15 @@ const FEATURED_PLAYLISTS = [
       { name: 'Meu Lugar', artists: [{ name: 'Arlindo Cruz' }] },
       { name: 'O Show Tem Que Continuar', artists: [{ name: 'Arlindo Cruz' }] }
     ]
-  },
+  }
+];
+
+const SPECIAL_PLAYLISTS = [
   {
-    id: 'featured-bailao-otaku-2026',
+    id: 'special-bailao-otaku-2026',
     name: 'Bailão Otaku オタク 2026',
     cover: 'src/imagens/Funk Brasil.png',
-    isFeatured: true,
+    isSpecial: true,
     tracks: [
       { name: 'Bailão Otaku', artists: [{ name: 'Kalixto' }] },
       { name: 'Proposta Indecente', artists: [{ name: 'GUI 07' }] },
@@ -377,10 +380,7 @@ const FEATURED_PLAYLISTS = [
       { name: 'AIZO', artists: [{ name: 'King Gnu' }] },
       { name: '飛ぶ時', artists: [{ name: 'Vaundy' }] }
     ]
-  }
-];
-
-const SPECIAL_PLAYLISTS = [
+  },
   {
     id: 'special-funk-bruxaria-2026',
     name: 'FUNK BRUXARIA ATUALIZADO 2026 | Automotivo • Submundo • Beat Agressivo • Mandelão',
