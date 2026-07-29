@@ -263,6 +263,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function saveWatchLaterPlaylist() {
+    if (!canPersist()) return;
     try {
       const watchLater = getWatchLaterPlaylist();
       if (watchLater) {
@@ -419,27 +420,84 @@ const MUSIC_PLAYER = (() => {
   const PLAYLISTS_STORAGE_KEY = 'hyperfitness-playlists';
   const AUDIO_CACHE_STORAGE_KEY = 'hyperfitness-audio-cache';
   const CURRENT_STATE_STORAGE_KEY = 'hyperfitness-current-state';
+  // Sentinel plantado no init: se sumir com a aba aberta, o storage foi limpo
+  // externamente (Clear Site Data / Cookies) e o estado em memória NÃO deve
+  // ser regravado — caso clássico de beforeunload/interval ressuscitando dados.
+  const STORAGE_SENTINEL_KEY = 'hyperfitness-storage-sentinel';
 
-  // Flag para impedir salvamento após limpeza manual
+  // Flag para impedir salvamento após limpeza manual ou Clear Site Data
   let preventSaveOnUnload = false;
+  let storageSentinelPlanted = false;
+  // Preenchido após o setup do IndexedDB (fecha conexão + deleteDatabase + UI).
+  let discardPlayerRuntimeAfterStorageClear = null;
+
+  function plantStorageSentinel() {
+    try {
+      localStorage.setItem(STORAGE_SENTINEL_KEY, '1');
+      storageSentinelPlanted = true;
+    } catch (_) {
+      storageSentinelPlanted = false;
+    }
+  }
+
+  function wasStorageExternallyCleared() {
+    if (!storageSentinelPlanted || preventSaveOnUnload) return false;
+    try {
+      return localStorage.getItem(STORAGE_SENTINEL_KEY) === null;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  function handleExternalStorageClear() {
+    if (preventSaveOnUnload) return;
+    preventSaveOnUnload = true;
+    storageSentinelPlanted = false;
+    console.warn('🧹 [PLAYER] Storage limpo externamente — descartando estado em memória e bloqueando regravação');
+    try {
+      discardPlayerRuntimeAfterStorageClear?.();
+    } catch (e) {
+      console.warn('Erro ao descartar estado do player após limpeza de storage:', e);
+    }
+  }
+
+  function canPersist() {
+    if (preventSaveOnUnload) return false;
+    if (wasStorageExternallyCleared()) {
+      handleExternalStorageClear();
+      return false;
+    }
+    return true;
+  }
+
+  function checkStorageIntegrity() {
+    if (wasStorageExternallyCleared()) handleExternalStorageClear();
+  }
 
   // Função para limpar todos os dados do player (exposta globalmente para debug)
   window.clearAllPlayerData = function () {
     try {
-      // Impede que o beforeunload salve os dados de volta
       preventSaveOnUnload = true;
+      storageSentinelPlanted = false;
 
       localStorage.removeItem(PLAYLISTS_STORAGE_KEY);
       localStorage.removeItem(AUDIO_CACHE_STORAGE_KEY);
       localStorage.removeItem(CURRENT_STATE_STORAGE_KEY);
       localStorage.removeItem(WATCH_LATER_STORAGE_KEY);
-      state.playlists = [];
-      state.tracks = [];
-      state.currentPlaylist = null;
-      state.currentTrackIndex = -1;
-      resetPlaybackState();
-      state.audioCache.clear();
-      state.playlistsLoaded = false;
+      localStorage.removeItem('hyperfitness_lyric_offsets');
+      localStorage.removeItem(STORAGE_SENTINEL_KEY);
+
+      if (typeof discardPlayerRuntimeAfterStorageClear === 'function') {
+        discardPlayerRuntimeAfterStorageClear();
+      } else {
+        state.playlists = [];
+        state.tracks = [];
+        state.currentPlaylist = null;
+        state.currentTrackIndex = -1;
+        resetPlaybackState({ resetTrackIndex: true, clearTracks: true, clearCaches: true });
+        state.audioCache.clear();
+        state.playlistsLoaded = false;
+      }
       return true;
     } catch (e) {
       console.error('Erro ao limpar dados:', e);
@@ -448,6 +506,7 @@ const MUSIC_PLAYER = (() => {
   };
 
   function savePlaylistsToStorage() {
+    if (!canPersist()) return;
     try {
       // Filtra a playlist "Músicas Favoritas" (já tem seu próprio storage)
       const playlistsToSave = state.playlists
@@ -555,6 +614,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function saveCurrentStateToStorage() {
+    if (!canPersist()) return;
     try {
       // Posição da faixa: no modo Vídeo o MP3 fica pausado, então usamos o tempo
       // do clipe como melhor aproximação; caso contrário, o tempo do <audio>.
@@ -624,6 +684,7 @@ const MUSIC_PLAYER = (() => {
 
   // Cache de áudio reproduzido (videoId -> audioUrl)
   function saveAudioCacheToStorage() {
+    if (!canPersist()) return;
     try {
       const cacheToSave = {};
       state.audioCache.forEach((entry, key) => {
@@ -659,8 +720,7 @@ const MUSIC_PLAYER = (() => {
 
   // Salva automaticamente ao modificar playlists
   function saveAllData() {
-    // Não salva se a flag de limpeza estiver ativa
-    if (preventSaveOnUnload) return;
+    if (!canPersist()) return;
 
     savePlaylistsToStorage();
     saveWatchLaterPlaylist();
@@ -671,6 +731,7 @@ const MUSIC_PLAYER = (() => {
   // Debounce para não salvar muito frequentemente
   let saveDebounceTimer = null;
   function debouncedSave() {
+    if (preventSaveOnUnload) return;
     if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
     saveDebounceTimer = setTimeout(saveAllData, 1000);
   }
@@ -883,11 +944,14 @@ const MUSIC_PLAYER = (() => {
   const IDB_MAX_COVER_ENTRIES = 1500;
 
   let idbPromise = null;
+  let idbConnection = null;
+
   function openPlayerDb() {
+    if (preventSaveOnUnload) return Promise.resolve(null);
     if (idbPromise) return idbPromise;
     idbPromise = new Promise((resolve) => {
       try {
-        if (typeof indexedDB === 'undefined') return resolve(null);
+        if (preventSaveOnUnload || typeof indexedDB === 'undefined') return resolve(null);
         const req = indexedDB.open(IDB_NAME, IDB_VERSION);
         req.onupgradeneeded = () => {
           const db = req.result;
@@ -898,7 +962,17 @@ const MUSIC_PLAYER = (() => {
             db.createObjectStore(IDB_COVER_STORE, { keyPath: 'key' });
           }
         };
-        req.onsuccess = () => resolve(req.result);
+        req.onsuccess = () => {
+          if (preventSaveOnUnload) {
+            try { req.result.close(); } catch (_) { }
+            return resolve(null);
+          }
+          idbConnection = req.result;
+          idbConnection.onclose = () => {
+            if (idbConnection === req.result) idbConnection = null;
+          };
+          resolve(idbConnection);
+        };
         req.onerror = () => resolve(null);
         req.onblocked = () => resolve(null);
       } catch (_) {
@@ -908,10 +982,32 @@ const MUSIC_PLAYER = (() => {
     return idbPromise;
   }
 
+  async function closeAndDeletePlayerDb() {
+    try {
+      if (idbConnection) {
+        try { idbConnection.close(); } catch (_) { }
+        idbConnection = null;
+      }
+      idbPromise = null;
+      if (typeof indexedDB === 'undefined') return;
+      await new Promise((resolve) => {
+        try {
+          const req = indexedDB.deleteDatabase(IDB_NAME);
+          req.onsuccess = () => resolve();
+          req.onerror = () => resolve();
+          req.onblocked = () => resolve();
+        } catch (_) {
+          resolve();
+        }
+      });
+    } catch (_) { }
+  }
+
   async function idbPut(storeName, entry) {
+    if (!canPersist()) return;
     try {
       const db = await openPlayerDb();
-      if (!db) return;
+      if (!db || preventSaveOnUnload) return;
       const tx = db.transaction(storeName, 'readwrite');
       tx.objectStore(storeName).put(entry);
     } catch (_) { }
@@ -960,6 +1056,34 @@ const MUSIC_PLAYER = (() => {
   // por resolveTrackAudio após miss no cache em memória. Sobrevive a
   // searchCache.clear() nas trocas de playlist.
   const persistentResolveHints = new Map();
+
+  // Descarta estado em memória + IDB quando o storage some com a aba aberta
+  // (Clear Site Data) ou via clearAllPlayerData(). Não regrava nada.
+  discardPlayerRuntimeAfterStorageClear = function discardPlayerRuntimeAfterStorageClear() {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch (_) { }
+
+    state.playlists = [];
+    state.tracks = [];
+    state.currentPlaylist = null;
+    state.currentTrackIndex = -1;
+    state.playlistsLoaded = false;
+    state.audioCache.clear();
+    state.searchCache.clear();
+    state.searchPromises.clear();
+    state.coverCache.clear();
+    persistentResolveHints.clear();
+
+    closeAndDeletePlayerDb();
+
+    ensureWatchLaterPlaylist();
+    try { renderPlaylists(); } catch (_) { }
+    try { renderTracks([]); } catch (_) { }
+    resetPlaybackState({ resetTrackIndex: true, clearTracks: true, clearCaches: true });
+    try { updateUiState(); } catch (_) { }
+  };
 
   // Grava/atualiza a resolução de uma faixa no cache persistente
   function persistResolvedAudio(trackKey, result, track) {
@@ -3782,7 +3906,7 @@ const MUSIC_PLAYER = (() => {
   }
 
   function storeLyricOffset(key, offset) {
-    if (!key) return;
+    if (!key || !canPersist()) return;
     try {
       const all = loadLyricOffsets();
       if (!offset) delete all[key]; // não guarda 0 (mantém o storage limpo)
@@ -5163,6 +5287,13 @@ const MUSIC_PLAYER = (() => {
           }
         }, 5000); // A cada 5 segundos
 
+        // Sentinel + observadores: se Clear Site Data apagar o storage com a
+        // aba aberta, bloqueamos beforeunload/intervals de regravar o estado.
+        plantStorageSentinel();
+        setInterval(checkStorageIntegrity, 2000);
+        window.addEventListener('focus', checkStorageIntegrity);
+        window.addEventListener('pagehide', checkStorageIntegrity);
+
         // Salva ao fechar/recarregar a página
         window.addEventListener('beforeunload', saveAllData);
 
@@ -5172,6 +5303,7 @@ const MUSIC_PLAYER = (() => {
         // para que o reload restaure a faixa e a posição exatas. Grava apenas a
         // chave pequena de "estado atual" (barato).
         setInterval(() => {
+          if (preventSaveOnUnload) return;
           if (state.isPlaying || (videoMode && videoMode.isVideo())) {
             saveCurrentStateToStorage();
           }
@@ -5179,6 +5311,7 @@ const MUSIC_PLAYER = (() => {
 
         // Também salva imediatamente quando a página fica oculta (bloqueio/troca de app).
         document.addEventListener('visibilitychange', () => {
+          checkStorageIntegrity();
           if (document.visibilityState === 'hidden') saveCurrentStateToStorage();
         });
 
