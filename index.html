@@ -3826,7 +3826,8 @@
     .hf-week-sheet__overlay {
       position: absolute;
       inset: 0;
-      background: rgba(8, 8, 14, 0.62);
+      /* Mesma composição do .overlay-blur / #user-overlay */
+      background: rgba(0, 0, 0, 0.45);
       opacity: 0;
       transition: opacity var(--hf-sheet-close-ms) var(--hf-sheet-ease-close);
       overscroll-behavior: none;
@@ -3841,10 +3842,11 @@
 
     /* Blur do overlay aplicado de forma INSTANTÂNEA (sem transição). Animar
        backdrop-filter no iOS recalcula o desfoque a cada frame e estoura a memória da
-       GPU, derrubando o processo do Safari (a aba "recarrega"). */
+       GPU, derrubando o processo do Safari (a aba "recarrega").
+       Receita idêntica ao .overlay-blur (#user-overlay). */
     .hf-week-sheet.is-settled .hf-week-sheet__overlay {
-      -webkit-backdrop-filter: blur(3px);
-      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
+      backdrop-filter: blur(4px) brightness(1.5) saturate(220%) contrast(1.08);
     }
 
     .hf-week-sheet__panel {
@@ -3879,21 +3881,16 @@
       position: absolute;
       inset: 0;
       z-index: -2;
-      /* Fundo sólido durante o gesto (sem blur, para não abortar a animação). */
-      background: rgba(12, 10, 16, 0.92);
+      /* Fundo próximo do preto, translúcido e sem blur (gesto e settled). */
+      background: rgba(0, 0, 0, 0.88);
       border-radius: 2rem 2rem 0 0;
       pointer-events: none;
     }
 
-    /* Blur ativado só com o painel parado (aberto e sem animar) e SEMPRE de forma
-       instantânea. NUNCA animar backdrop-filter: no iOS isso recalcula o desfoque a cada
-       frame, estoura a memória da GPU e faz o Safari recarregar a página. Apenas a cor de
-       fundo (barata) recebe um leve easing para suavizar a entrada. */
+    /* Sem backdrop-filter: o fundo permanece só com a cor translúcida.
+       NUNCA animar backdrop-filter no iOS (estouro de GPU / reload do Safari). */
     .hf-week-sheet.is-settled .hf-week-sheet__panel-bg {
-      background: rgba(12, 10, 16, 0.65);
-      -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
-      backdrop-filter: blur(16px) saturate(220%) brightness(1.2);
-      transition: background-color var(--hf-sheet-settle-ms) ease;
+      background: rgba(0, 0, 0, 0.88);
     }
 
     /* Release will-change: transform once the panel is settled. The panel still
@@ -3991,7 +3988,7 @@
 
     /* OPTIMIZATION: Remove backdrop-filter from repeating sheet elements while
        allowing only explicit canonical player-glass surfaces to keep their
-       compact recipe. The sheet background is already blurred. */
+       compact recipe. The sheet background is dark/translucent without blur. */
     .hf-week-sheet__panel #workout-details .workout-card,
     .hf-week-sheet__panel #workout-details .exercise-stat-button:not(.player-glass-btn),
     .hf-week-sheet__panel #workout-details .completion-toggle-wrapper:not(.player-glass-btn),
@@ -4089,8 +4086,8 @@
       margin: 0 -0.4rem 0.32rem;
       padding: 0.34rem 0.16rem;
       border-radius: 1.08rem;
-      /* Superfície contínua de vidro — highlight/borda no mesmo plano dos cards. */
-      background: var(--liquid-card-bg-clean);
+      /* Mesma tonalidade do fundo do sheet (panel-bg / body): perto do preto, translúcido, sem blur. */
+      background: rgba(0, 0, 0, 0.88);
       border: 1px solid var(--liquid-card-border-soft);
       box-shadow:
         0 10px 28px -18px rgba(0, 0, 0, 0.55),
@@ -4098,8 +4095,8 @@
         inset 0 0 14px rgba(255, 255, 255, 0.03),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
         inset 0 -14px 28px -22px rgba(0, 0, 0, 0.28);
-      -webkit-backdrop-filter: var(--liquid-card-filter);
-      backdrop-filter: var(--liquid-card-filter);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
       background-clip: padding-box;
       overflow: hidden;
     }
@@ -7557,13 +7554,7 @@
 
       .modal-close-btn {
         top: 0.75rem;
-        right: 0.75rem;
-        width: 2.75rem;
-        height: 2.75rem
-      }
-
-      .modal-close-btn i {
-        font-size: 1.25rem
+        right: 0.75rem
       }
     }
 
@@ -7574,31 +7565,16 @@
       }
     }
 
+    /* Posicionamento do close do modal; material Liquid Glass vem de .player-glass-btn */
     .modal-close-btn {
       position: absolute;
       top: 1rem;
       right: 1rem;
-      z-index: 70;
-      border-radius: 9999px;
-      border: 1px solid var(--glass-border);
-      background: rgba(40, 40, 55, 0.7);
-      color: var(--text);
-      box-shadow: var(--elev-2);
-      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease
+      z-index: 70
     }
 
     .modal-close-btn i {
       pointer-events: none
-    }
-
-    .modal-close-btn:hover {
-      transform: translateY(-1px) scale(1.05);
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.22)
-    }
-
-    .modal-close-btn:active {
-      transform: scale(0.95)
     }
 
     .modal-close-btn:focus-visible {
@@ -9530,9 +9506,9 @@
       --card-image-scale: 1.06;
     }
 
-    /* Vinheta localizada no canto superior esquerdo — sustentação do
-       exercise-method-pill sem sombra projetada. Nasce na borda do card,
-       é ampla/difusa e some na imagem; entre mídia (z0) e scrim (z2). */
+    /* Vinheta esquerda + base: reforço difuso sem sombra projetada.
+       Sustenta pill/título à esquerda e aprofunda a base; some na mídia.
+       Entre mídia (z0) e scrim textual (z2). */
     .workout-card > .absolute.inset-0::after {
       content: "";
       position: absolute;
@@ -9540,14 +9516,29 @@
       z-index: 1;
       pointer-events: none;
       border-radius: inherit;
-      background: radial-gradient(
-        ellipse 95% 72% at 0% 0%,
-        rgba(0, 0, 0, 0.28) 0%,
-        rgba(0, 0, 0, 0.16) 22%,
-        rgba(0, 0, 0, 0.07) 45%,
-        rgba(0, 0, 0, 0.02) 68%,
-        transparent 86%
-      );
+      background:
+        linear-gradient(
+          to right,
+          rgba(0, 0, 0, 0.22) 0%,
+          rgba(0, 0, 0, 0.12) 18%,
+          rgba(0, 0, 0, 0.05) 38%,
+          transparent 62%
+        ),
+        linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.2) 0%,
+          rgba(0, 0, 0, 0.1) 28%,
+          rgba(0, 0, 0, 0.03) 55%,
+          transparent 78%
+        ),
+        radial-gradient(
+          ellipse 95% 72% at 0% 0%,
+          rgba(0, 0, 0, 0.26) 0%,
+          rgba(0, 0, 0, 0.14) 22%,
+          rgba(0, 0, 0, 0.06) 45%,
+          rgba(0, 0, 0, 0.02) 68%,
+          transparent 86%
+        );
     }
 
     /* Um único scrim contínuo ocupa somente o domínio textual: começa no
@@ -9560,15 +9551,15 @@
       height: auto;
       pointer-events: none;
       z-index: 2;
-      /* Scrim suave e contínuo — sem faixa perceptível; a imagem carrega o contraste. */
+      /* Base um pouco mais densa → fade suave ao topo; sem faixa perceptível. */
       background: linear-gradient(
         to top,
-        rgba(0, 0, 0, 0.62) 0%,
-        rgba(0, 0, 0, 0.42) 22%,
-        rgba(0, 0, 0, 0.26) 44%,
-        rgba(0, 0, 0, 0.14) 64%,
-        rgba(0, 0, 0, 0.06) 80%,
-        rgba(0, 0, 0, 0.02) 92%,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.5) 20%,
+        rgba(0, 0, 0, 0.32) 40%,
+        rgba(0, 0, 0, 0.18) 58%,
+        rgba(0, 0, 0, 0.08) 74%,
+        rgba(0, 0, 0, 0.03) 88%,
         rgba(0, 0, 0, 0) 100%
       ) !important;
     }
@@ -10862,12 +10853,13 @@
     aria-hidden="true"></canvas>
 
   <div id="exercise-image-modal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-2xl z-[150] flex items-center justify-center opacity-0 invisible transition-opacity duration-300"
+    class="fixed inset-0 overlay-blur z-[150] flex items-center justify-center opacity-0 invisible transition-opacity duration-300"
     role="dialog" aria-labelledby="exercise-image-title" aria-hidden="true" style="display:none">
     <button id="close-exercise-image-btn"
-      class="modal-close-btn glass-effect text-white/90 w-11 h-11 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center transition-all transform hover:scale-110 hover:rotate-90 shadow-lg no-tap-highlight touch-manipulation"
+      class="modal-close-btn player-glass-btn w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 no-tap-highlight touch-manipulation"
       aria-label="Fechar imagem do exercício" title="Fechar (Esc)">
-      <i class="ph-bold ph-x text-lg" aria-hidden="true"></i>
+      <span class="liquid-glass-edge"></span>
+      <i class="ph-bold ph-x text-base transition-transform duration-300 hover:rotate-90" aria-hidden="true"></i>
     </button>
     <div id="exercise-image-content" class="relative" tabindex="-1">
       <img id="exercise-image" src="" alt="Imagem do exercício" />
