@@ -9289,6 +9289,12 @@
       --wc-gap-normal: clamp(0.62rem, 1.18vw, 0.84rem);
       --wc-gap-section: clamp(1.14rem, 2vw, 1.32rem);
       --wc-motion-short: 3px;
+      /* Mesma linguagem de profundidade/iluminação para todas as superfícies de vidro. */
+      --wc-glass-depth:
+        0 2px 6px -2px rgba(0, 0, 0, 0.36),
+        0 4px 10px -5px rgba(0, 0, 0, 0.2),
+        inset 0 0 14px rgba(255, 255, 255, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.11);
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -9420,8 +9426,8 @@
       object-position: center center;
       background-color: var(--surface-0);
       scale: var(--card-image-scale, 1.03);
-      /* Escurecimento ~18% para contraste com o conteúdo, sem pesar a mídia. */
-      filter: contrast(1.04) saturate(1.01) brightness(0.82);
+      /* Escurecimento ~23% para separar conteúdo da ilustração, sem pesar. */
+      filter: contrast(1.035) saturate(1.01) brightness(0.77);
     }
 
     .workout-card:hover .exercise-card-image,
@@ -9459,16 +9465,15 @@
       height: auto;
       pointer-events: none;
       z-index: 2;
-      /* Gradiente textual extremamente sutil: legibilidade sem peso extra
-         (a profundidade principal vem do escurecimento da imagem). */
+      /* Scrim suave e contínuo — sem faixa perceptível; a imagem carrega o contraste. */
       background: linear-gradient(
         to top,
-        rgba(0, 0, 0, 0.72) 0%,
-        rgba(0, 0, 0, 0.52) 20%,
-        rgba(0, 0, 0, 0.34) 40%,
-        rgba(0, 0, 0, 0.2) 58%,
-        rgba(0, 0, 0, 0.1) 74%,
-        rgba(0, 0, 0, 0.04) 88%,
+        rgba(0, 0, 0, 0.62) 0%,
+        rgba(0, 0, 0, 0.42) 22%,
+        rgba(0, 0, 0, 0.26) 44%,
+        rgba(0, 0, 0, 0.14) 64%,
+        rgba(0, 0, 0, 0.06) 80%,
+        rgba(0, 0, 0, 0.02) 92%,
         rgba(0, 0, 0, 0) 100%
       ) !important;
     }
@@ -9539,7 +9544,7 @@
       -webkit-text-fill-color: transparent;
       background: none;
       background-image: none;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.18) !important;
+      text-shadow: 0 1px 7px rgba(0, 0, 0, 0.26) !important;
       filter: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -9580,8 +9585,8 @@
       background-clip: text;
       -webkit-text-fill-color: transparent;
       text-shadow: none !important;
-      /* Mesmas stops; saturação levemente reduzida para um degradê mais sofisticado. */
-      filter: saturate(0.78) !important;
+      /* Degradê intacto; leve brightness para presença sem alterar as stops. */
+      filter: saturate(0.78) brightness(1.05) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       opacity: 1 !important;
@@ -9627,9 +9632,9 @@
       letter-spacing: 0.11em;
       text-transform: uppercase;
       text-align: left;
-      /* Sem sombra projetada: contraste vem da vinheta do plano de mídia.
-         Transparência, borda, sheen e refração do Liquid Glass permanecem. */
-      box-shadow: none !important;
+      /* Mesmo plano de profundidade das demais superfícies de vidro do card. */
+      box-shadow: var(--wc-glass-depth) !important;
+      -webkit-font-smoothing: antialiased;
     }
 
     .workout-card .exercise-method-pill .method-label {
@@ -9718,6 +9723,10 @@
       background: rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(4px) brightness(1.22) saturate(255%) contrast(1.06);
       -webkit-backdrop-filter: blur(4px) brightness(1.22) saturate(255%) contrast(1.06);
+      /* Fringe idêntica em badge, chips e CTA — sem afetar a borda externa do card. */
+      --liquid-glass-fringe-width: 1px;
+      --liquid-glass-fringe-lateral: 0.25;
+      --liquid-glass-fringe-chroma: 0.12;
     }
 
     @supports (backdrop-filter: url(#liquid-glass-refract)) and (background: paint(liquid-glass-probe)) {
@@ -9737,17 +9746,14 @@
     .workout-card .exercise-method-pill,
     .workout-card .completion-toggle-wrapper {
       transition: transform 0.25s ease, background 0.25s ease;
+      box-shadow: var(--wc-glass-depth);
+      -webkit-font-smoothing: antialiased;
     }
 
     .workout-card .exercise-stat-button {
       border-radius: var(--wc-radius-control);
       padding: clamp(0.78rem, 1.75vw, 1rem) clamp(0.58rem, 1.08vw, 0.8rem);
       min-height: clamp(80px, 15.8vw, 100px);
-      /* Separação quase imperceptível + brilho superior mínimo (sem flutuar). */
-      box-shadow:
-        0 3px 8px -5px rgba(0, 0, 0, 0.32),
-        inset 0 0 18px rgba(255, 255, 255, 0.035),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
     }
 
     .workout-card .completion-toggle-wrapper {
@@ -9755,10 +9761,6 @@
       min-height: clamp(42px, 7.5vw, 47px);
       padding-block: clamp(0.44rem, 0.9vw, 0.58rem);
       padding-inline: clamp(0.8rem, 1.58vw, 1.04rem);
-      box-shadow:
-        inset 0 0 18px rgba(255, 255, 255, 0.045),
-        inset 0 1px 0 rgba(255, 255, 255, 0.13),
-        0 4px 14px rgba(0, 0, 0, 0.14);
     }
 
     /* A interação não substitui a tinta neutra herdada do player. */
@@ -9956,21 +9958,22 @@
     .workout-card .completion-toggle-wrapper > span {
       font-weight: 900;
       letter-spacing: 0.018em;
-      color: rgba(255, 255, 255, 0.96);
-      text-shadow: 0 1px 5px rgba(0, 0, 0, 0.18) !important;
+      color: rgba(255, 255, 255, 0.98);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.22) !important;
     }
 
     /* Check do CTA: verde HyperFitness, traço um pouco mais fino para
        harmonizar com a tipografia. Tamanho/posição do botão preservados. */
     .workout-card .completion-toggle-wrapper .animated-check-circle {
-      stroke: rgba(166, 227, 161, 0.78);
-      fill: rgba(166, 227, 161, 0.2);
+      stroke: rgba(166, 227, 161, 0.84);
+      fill: rgba(166, 227, 161, 0.24);
       stroke-width: 2.35;
-      filter: drop-shadow(0 0 2.5px rgba(166, 227, 161, 0.35));
+      /* Glow alinhado à linguagem contida do restante do card. */
+      filter: drop-shadow(0 0 2px rgba(166, 227, 161, 0.28));
     }
 
     .workout-card .completion-toggle-wrapper .animated-check-path {
-      stroke: rgba(255, 255, 255, 0.96);
+      stroke: rgba(255, 255, 255, 0.98);
       stroke-width: 3.15;
     }
 
@@ -9981,9 +9984,11 @@
     .workout-card.exercise-completed .completion-toggle-wrapper {
       background: rgba(57, 255, 20, 0.45) !important;
       border-color: rgba(57, 255, 20, 0.38) !important;
+      /* Mantém sinal semântico verde; hairline/inset iguais ao plano de vidro compartilhado. */
       box-shadow:
-        0 4px 12px rgba(57, 255, 20, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+        0 4px 12px rgba(57, 255, 20, 0.14),
+        inset 0 0 14px rgba(255, 255, 255, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.11) !important;
     }
 
     /* Contraste do texto e do check sobre o verde translúcido. */
