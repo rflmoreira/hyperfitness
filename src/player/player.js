@@ -4658,6 +4658,30 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
+  // Plano de fundo da aba Biblioteca: capa da faixa em reprodução; sem faixa
+  // (ou capa ainda genérica), usa a capa da playlist atual (ex.: Bailão Otaku).
+  function updatePlaylistHeaderBackground() {
+    const playlistScreen = document.getElementById('player-screen-playlist');
+    if (!playlistScreen) return;
+
+    const { track, index } = getCurrentPlayingTrack();
+    let coverUrl = null;
+
+    if (index >= 0 && track) {
+      coverUrl = getTrackImage(track);
+    }
+
+    if (!isRealCover(coverUrl) && state.currentPlaylist) {
+      coverUrl = getPlaylistCover(state.currentPlaylist);
+    }
+
+    if (!isRealCover(coverUrl)) {
+      coverUrl = getFallbackCover();
+    }
+
+    playlistScreen.style.setProperty('--playlist-header-bg', `url('${coverUrl}')`);
+  }
+
   function updateControlsBar() {
     // Não sobrescreve se a rádio está tocando
     if (radioPlaying && radioCurrentChannel) return;
@@ -4670,12 +4694,9 @@ const MUSIC_PLAYER = (() => {
       coverEl: ui.ctrlCover
     }, track);
 
-    // Atualiza a capa de fundo da aba Biblioteca (igual à aba Rádio)
-    const coverUrl = track ? getTrackImage(track) : getFallbackCover();
-    const playlistScreen = document.getElementById('player-screen-playlist');
-    if (playlistScreen) {
-      playlistScreen.style.setProperty('--playlist-header-bg', `url('${coverUrl}')`);
-    }
+    // Atualiza a capa de fundo da aba Biblioteca (igual à aba Rádio):
+    // faixa tocando → capa da faixa; senão → capa da playlist atual (ex.: Bailão Otaku).
+    updatePlaylistHeaderBackground();
 
     syncExpandedCover();
     updateMiniPlayerBar();
@@ -5196,6 +5217,7 @@ const MUSIC_PLAYER = (() => {
 
     // Renderiza as faixas
     renderTracks(state.tracks);
+    updatePlaylistHeaderBackground();
 
     setFeedback('Carregada com sucesso!', 'success', {
       name: playlist.name,
@@ -7504,6 +7526,12 @@ const MUSIC_PLAYER = (() => {
     if (trackIndex >= 0) {
       updateTrackCardCover(trackIndex, coverUrl);
     }
+
+    // Se a capa recém-resolvida é da faixa em reprodução, atualiza fundo/barras.
+    const { track: playingTrack } = getCurrentPlayingTrack();
+    if (playingTrack && playingTrack === track && hasValidCover) {
+      updateControlsBar();
+    }
   }
 
   async function fetchPlaylistCoverFromTracks(playlist, importSessionId = state.currentImportSessionId) {
@@ -8537,6 +8565,7 @@ const MUSIC_PLAYER = (() => {
     debouncedSave();
 
     updateUiState();
+    updatePlaylistHeaderBackground();
 
     if (!ui.tracksContainer) return;
 

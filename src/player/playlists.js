@@ -212,7 +212,7 @@ const SPECIAL_PLAYLISTS = [
   {
     id: 'special-bailao-otaku-2026',
     name: 'Bailão Otaku オタク 2026',
-    cover: 'src/imagens/Funk Brasil.png',
+    cover: 'src/imagens/BailaoOtaku.png',
     isSpecial: true,
     tracks: [
       { name: 'Bailão Otaku', artists: [{ name: 'Kalixto' }] },
