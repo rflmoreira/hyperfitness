@@ -4662,6 +4662,21 @@ const MUSIC_PLAYER = (() => {
   // Plano de fundo da aba Biblioteca (mesmo papel do ::before da Rádio):
   // arte dedicada da playlist (ex.: Bailão Otaku); durante a reprodução de
   // faixas DESSA playlist, troca pela capa da faixa atual.
+  //
+  // URLs em custom properties usadas no ::before de player.css são resolvidas
+  // em relação a src/player/player.css — por isso caminhos document-relative
+  // (src/imagens/...) precisam virar ../imagens/... Capas https:// não mudam.
+  function toPlaylistBackgroundCssUrl(url) {
+    if (!url) return null;
+    const raw = String(url).trim();
+    if (!raw) return null;
+    if (/^(https?:|data:|blob:|\/\/)/i.test(raw)) return raw;
+    if (raw.startsWith('../')) return raw;
+    if (raw.startsWith('/')) return raw;
+    if (raw.startsWith('src/')) return `../${raw.slice(4)}`;
+    return raw;
+  }
+
   function updatePlaylistHeaderBackground() {
     const playlistScreen = document.getElementById('player-screen-playlist');
     if (!playlistScreen) return;
@@ -4690,7 +4705,11 @@ const MUSIC_PLAYER = (() => {
       coverUrl = getFallbackCover();
     }
 
-    playlistScreen.style.setProperty('--playlist-header-bg', `url('${coverUrl}')`);
+    const cssUrl = toPlaylistBackgroundCssUrl(coverUrl);
+    playlistScreen.style.setProperty(
+      '--playlist-header-bg',
+      cssUrl ? `url("${cssUrl.replace(/"/g, '\\"')}")` : 'none'
+    );
   }
 
   function updateControlsBar() {

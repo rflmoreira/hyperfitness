@@ -2419,7 +2419,11 @@ body.week-sheet-active .discover-carousel-dots .dot.active::after {
   transform: translateX(-50%) translateZ(0);
   width: 100vw;
   height: 500px;
-  background: var(--playlist-header-bg, transparent) center top / cover no-repeat;
+  background-color: transparent;
+  background-image: var(--playlist-header-bg, none);
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
