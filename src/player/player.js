@@ -516,6 +516,7 @@ const MUSIC_PLAYER = (() => {
           name: p.name,
           images: p.images,
           cover: p.cover,
+          background: p.background || null,
           playlistCover: p.playlistCover,
           tracks: p.tracks.map(t => ({
             name: t.name,
@@ -4658,21 +4659,31 @@ const MUSIC_PLAYER = (() => {
     }
   }
 
-  // Plano de fundo da aba Biblioteca: capa da faixa em reprodução; sem faixa
-  // (ou capa ainda genérica), usa a capa da playlist atual (ex.: Bailão Otaku).
+  // Plano de fundo da aba Biblioteca (mesmo papel do ::before da Rádio):
+  // arte dedicada da playlist (ex.: Bailão Otaku); durante a reprodução de
+  // faixas DESSA playlist, troca pela capa da faixa atual.
   function updatePlaylistHeaderBackground() {
     const playlistScreen = document.getElementById('player-screen-playlist');
     if (!playlistScreen) return;
 
     const { track, index } = getCurrentPlayingTrack();
+    const currentId = state.currentPlaylist?.id || null;
+    const playingThisPlaylist = Boolean(
+      currentId &&
+      index >= 0 &&
+      track &&
+      (state.playingPlaylistId === currentId ||
+        (!state.playingPlaylistId && state.tracks.includes(track)))
+    );
+
     let coverUrl = null;
 
-    if (index >= 0 && track) {
+    if (playingThisPlaylist) {
       coverUrl = getTrackImage(track);
     }
 
     if (!isRealCover(coverUrl) && state.currentPlaylist) {
-      coverUrl = getPlaylistCover(state.currentPlaylist);
+      coverUrl = state.currentPlaylist.background || getPlaylistCover(state.currentPlaylist);
     }
 
     if (!isRealCover(coverUrl)) {
@@ -4694,8 +4705,7 @@ const MUSIC_PLAYER = (() => {
       coverEl: ui.ctrlCover
     }, track);
 
-    // Atualiza a capa de fundo da aba Biblioteca (igual à aba Rádio):
-    // faixa tocando → capa da faixa; senão → capa da playlist atual (ex.: Bailão Otaku).
+    // Fundo da página da playlist: faixa tocando ou background dedicado.
     updatePlaylistHeaderBackground();
 
     syncExpandedCover();
@@ -5188,6 +5198,7 @@ const MUSIC_PLAYER = (() => {
       id: featuredPlaylist.id,
       name: featuredPlaylist.name,
       cover: featuredPlaylist.cover,
+      background: featuredPlaylist.background || null,
       images: [{ url: featuredPlaylist.cover }],
       tracks: featuredPlaylist.tracks.map(t => ({
         ...t,
@@ -5205,6 +5216,15 @@ const MUSIC_PLAYER = (() => {
       state.playlists.push(playlist);
       savePlaylistsToStorage();
       renderPlaylists();
+    } else {
+      // Mantém background/capa de página sincronizados com a definição estática
+      const existing = state.playlists[existingIndex];
+      if (playlist.background) existing.background = playlist.background;
+      if (playlist.cover) {
+        existing.cover = playlist.cover;
+        existing.images = [{ url: playlist.cover }];
+      }
+      playlist.tracks = existing.tracks?.length ? existing.tracks : playlist.tracks;
     }
 
     // Seleciona a playlist
