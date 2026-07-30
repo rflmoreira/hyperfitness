@@ -4677,13 +4677,26 @@ const MUSIC_PLAYER = (() => {
     return raw;
   }
 
+  function getPlaylistDefaultBackground(playlist) {
+    if (!playlist) return null;
+    const dedicated = playlist.background;
+    if (isRealCover(dedicated)) return dedicated;
+    const cover = getPlaylistCover(playlist);
+    // getPlaylistCover pode cair em genericCover — nunca usar como fundo.
+    if (isRealCover(cover)) return cover;
+    return null;
+  }
+
   function updatePlaylistHeaderBackground() {
     const playlistScreen = document.getElementById('player-screen-playlist');
     if (!playlistScreen) return;
 
     const { track, index } = getCurrentPlayingTrack();
     const currentId = state.currentPlaylist?.id || null;
-    const playingThisPlaylist = Boolean(
+    // Só troca para a capa da faixa enquanto a reprodução estiver ATIVA.
+    // Pausado / parado / sem música → background padrão da playlist.
+    const activelyPlayingThisPlaylist = Boolean(
+      state.isPlaying &&
       currentId &&
       index >= 0 &&
       track &&
@@ -4693,18 +4706,16 @@ const MUSIC_PLAYER = (() => {
 
     let coverUrl = null;
 
-    if (playingThisPlaylist) {
-      coverUrl = getTrackImage(track);
+    if (activelyPlayingThisPlaylist) {
+      const trackCover = getTrackImage(track);
+      if (isRealCover(trackCover)) coverUrl = trackCover;
     }
 
-    if (!isRealCover(coverUrl) && state.currentPlaylist) {
-      coverUrl = state.currentPlaylist.background || getPlaylistCover(state.currentPlaylist);
+    if (!coverUrl) {
+      coverUrl = getPlaylistDefaultBackground(state.currentPlaylist);
     }
 
-    if (!isRealCover(coverUrl)) {
-      coverUrl = getFallbackCover();
-    }
-
+    // Nunca usa capa genérica: sem arte da playlist, remove o fundo.
     const cssUrl = toPlaylistBackgroundCssUrl(coverUrl);
     playlistScreen.style.setProperty(
       '--playlist-header-bg',
