@@ -4691,6 +4691,29 @@ const MUSIC_PLAYER = (() => {
     const playlistScreen = document.getElementById('player-screen-playlist');
     if (!playlistScreen) return;
 
+    const videoBg = document.getElementById('playlist-video-bg');
+    
+    const backgroundUrl = state.currentPlaylist?.background || '';
+    const isVideoBackground = backgroundUrl.endsWith('.mov') || backgroundUrl.endsWith('.mp4') || backgroundUrl.endsWith('.webm');
+
+    if (isVideoBackground) {
+      if (videoBg) {
+        let videoUrl = backgroundUrl;
+        if (videoBg.getAttribute('src') !== videoUrl) {
+          videoBg.src = videoUrl;
+        }
+        videoBg.classList.remove('hidden');
+        videoBg.play().catch(() => {});
+      }
+      playlistScreen.style.setProperty('--playlist-header-bg', 'none');
+      return;
+    } else {
+      if (videoBg) {
+        videoBg.classList.add('hidden');
+        videoBg.pause();
+      }
+    }
+
     const { track, index } = getCurrentPlayingTrack();
     const currentId = state.currentPlaylist?.id || null;
     // Só troca para a capa da faixa enquanto a reprodução estiver ATIVA.
@@ -9132,10 +9155,10 @@ const MUSIC_PLAYER = (() => {
     });
   }
 
-  // Helper para renderizar tracks e atualizar highlight
   function refreshTracksView() {
     renderTracks(state.tracks);
     updateTrackHighlight();
+    updatePlaylistHeaderBackground();
   }
 
   function renderTracks(tracks) {
